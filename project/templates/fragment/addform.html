@@ -1,0 +1,16 @@
+<a href="#" onclick="fragment_form_init(); return false;">Back</a>
+{% if fragment_form.is_multipart %}
+<form action="/fragment/add/{{type}}" method="post" enctype="multipart/form-data">
+{% else %}
+<form action="/fragment/add/{{type}}" method="post">
+{% endif %}
+{% csrf_token %}
+{% block form %}
+{% endblock %}
+<input type="submit" name="Add" />
+</form>
+<script type="text/javascript">
+
+$('form').submit(function() {$('#fragment_form').html(fragment_form_loader)});
+
+</script>

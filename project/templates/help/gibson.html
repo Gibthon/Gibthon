@@ -1,0 +1,236 @@
+{% extends "help/base.html" %}
+
+{% block js-include %}
+<script type="text/javascript" src="{{ MEDIA_URL }}/js/jquery.slideView.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+	<h2>Gibson Assembly</h2>
+	<p>Gibson Assembly, as described by <a href="http://www.ncbi.nlm.nih.gov/pubmed/19363495">Daniel Gibson in Nature, 2009</a>, 
+	allows you to create large constructs of DNA from an arbitrary number of fragments in one step without scarring.</p>
+	<p>Gibson Assembly assumes that there is an overlap between adjacent strands of DNA. This is of course not normally
+	the case and so an initial stage of extension must be performed to create this region of homology. The primers for this
+	is what this site will help you design</p>
+	<p>For a slightly more rigorous explanation, have a look at <a href="http://www.synbio.org.uk/dna-assembly/guidetogibsonassembly.html">this</a>
+	page on <a href="http://www.synbio.org.uk/">synbio.org.uk</a></p>
+</div>
+<div class="content" id="tabs">
+	<ul>
+		<li><a href="#extension">Extension</a></li>
+		<li><a href="#assembly">Assembly</a></li>
+		<li><a href="#protocol">Protocol</a></li>
+	</ul>
+	<div id="extension">
+		<div class="ui-state-highlight ui-corner-all" style="padding:5px; margin:7px;">
+			Design of primers is covered in more detail in <a href="/help/primer/">this section</a>
+		</div>
+		<p>It is most likely that your DNA will not already overlap, so you'll need to add the overlap yourself.
+		A simple PCR with a primer comprised of two bits of DNA - one from the target DNA (the annealing portion)
+		and one from the adjacent DNA (the flappy end).</p>
+		<p>This means, to join two strands of DNA (A and B) with an overlap of 40, A will need to be extended as follows</p>
+		<ol>
+			<li>
+				<strong>Primer for top strand of A:</strong> Comprises the complement of the last 20 bp of the top strand of A,
+				and the complement of the first 20 bp of the top strand of B, all reversed.
+			</li>
+			<li>
+				<strong>Primer for bottom strand of A:</strong> Comprises the last 20 bp of the top strand of B, and the 
+				first 20 bp of the top strand of A.
+			</li>
+		</ol>
+		<p>These are all written and read 5' to 3', and the primers for B are more or less the reverse complement of the primers for A.</p>
+		<p>This is better explained with an example, using an overlap of 8</p>
+		<div style="text-align:center">
+			<pre class="dna_demo">
+Strand A: 5' ATGGTACCGGA 3'     <span style="color:red;">Strand B: 5' GGTACCAGTTC 3'</span>
+          3' TACCATGGCCT 5'               <span style="color:red;">3' CCATGGTCAAG 5'
+			</pre>
+			<pre class="dna_demo">
+           3' <span style="color:gray">GCCT</span><span style="color:darkred;">CCAT</span> 5'
+    5' ATGGTACCGGA 3'    
+    3' TACCATGGCCT 5'    
+5' <span style="color:darkred;">GTTC</span><span style="color:gray">ATGG</span> 3'           
+</pre>
+			<pre class="dna_demo">
+Strand A: Top:    5' <span style="color:darkred;">TACC</span><span style="color:gray">GCCT</span> 3'
+          Bottom: 5' <span style="color:darkred;">GTTC</span><span style="color:gray">ATGG</span> 3'
+
+Strand B: Top:    5' <span style="color:gray;">CGGA</span><span style="color:darkred">GGTA</span> 3'
+          Bottom: 5' <span style="color:gray;">CCAT</span><span style="color:darkred">GAAC</span> 3'
+			</pre>
+		</div>
+		<p>It is likely that you will be using DNA that is already in a vector of some sorts - the procedure is exactly the same as the diagrams below show:</p>
+		<div id="ext_demo_wrapper" style="height:300px;">
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame1.png" /></div>
+				<p><strong><em>(1)</em> PCR cycle 1: melting</strong></p>
+				<p>A single strand of the vector containing RFPm</p>
+			</div>
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame2.png" /></div>
+				<p><strong><em>(2)</em> PCR cycle 1: annealing</strong></p>
+				<p>One of the Gibson primers attaches by the annealing portion to the RFP. The flappy end does nothing.</p>
+			</div>
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame3.png" /></div>
+				<p><strong><em>(3)</em> PCR cycle 1: extension</strong></p>
+				<p>The primer is extended around the full vector.</p>
+			</div>
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame4.png" /></div>
+				<p><strong><em>(4)</em> PCR cycle 2: melting</strong></p>
+				<p>We now have a linear single strand of DNA with one extension.</p>
+			</div>
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame5.png" /></div>
+				<p><strong><em>(5)</em> PCR cycle 2: annealing</strong></p>
+				<p>The other Gibson primer attaches by the annealing portion to the other end of the RFP. The flappy end does nothing.</p>
+			</div>
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame6.png" /></div>
+				<p><strong><em>(6)</em> PCR cycle 2: extension</strong></p>
+				<p>The primer is extended to the end of the RFP plus the short extension for the overlap.</p>
+			</div>
+			<div class="ext_demo">
+				<div><img src="{{ MEDIA_URL }}/images/gibsonpcr/frame7.png" /></div>
+				<p><strong><em>(7)</em> All further PCR cycles</strong></p>
+				<p>PCR now continues with the Gibson primers acting as normal primers. Both the annealing portions and flappy ends anneal to the extended DNA.</p>
+			</div>
+		</div>
+		<div style="text-align:center;">
+			<button id="ext_demo_first" style="width:75px;">First</button><button id="ext_demo_prev" style="width:75px;">Prev</button><button id="ext_demo_next" style="width:75px;">Next</button><button id="ext_demo_last" style="width:75px;">Last</button>
+		</div>
+	</div>
+	<div id="assembly">
+		<p>The principle at one join is as follows, with the two strands in black and red, and enzyme action in blue:</p>
+		<div id="dna_demo_wrapper" style="height:180px;">
+			<div class="dna_demo">
+				<pre class="dna_demo dna_demo_h">
+5'...ATCGAGGCTGTTAGGAGTATTACGTATTCG<span style="color:red;">AGGATTCGAGC 3'</span>                      
+3'...TAGCTCCGACAATCCTCATAATGCATAAGC<span style="color:red;">TCCTAAGCTCG 5'</span>                      
+
+                      5' TACGTATTCG<span style="color:red;">AGGATTCGAGCAGTCGATCAGGATTCGATTC...3'</span>
+                      3' ATGCATAAGC<span style="color:red;">TCCTAAGCTCGTCAGCTAGTCCTAAGCTAAG...5'</span></pre>
+				<p>Stage 1: two DNA strands with a 40bp overlap (shown here as 20bp)</p>
+			</div>
+			<div class="dna_demo">
+				<pre class="dna_demo dna_demo_h">
+5'...ATCGAGGCTGTTAGGAGTATTACGTATTCG<span style="color:red;">AGGATTCGAGC 3'</span>                      
+3'...TAGCTCC 5' <span style="color:blue"><-- exonuclease</span>                                        
+                                        <span style="color:blue">exonuclease --></span> <span style="color:red">5' TCGATTC...3'</span>
+                      3' ATGCATAAGC<span style="color:red">TCCTAAGCTCGTCAGCTAGTCCTAAGCTAAG...5'</span></pre>
+				<p>Stage 2: As the sample is heated to 50&deg;C, an exonuclease chews back 5' to 3'</p>
+			</div>
+			<div class="dna_demo">
+				<pre class="dna_demo dna_demo_h">
+				                          
+                                               <span style="color:blue">polymerase</span>              
+5'...ATCGAGGCTGTTAGGAGTATTACGTATTCG<span style="color:red;">AGGATTCGAGC 3'</span> <span style="color:blue">--></span>   <span style="color:red">5' TCGATTC...3'</span>
+3'...TAGCTCC 5'   <span style="color:blue"><--</span> 3' ATGCATAAGC<span style="color:red">TCCTAAGCTCGTCAGCTAGTCCTAAGCTAAG...5'</span>
+              <span style="color:blue">polymerase</span>                                               
+</pre>
+				<p>Stage 3: At 50&deg;C, the sticky ends anneal, and a polymerase begins repairing the gap 3' to 5'</p>
+			</div>
+			<div class="dna_demo">
+				<pre class="dna_demo dna_demo_h">
+                                                        <span style="color:blue">ligase</span>         
+5'...ATCGAGGCTGTTAGGAGTATTACGTATTCG<span style="color:red;">AGGATTCGAGCAGTCGATCAGGA<span style="color:blue">TT</span>CGATTC...3'</span>
+3'...TAGCTC<span style="color:blue">CG</span>ACAATCCTCATAATGCATAAGC<span style="color:red;">TCCTAAGCTCGTCAGCTAGTCCTAAGCTAAG...5'</span>
+         <span style="color:blue">ligase</span>                                                        
+</pre>
+				<p>Stage 4: Finally, a ligase repairs the backbone and the seamless join is complete</p>
+			</div>
+		</div>
+		<div style="clear:both;"></div>
+		<div style="text-align:center;">
+			<button id="dna_demo_first" style="width:75px;">First</button><button id="dna_demo_prev" style="width:75px;">Prev</button><button id="dna_demo_next" style="width:75px;">Next</button><button id="dna_demo_last" style="width:75px;">Last</button>
+		</div>
+	</div>
+	<div id="protocol">
+		<p>Both of these protocols were found to work well by the
+		<a href="http://2010.igem.org/Team:Cambridge/Gibson/Protocol">2010 Cambridge iGEM team</a>.</p>
+		<div id="assembly-protocol-wrapper" style="width:45%; float:right;">
+			<h4>Assembly</h4>
+			<p>For assembly, the following was found to be highly reliable</p>
+			<ol>
+				<li>Prepare the Assembly Mix on ice</li>
+				<li>Incubate for one hour at 50&deg;C</li>
+				<li>Optional gel purification</li>
+				<li>Transform</li>
+			</ol>
+			<div class="ui-widget-content ui-corner-all" style="margin-bottom:10px;">
+				<table class="protocol">
+					<tr><th>Assembly Mix</th><th>Volume (&mu;l)</th></tr>
+					<tr><td>Gibson Master Mix</td><td>15</td></tr>
+					<tr><td>Total DNA</td><td>5</td></tr>
+					<tr><th>Total</th><td>20</td></tr>
+				</table>
+				<p style="font-size:0.8em;">For instance, if you are joining 4 bits of DNA you would use about 1.25&mu;l of each.
+				There is a limit at which point the concentrations and thus yield becomes unhelpfully low,
+				but we have not found it yet.</p>
+			</div>
+			<div class="ui-widget-content ui-corner-all" style="margin-bottom:10px;">
+				<table class="protocol">
+					<tr><th>Gibson Master Mix</th><th>Volume (&mu;l)</th></tr>
+					 <tr><td>Taq ligase (40u/µl)</td><td>50</td></tr>
+					<tr><td>5x isothermal buffer</td><td>100</td></tr>
+					<tr><td>T5 exonuclease (1u/µl)</td><td>2</td></tr>
+					<tr><td>Phusion polymerase (2u/µl)</td><td>6.25</td></tr>
+					<tr><td>Nuclease-free water</td><td>216.75 </td></tr>
+					<tr><th>Total</th><td>375</td></tr>
+				</table>
+				<p style="font-size:0.8em;">Whilst the mixture can be refrozen, for best performance you
+				should aliquot it into 25x15&mu;l.</p>
+			</div>
+			<div class="ui-widget-content ui-corner-all" style="margin-bottom:10px;">
+				<table class="protocol">
+					<tr><th>5x isothermal buffer</th><th>Volume (µl)</th></tr>
+					<tr><td>25% PEG-8000</td><td>0.75g</td></tr>
+					<tr><td>500 mM Tris-HCl pH 7.5</td><td>1500</td></tr>
+					<tr><td>50mM MgCl<sub>2</sub></td><td>75</td></tr>
+					<tr><td>50mM DTT</td><td>150</td></tr>
+					<tr><td>1mM dATP</td><td>30</td></tr>
+					<tr><td>1mM dTTP</td><td>30</td></tr>
+					<tr><td>1mM dCTP</td><td>30</td></tr>
+					<tr><td>1mM dGTP</td><td>30</td></tr>
+					<tr><td>5mM NAD</td><td>300</td></tr>
+					<tr><td>Nuclease-free water</td><td>...</td></tr>
+					<tr><th>Total</th><td>3000</td></tr>
+				</table>
+				<p style="font-size:0.8em;">Use nuclease-free water to make up to 3000&mu;l. In this case,
+				very little water is needed as the volume is 2145&mu;l + 0.75g.</p>
+			</div>
+		</div>
+		<div id="extension-protocol-wrapper" style="width:45%; float:left;">
+			<h4>Extension</h4>
+			<p>In time, the protocol for extension will be provided in detail by Gibthon;
+			in the mean time here is a template from which to work.</p>
+			<p>Note that T<sub>m</sub> for the primer here refers to the annealing portion of the primer.</p>
+			<div class="ui-widget-content ui-corner-all" style="margin-bottom:10px;">
+				<table class="protocol">
+					<tr><th></th><th>Temperature</th><th>Duration</th></tr>
+					<tr><td>Initial Melting</td><td>98&deg;C</td><td>30s</td></tr>
+					<tr><th colspan="3">Begin cycle: Repeat ~30 times</th></tr>
+					<tr><td>Melting</td><td>98&deg;C</td><td>10s</td></tr>
+					<tr><td>Annealing</td><td>T<sub>m</sub>&deg;C</td><td>15s</td></tr>
+					<tr><td>Elongation</td><td>72&deg;C</td><td>45s/kbp DNA</td></tr>
+					<tr><th colspan="3">End cycle</th></tr>
+					<tr><td>Final elongation</td><td>72&deg;C</td><td>7m30s</td></tr>
+					<tr><td>Final hold</td><td>4&deg;C</td><td>&#8734;</td></tr>
+				</table>
+				<p></p>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block js %}
+$(document).ready(function () {
+	var stop = false;
+	$('#tabs').tabs();
+	$('#ext_demo_wrapper').slideView();
+	$('#dna_demo_wrapper').slideView();
+});
+{% endblock %}

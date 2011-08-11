@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/datatable.css" />
+{% endblock %}
+
+
+{% block js-include %}
+<script src="{{ MEDIA_URL }}/js/jquery.min.js" type="text/javascript"></script>
+<script src="{{ MEDIA_URL }}/js/jquery-ui.min.js" type="text/javascript"></script>
+<script src="{{ MEDIA_URL }}/js/jquery.dataTables.min.js" type="text/javascript"></script>
+<script src="{{ MEDIA_URL }}/js/ajax.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block menu %}
+|
+<button id="addc">Add new Construct</button>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+
+<h3>Construct Library</h3>
+<div style="padding:10px;">
+	<table id="construct_table">
+		<thead>
+			<tr><th>Name</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			{% for construct in construct_list %}
+				<tr><td><a href="{{ construct.id }}/{{ construct.name }}/">{{ construct.name }}</a></td><td>{{ construct.description|truncatewords:10 }}</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div id="construct_add">
+	<form action="add" method="post">
+		{% csrf_token %}
+		{% include "gibson/constructform.html" %}
+	</form>
+	<div style="float:right; padding-right:10px;"><button id="add">Add</button></div>
+</div>
+</div>
+{% endblock %}
+
+
+{% block js %}
+
+$(document).ready(function() {
+	$('button[id="add"]')
+		.click(function(event){
+			$.post('add', $('form[action^="add"]').serialize(), function(url){
+				window.location.href = url;
+			});
+		})
+		.button({
+			icons:{primary:'ui-icon-plusthick'}
+		});
+	$('button[id="addc"]')
+		.click(function(event){
+			$('#construct_add').dialog('open');
+		})
+		.button({
+			icons:{primary:'ui-icon-plusthick'}
+		});
+	$('#construct_add').dialog({
+		autoOpen:false,
+		resizable:false,
+		modal:true,
+		title:'Add new Construct',
+		width:400
+	});
+	$('#construct_table').dataTable({
+		bAutoWidth: false,
+		bJQueryUI: true,
+		aoColumns: [
+			{
+				sWidth:"200px"
+			},
+			{
+				sWidth:"574px"
+			}
+		]
+	});
+});
+{% endblock %}

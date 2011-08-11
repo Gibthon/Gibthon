@@ -1,0 +1,34 @@
+table {
+	margin-left:auto;
+	margin-right:auto;
+}
+
+td.errorcell {
+	background-color:#f99;
+}
+
+td {
+	background:#f4f4f4;
+	padding:5px;
+}
+
+td.icon {
+	width:20px;
+}
+
+h4 {
+	margin:4px;
+	padding-bottom:4px;
+}
+
+.ui-state-default td{
+	background-color:#fff;
+}
+
+input {
+	width:90px;
+}
+
+a.abutton {
+	text-decoration:none;
+}
