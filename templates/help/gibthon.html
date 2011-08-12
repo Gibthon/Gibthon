@@ -1,0 +1,158 @@
+{% extends "help/base.html" %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+<h2>Gibthon Construct Designer</h2>
+<p>Please note that some of the features described here may not yet be fully implemented</p>
+</div>
+<div class="content" id="tabs">
+	<ul>
+		<li><a href="#fragments">Fragments</a></li>
+		<li><a href="#designer">Construct Designer</a></li>
+		<li><a href="#settings">Settings</a></li>
+		<li><a href="#primers">Primers</a></li>
+	</ul>
+	<div id="fragments">
+		<p>Before you can start to put together a construct, you must first collect a library of parts.
+		In the Gibthon Construct Designer, these are known as 'Fragments'.</p>
+		<p>These are all stored within the GCD, to speed up access and improve reliability. Currently
+		three data sources are supported:</p>
+		<table style="width:100%;" class="protocol">
+			<tr>
+				<th style="width:10%;">Name</th>
+				<th style="width:30%;">Registry of Standard Parts</th>
+				<th style="width:30%;">Nucleotide Database</th>
+				<th style="width:30%;">Upload</th>
+			</tr>
+			<tr>
+				<td>Location</td>
+				<td><a href="http://partsregistry.org/Main_Page">partsregistry.org</a></td>
+				<td><a href="http://www.ncbi.nlm.nih.gov/nuccore">www.ncbi.nlm.nih.gov/nuccore</a></td>
+				<td>Your hard drive</td>
+			</tr>
+			<tr>
+				<td>Description</td>
+				<td>The Registry of Standard Biological Parts has been developed as a repository for
+				the parts generated and used by <a href="http://ung.igem.org/">iGEM</a>.</td>
+				<td>The Nucleotide Database is a collection of sequences run by the <a href="http://www.ncbi.nlm.nih.gov/">NCBI</a></td>
+				<td>Genbank format files that you have created yourself (eg from <a href="http://biologylabs.utah.edu/jorgensen/wayned/ape/">ApE</a></td>
+			</tr>
+			<tr>
+				<td>Identifier</td>
+				<td>Part name (eg BBa_K190015 or pSB1C3)</td>
+				<td>Locus (eg HD065425)</td>
+				<td>Genbank Locus</td>
+			</tr>
+		</table>
+		<p>Further data sources will be added in the future</p>
+		<p>Once you have added your fragments, you will be able to add a brief description
+		and delete them.</p>
+	</div>
+	<div id="designer">
+		<p>Now you have amassed a library of parts, you can start to design constructs.</p>
+		<p>In your <a href="/gibthon/">Construct Library</a>, add a new construct or open an existing one.</p>
+		<p>When you open a construct, you are presented with four main areas:</p>
+		<table style="width:100%;" class="protocol">
+			<tr>
+				<th style="width:50%;">
+					Info
+				</th>
+				<th style="width:50%;">
+					Settings
+				</th>
+			</tr>
+			<tr>
+				<td>
+					<p>Here you can view the name and description of the construct. To edit this information,
+					just click the edit button.</p>
+				</td>
+				<td>
+					<p>Here you can view the settings associated with this construct. To edit them, click the edit
+					button.</p>
+					<p>More info on what the settings do is in the next tab</p>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					Fragments
+				</th>
+				<th>
+					Summary
+				</th>
+			</tr>
+			<tr>
+				<td>
+					<p>This is where you will do they bulk of your editing. Click on a fragment to expand it.
+					You may add, remove, browse and reorder fragments. From each fragment, you may choose a
+					start and end feature that you wish to extract.</p>
+				</td>
+				<td>
+					<p>This area contains a summary of your construct so far</p>
+				</td>
+			</tr>
+		</table>
+		<p></p>
+		<p>Once you have designed your construct, you may save and download it in GenBank format from the menubar at the top.</p>
+		<p>To generate the primers, just click process on the menubar at the top</p>
+	</div>
+	<div id="settings">
+		<table class="protocol">
+			<tr>
+				<th style="width:30%;">Setting</th>
+				<th style="width:70%;">Description</th>
+				<th style="width:10%;">Defualt</th>
+			</tr>
+			<tr>
+				<td>Mg<sup>2+</sup> concentration</td>
+				<td>Magnesium salt concentration for use in priming calculations.</td>
+				<td>1 M</td>
+			</tr>
+			<tr>
+				<td>Na<sup>+</sup> concentration</td>
+				<td>Sodium salt concentration for use in priming calculations.</td>
+				<td>0 M</td>
+			</tr>
+			<tr>
+				<td>Secondary Structure Safety Margin</td>
+				<td>Priming calculations will be done at this value above the calculated melting temperature.</td>
+				<td>3&deg;C</td>
+			</tr>
+			<tr>
+				<td>Target Annealing Temperature</td>
+				<td>Target T<sub>m</sub> for annealing portion of primer. Set to zero to ignore.</td>
+				<td>50&deg;C</td>
+			</tr>
+			<tr>
+				<td>Target Primer Annealing Temperature</td>
+				<td>Target T<sub>m</sub> for whole primer. Set to zero to ignore.</td>
+				<td>60&deg;C</td>
+			</tr>
+			<tr>
+				<td>Minimum Overlap</td>
+				<td>Initial length of primer = twice minimum overlap.</td>
+				<td>20 bp</td>
+			</tr>
+		</table>
+		<p></p>
+		<p>More settings will be added as they are required</p>
+	</div>
+	<div id="primers">
+		<p>Once they are generated, selecting 'View Primers' will allow you to see your primers in
+		more detail. Any warnings generated from their design can be seen here. These warnings fall into three 
+		categories</p>
+		<ul>
+			<li>T<sub>m</sub> warning: the annealing temperature of either the annealing portion or the whole primer 
+			is less than the target</li>
+			<li>Self prime warning: the primer could potentially prime to itself on the 3' end</li>
+			<li>Misprime warning: the primer could potentially prime elsewhere on the fragment</li>
+		</ul>
+		
+	</div>
+</div>
+{% endblock %}
+
+{% block js %}
+$(document).ready(function() {
+	$('#tabs').tabs();
+});
+{% endblock %}

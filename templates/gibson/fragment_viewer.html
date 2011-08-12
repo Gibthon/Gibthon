@@ -1,0 +1,17 @@
+<div style="font-family:monospace; font-size:1.2em; margin-left:30px;">
+{% for line in fragment.pretty %}
+	<div style="float:left; width:50px;">
+	{{ line.number }}
+	</div>
+	<div style="float:left;">
+	<span class="top_strand">{{ line.seq }}</span><br />
+	<span style="color:#aaaaaa; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ line.rseq }}</span>
+	{% for feature in line.features %}
+		<br /><span style="color:red; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.block|safe }}</span>
+		<br /><span style="user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.type|safe }}</span>
+	{% endfor %}
+	<div style="height:10px;"></div>
+	</div>
+	<div style="clear:both;"></div>
+{% endfor %}
+</div>

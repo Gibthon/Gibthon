@@ -1,0 +1,116 @@
+@charset "UTF-8";
+
+body {
+	font: 100%/1.4 Verdana, Arial, Helvetica, sans-serif;
+	background: #fafafa;
+	margin: 0;
+	padding: 0;
+	color: #000;
+	outline:none;
+}
+
+a {
+	outline:none;
+}
+
+.container {
+	width: 982px;
+	margin: 10px auto; 
+}
+
+h1, h2, h3, h4, h5, h6, p {
+	margin-top: 0;
+	padding-right: 15px;
+	padding-left: 15px; 
+}
+
+.footer{
+    clear:both;
+    text-align:center;
+    font-size:0.7em;
+    padding:5px;
+    margin-bottom:25px;
+}
+
+.content{
+	width:790px;
+	float:right;
+	font-size:0.8em;
+	padding:5px;
+    margin-bottom:10px;
+}
+
+.menu {
+	width:170px;
+	font-size:0.8em;
+    padding-top:10px;
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.menu button {
+    margin-bottom:10px;
+    width:130px;
+}
+
+pre.dna_demo {
+	font-size:1.5em;
+}
+
+pre.dna_demo_h {
+    height:150px;
+    margin:0px;
+}
+
+div.dna_demo {
+    text-align:center;
+    display:none;
+}
+
+div.ext_demo {
+    text-align:center;
+    display:none;
+    height:320px;
+}
+
+div.ext_demo div {
+    line-height:18em;
+}
+
+div.ext_demo div img {
+    vertical-align:middle;
+}
+
+pre {
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+table { clear: both }
+
+table.protocol {
+    margin-left:auto;
+    margin-right:auto;
+}
+
+table.protocol td {
+    background:#eaeaea;
+    padding:3px;
+    vertical-align:text-top;
+}
+
+.css_right {
+	float:right;
+}
+
+textarea {
+	resize: none;
+}
+
+input.captcha {
+	width:30px;
+	height:20px;
+}

@@ -1,0 +1,25 @@
+<table id="fragment_table">
+	<thead>
+		<tr><th>Name</th><th>Description</th></tr>
+	</thead>
+	<tbody>
+		{% for fragment in fragment_list %}
+			<tr><td><a href="add/{{ fragment.id }}">{{ fragment.name }}</a></td><td>{{ fragment.description|truncatewords:7 }}</td></tr>
+		{% endfor %}
+	</tbody>
+</table>
+<script type="text/javascript">
+	$('#fragment_table').dataTable({
+		bAutoWidth: false,
+		bJQueryUI: true,
+		bLengthChange: false,
+		aoColumns: [
+			{
+				sWidth:"200px"
+			},
+			{
+				sWidth:"574px"
+			}
+		]
+	});
+</script>

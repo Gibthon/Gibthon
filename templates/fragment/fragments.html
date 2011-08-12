@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/datatable.css" />
+{% endblock %}
+
+
+{% block js-include %}
+<script src="{{ STATIC_URL }}/js/jquery.dataTables.min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block menu %}
+|
+<button id="fragment_form_open"></button>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+<h3>Fragment Library</h3>
+<div style="padding:10px;">
+	<table id="fragment_table">
+		<thead>
+			<tr><th>Name</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			{% for fragment in fragment_list %}
+				<tr><td><a href="{{ fragment.id }}/{{ fragment.name }}">{{ fragment.name }}</a></td><td>{{ fragment.description }}</td></tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+</div>
+{% endblock %}
+
+{% block dialog %}
+<div id='fragment_form'>
+</div>
+{% endblock %}
+
+
+{% block js %}
+var fragment_form_default =
+'<p class="woo">Select Source:</p>' +
+'<div style="text-align:center">' +
+'	<a class="add" href="add/BB" title="Parts Registry"><img src="{{ MEDIA_URL }}/images/fragment/BioBrick.png" alt="Parts Registry"/></a>' +
+'	<a class="add" href="add/NT" title="Nucleotide Database"><img src="{{ MEDIA_URL }}/images/fragment/Nucleotide.png" alt="Nucleotide Database" /></a>' +
+'	<a class="add" href="add/UL" title="Upload"><img src="{{ MEDIA_URL }}/images/fragment/Upload.jpg" alt="Upload" /></a>' +
+'</div>';
+var fragment_form_loader =
+'<div style="text-align:center"><img src="{{ MEDIA_URL }}/images/spinner.gif" alt="Loading" /></div>';
+var fragment_form_init = function() {
+	$('#fragment_form').html(fragment_form_default);
+	$('.add').click(function(event) {
+		event.preventDefault();
+		$('#fragment_form').load('add',{'type':this.href.split('/').pop()});
+	});
+};
+$(document).ready(function() {
+	fragment_form_init();
+	$('#fragment_table').dataTable({
+		bAutoWidth: false,
+		bJQueryUI: true,
+		aoColumns: [
+			{
+				sWidth:"200px"
+			},
+			{
+				sWidth:"574px"
+			}
+		]
+	});
+	$('#fragment_form').dialog({
+		autoOpen:false,
+		resizable:false,
+		modal:true,
+		title:"Add new Fragment",
+		close:function () {
+			fragment_form_init();
+		},
+		height:"200",
+		width:"400"
+	});
+	$('#fragment_form_open').button({
+		label:"Add new fragment",
+		icons:{primary:'ui-icon-plusthick'}
+	}).click(function () {
+		$('#fragment_form').dialog('open');
+	});
+});
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<style type="text/css">
+span.mol_error {
+	color:red;
+	font-size:0.8em;
+	margin-left:5px;
+}
+
+span.mol_warning {
+	color:orange;
+	font-size:0.8em;
+	margin-left:5px;
+}
+
+input.mol_error {
+	border-color:red;
+	background-color:pink;
+}
+</style>
+{% endblock %}
+
+{% block js %}
+$(document).ready(function () {
+	var checkFloat = function (fl) {
+		var re = /^[0-9]*\.?[0-9]+$/;
+		if (re.test(fl)) {
+			return parseFloat(fl);
+		} else {
+			return NaN;
+		}
+	}
+	var mol_go = function () {
+		$('span.mol_error').html('');
+		$('span.mol_warning').html('');
+		$('.mol_error').removeClass('mol_error');
+		$('.mol_warning').removeClass('mol_warning');
+		var v_o = parseFloat($('#mol_vol_order')[0].value);
+		var c_o = parseFloat($('#mol_con_order')[0].value);
+		var v = checkFloat($('#mol_vol')[0].value) / v_o;
+		if(isNaN(v)) {
+			$('#mol_vol').addClass('mol_error');
+		}
+		var c = checkFloat($('#mol_con')[0].value) / c_o;
+		if(isNaN(c)) {
+			$('#mol_con').addClass('mol_error');
+		}
+		if(!isNaN(checkFloat($('#mol_list')[0].value))){
+			var w = checkFloat($('#mol_list')[0].value);
+		} else {
+			if ($('#mol_name')[0].value != $('#mol_list')[0].value){
+				$('#mol_list_error').addClass('mol_error');
+				$('#mol_list_error').html('Not a valid molar weight/solute');
+			} else if ($('#mol_weight')[0].value == '') {
+				return true;
+			} else {
+				var w = parseFloat($('#mol_weight')[0].value);
+			}
+		}
+		if ($('.mol_error').length > 0){
+			return true;
+		}
+		var g = v*c*w;
+		v_u = (v < 1 ) ? (v*1000 < 1 ) ? " &mu;l" : " ml" : " l";
+		v = (v < 1) ? v*1000 : v;
+		v = (v < 1) ? v*1000 : v;
+		g_u = (g < 1 ) ? (g*1000 < 1 ) ? " &mu;g" : " mg" : " g";
+		g = (g < 1 ) ? g*1000 : g;
+		g = (g < 1 ) ? g*1000 : g;
+		$('#mol_sol_vol').html(g.toFixed(2) + g_u);
+		if (g < 10 && g_u == " &mu;g") {
+			$('#mol_sol_vol_warning').html('That\'s a bit low!');
+			$('#mol_sol_vol_warning').addClass('mol_warning');
+		}
+	}
+	$('#mol_list')
+		.autocomplete({
+			source:'get',
+			minLength:1,
+			focus: function( event, ui ) {
+				$('#mol_list').val( ui.item.label );
+				return false;
+			},
+			select: function( event, ui ) {
+				$('#mol_weight_disp').html( ui.item.weight + ' g/mol');
+				$('#mol_fullname').html( ui.item.fullname );
+				$('#mol_weight')[0].value = ui.item.weight;
+				$('#mol_name')[0].value = ui.item.value;
+				mol_go();
+			}
+		})
+		.change(function () {	
+			mol_go();
+		});
+	$('.mol_update').change(function () {
+		mol_go();
+	});
+});
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+<h2>Molarity Calculator</h2>
+<form>
+<h4>Select solution</h4>
+<p style="font-style:italic; font-size:0.8em;">Either type the name and select fromt the list or enter the molar weight in g/mol</p>
+<p><input type="text" id="mol_list" /><span class="mol_error" id="mol_list_error"></span></p>
+<p>Full name: <span id="mol_fullname" style="font-style:italic;"></span></p>
+<input type="hidden" id="mol_name" />
+<p>Molecular weight: <span id="mol_weight_disp" style="font-style:italic;"></span></p>
+<input type="hidden" id="mol_weight" />
+<p>I want to make
+	<input type="text" style="width:40px;" id="mol_vol" class="mol_update" value="10" />
+	<select id="mol_vol_order" class="mol_update">
+		<option value="1000" selected="true">ml</option>
+		<option value="1000000">&mu;l</option>
+	</select>
+	of solution at a concentration of
+	<input type="text" style="width:40px;" value="100" id="mol_con" class="mol_update" />
+	<select id="mol_con_order" class="mol_update">
+		<option value="1">M</option>
+		<option value="1000" selected="true">mM</option>
+		<option value="1000000">&mu;M</option>
+	</select>
+</p>
+<table class="protocol">
+	<tr>
+		<th style="width:100px;">Solute</th><td id="mol_sol_vol" style="width:100px;"></td><th style="font-weight:normal; width:100px;"><span class="mol_warning" id="mol_sol_vol_warning"></span></th>
+	</tr>
+</table>
+</form>
+<br /><br />
+<p>Can't see what you're looking for? <a href="mailto:bill@gibthon.org?subject=MolCal request">Email me</a> with your request!</p>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+<div style="width:100%; padding:10px; height:25px;" class="ui-widget-header ui-corner-top">
+	<div style="float:right;"><button id="settings">Edit</button></div>
+	Settings
+</div>
+<div id="settings" style="width:100%; padding:10px;" class="ui-widget-content ui-corner-bottom">
+	<table id="settings_table">
+		<tr>
+			<td style="width:170px;">Mg<sup>2+</sup> concentration:</td>
+			<td>{{ settings.mg_salt }} M</td>
+		</tr>
+		<tr>
+			<td>Na<sup>+</sup> concentration:</td>
+			<td>{{ settings.na_salt }} M</td>
+		</tr>
+		<tr>
+			<td>Secondary structure safety margin:</td>
+			<td>{{ settings.ss_safety }}&deg;C</td>
+		</tr>
+		<tr>
+			<td>Target annealing temperature:</td>
+			<td>{{ settings.min_anneal_tm }}&deg;C</td>
+		</tr>
+		<tr>
+			<td>Target primer annealing temperature:</td>
+			<td>{{ settings.min_primer_tm }}&deg;C</td>
+		</tr>
+		<tr>
+			<td>Minimum overlap:</td>
+			<td>{{ settings.min_overlap }} bp</td>
+		</tr>
+	</table>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	$('button#settings')
+		.button({
+			icons:{primary:'ui-icon-wrench'}
+		})
+		.click(function(event) {
+			$('div#settings-wrapper').load('settings/edit');
+		});
+});
+</script>

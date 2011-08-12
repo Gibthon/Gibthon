@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<style type="text/css">
+.feature {
+	border-top:2px solid red;
+}
+.primer {
+	border-bottom:2px solid blue;
+	background-color:PaleTurquoise;
+}
+td {
+	padding:2px;
+}
+table {
+	border-spacing:0;
+}
+
+button.primer_bottom, .primer_top {
+	margin:3px;
+}
+
+button.primer_top {
+	float:right;
+}
+
+div.fragment_name {
+	font-weight:bold;
+	text-align:center;
+	font-size:0.9em;
+}
+
+</style>
+{% endblock %}
+
+
+{% block js-include %}
+{% endblock %}
+
+{% block menu %}
+|
+<button id="download_primers">Download Primers (.csv)</button>
+|
+<button id="reset_offset">Reset Offsets</button>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+	<h3>Primers for {{ construct.name }}</h3>
+	<div>
+	{% for cf in construct.cf.all %}
+		<div style="float:left;">
+			<div style="width:150px;">
+				{% with cf.primer_top as primer %}
+				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</a>
+				{% endwith %}
+			</div>
+			<div style="clear:both"></div>
+			<div class="fragment_name" style="width:150px;">
+			{{ cf.fragment.name }}
+			</div>
+			<div style="width:150px;">
+				{% with cf.primer_bottom as primer %}
+				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</a>
+				{% endwith %}
+			</div>
+		</div>
+	{% endfor %}
+	</div>
+	<div style="height:10px; clear:both;"></div>
+</div>
+<div id="primer_info"></div>
+
+{% endblock %}
+
+{% block dialog %}
+
+<div id="primer_sequence"></div>
+
+<div id="wait">
+	<p>Loading...</p>
+</div>
+
+<div id="primer_offset_confirm"></div>
+
+<div id="process">
+	<p>Processing...</p>
+	<div id="process_progress" style="height:22px;"></div>
+</div>
+
+{% endblock %}
+
+
+{% block js %}
+function makeHttpObject() {
+  try {return new XMLHttpRequest();}
+  catch (error) {}
+  try {return new ActiveXObject("Msxml2.XMLHTTP");}
+  catch (error) {}
+  try {return new ActiveXObject("Microsoft.XMLHTTP");}
+  catch (error) {}
+
+  throw new Error("Could not create HTTP request object.");
+}
+$('document').ready(function () {
+	$('button#download_primers').button({
+		icons:{primary:'ui-icon-transferthick-e-w'}
+	}).click(function(event){
+		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
+	});
+	$('button#reset_offset').button({
+		icons:{primary:'ui-icon-refresh'}
+	}).click(function () {
+		$('#primer_offset_confirm').html('You are about to reset all of the primers to 0 offset.');
+		$('#primer_offset_confirm').dialog( "option", "buttons", { 
+			"Ok": function() {
+				$(this).dialog("close"); 
+				$('#process').dialog('open');
+				var h = makeHttpObject();
+				h.open('GET', 'reset', true)
+				h.onreadystatechange = function (){
+					p = parseInt(this.responseText.split(':').pop());
+					$('#process_progress').progressbar('value', p);
+					if (p==100){
+						window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'
+					}
+				}
+				h.send(null);
+			},
+			"Cancel": function() { 
+				$(this).dialog("close"); 
+			} 
+		});
+		$('#primer_offset_confirm').dialog('open');
+	});
+	$('.primer_info_wrapper').hide();
+	$('#process_progress').progressbar({ value: 0 });
+	$('#process').dialog({
+		autoOpen:false,
+		modal:true,
+		resizable:false,
+		title:'Please wait',
+		closeOnEscape:false,
+		draggable:false,
+		open: function(event, ui) {
+			$(".ui-dialog-titlebar-close").hide();
+		},
+		close: function(event, ui) {
+			$('#process_progress').progressbar('value', 0);
+		}
+	});
+	$('#primer_offset_confirm').dialog({
+		autoOpen:false,
+		width:"500",
+		modal:true,
+		resizable:false,
+		title:'Confirm offset',
+		closeOnEscape:false,
+		draggable:false,
+	});
+	$('#wait').dialog({
+		autoOpen:false,
+		modal:true,
+		resizable:false,
+		title:'Please wait',
+		closeOnEscape:false,
+		draggable:false,
+		open: function(event, ui) {
+			$(".ui-dialog-titlebar-close").hide();
+		},
+		close: function(event, ui) {
+			$('.ui-dialog-titlebar-close').show();
+		}
+	});
+	$('button.primer_button').click(function() {
+		$('#wait').dialog('open');
+		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
+			$('.primer_info_wrapper:hidden').show()
+			$('#wait').dialog('close');
+		});
+		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
+	});
+	$('button.primer_top').button({
+		icons:{primary:'ui-icon-circle-arrow-w'}
+	});
+	$('button.primer_bottom').button({
+		icons:{secondary:'ui-icon-circle-arrow-e'}
+	});
+	if ('{{ primer }}' != ''){
+		$('#wait').dialog('open');
+		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}', function() {
+			$('.primer_info_wrapper:hidden').show()
+			$('#wait').dialog('close');
+		});
+		$('.primer_info_wrapper').show();
+	}
+});
+	
+
+{% endblock %}

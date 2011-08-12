@@ -1,0 +1,10 @@
+<p><strong><label for="id_name">Name</strong>
+<p></label>{{ construct_form.name }}</p>
+<p><strong><label for="id_description">Description</strong></p>
+<p>{{ construct_form.description }}</p>
+<div id="shape" style="width:200px; margin-left:auto; margin-right:auto; text-align:center;">{{ construct_form.shape }}</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('#shape').buttonset();
+})
+</script>

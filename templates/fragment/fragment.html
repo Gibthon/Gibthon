@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block menu %}
+|
+<button id="download">Download</button>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+<div id="construct-wrapper" style="float:right; margin:10px; width:300px;">
+	<div class="ui-widget-header ui-corner-top">
+	<h4>Found in {{ fragment.construct_slave.count }} construct{{ fragment.construct_slave.count|pluralize }}</h4>
+	</div>
+	<div class="ui-widget-content ui-corner-bottom">
+		{% if fragment.construct_slave.all %}
+		<ul>
+			{% for construct in fragment.construct_slave.all %}
+				<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
+			{% endfor %}
+		</ul>
+		{% else %}
+		<p>Not found in any constructs yet</p>
+		{% endif %}
+	</div>
+</div>
+<div class="ui-widget-content ui-corner-top" style="margin:10px 10px 0px 10px; width:450px; padding-top:5px;">
+<h3>{{ fragment.description }}</h3>
+<h5>{{ fragment.origin }}</h5>
+</div>
+<div class="ui-widget-content ui-corner-bottom" style="border-top:none; margin:0px 10px; width:440px; padding:5px;">
+<p>Placeholder for notes</p>
+</div>
+<hr />
+<div style="font-family:monospace; font-size:1.2em; margin-left:30px;">
+{% for line in fragment.pretty %}
+	<div style="float:left; width:50px;">
+	{{ line.number }}
+	</div>
+	<div style="float:left;">
+	<span class="top_strand">{{ line.seq }}</span><br />
+	<span style="color:#aaaaaa; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ line.rseq }}</span>
+	{% for feature in line.features %}
+		<br /><span style="color:red; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.block|safe }}</span>
+		<br /><span style="user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.type|safe }}</span>
+	{% endfor %}
+	<div style="height:10px;"></div>
+	</div>
+	<div style="clear:both;"></div>
+{% endfor %}
+</div>
+</div>
+{% endblock %}
+
+{% block js %}
+$(document).ready(function() {
+	$('button#download')
+		.button({
+			icons:{primary:'ui-icon-link'}
+		})
+		.click(function() {
+			window.location.href = '{{ fragment.name }}.gb';
+		});
+});
+{% endblock %}
