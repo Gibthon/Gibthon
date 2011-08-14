@@ -1,5 +1,20 @@
 {% extends "fragment/addform.html" %}
 
 {% block form %}
-{{ fragment_form.as_p }}
+<table class="center">
+	{{ fragment_form.as_table }}
+</table>
 {% endblock %}
+
+{%block submitjs%}
+console.log('Submitting the form via AJAX...');
+$form = $(this);
+var data = {'database': $form.find('#id_database').val(),
+				'query': $form.find('#id_query').val(),
+				'csrfmiddlewaretoken': $form.find('input:first').val(),
+				} 
+console.log("$('#fragment_form').load('/fragment/search/NT', " + data + ");");
+$('#fragment_form').load('/fragment/search/NT', data);
+console.log("done, return false");
+return false;
+{%endblock%}

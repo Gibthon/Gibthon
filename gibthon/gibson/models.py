@@ -27,7 +27,7 @@
 # 3) Warning
 #	Applied to a primer when it is below optimal Tm, or has a mispriming
 #
-# And a cople of functions
+# And a couple of functions
 #
 # 1) hybrid_options
 #	Generates the command line for using hybrid/hybrid-ss

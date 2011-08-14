@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block css-include %}
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/datatable.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/datatable.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/fragment.css" />
 {% endblock %}
 
 
@@ -43,12 +44,30 @@
 var fragment_form_default =
 '<p class="woo">Select Source:</p>' +
 '<div style="text-align:center">' +
-'	<a class="add" href="add/BB" title="Parts Registry"><img src="{{ MEDIA_URL }}/images/fragment/BioBrick.png" alt="Parts Registry"/></a>' +
-'	<a class="add" href="add/NT" title="Nucleotide Database"><img src="{{ MEDIA_URL }}/images/fragment/Nucleotide.png" alt="Nucleotide Database" /></a>' +
-'	<a class="add" href="add/UL" title="Upload"><img src="{{ MEDIA_URL }}/images/fragment/Upload.jpg" alt="Upload" /></a>' +
+'<div class="center-pad">' +
+'	<a class="add" href="add/BB" title="Parts Registry">' +
+'		<div class="add-link">' +
+'			<img src="{{ MEDIA_URL }}/images/fragment/BioBrick.png" alt="Parts Registry"/>' + 
+'			<p>Import from partsregistry.org</p>' +
+'		</div>' +
+'	</a>' +
+'	<a class="add" href="add/NT" title="Nucleotide Database">' +
+'		<div class="add-link">' +
+'			<img src="{{ MEDIA_URL }}/images/fragment/Nucleotide.png" alt="Nucleotide Database" />' +
+'			<p>Search NCBI</p>' +
+'		</div>' +
+'	</a>' +
+'	<a class="add" href="add/UL" title="Upload">' +
+'		<div class="add-link">' +
+'			<img src="{{ MEDIA_URL }}/images/fragment/Upload.jpg" alt="Upload" />' +
+'			<p>Upload file</p>' +
+'		</div>' +
+'	</a>' +
+'	<div style="clear:both;"></div>' +
+'</div>' +
 '</div>';
 var fragment_form_loader =
-'<div style="text-align:center"><img src="{{ MEDIA_URL }}/images/spinner.gif" alt="Loading" /></div>';
+'<div style="text-align:center"><img src="{{ STATIC_URL }}/images/spinner.gif" alt="Loading" /></div>';
 var fragment_form_init = function() {
 	$('#fragment_form').html(fragment_form_default);
 	$('.add').click(function(event) {
@@ -78,8 +97,8 @@ $(document).ready(function() {
 		close:function () {
 			fragment_form_init();
 		},
-		height:"200",
-		width:"400"
+		height:"260",
+		width:"640"
 	});
 	$('#fragment_form_open').button({
 		label:"Add new fragment",
