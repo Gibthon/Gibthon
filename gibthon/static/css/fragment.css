@@ -4,6 +4,12 @@
 	display: inline-block;
 }
 
+.add img:hover
+{
+	opacity:0.6;
+	filter:alpha(opacity=60);
+}
+
 .add-link
 {
 	width: 10em;
