@@ -79,12 +79,13 @@ def add(request):
 	else:
 		raise Http404()
 
-entrez_databases = (	('gene','Gene'),
-											('genome','Genome'),
-											('nuccore','Core Nucleotide'),
-											('nucest','Expressed Sequence Tag (EST) Nucleotides'),
-											('nucgss','Genome Survey Sequence (GSS) Nucleotides'),
-										)
+entrez_databases = (	('nucleotide', 'All Nucleotide Databases'),
+							('nuccore','Core Nucleotide'),
+							('nucest','Expressed Sequence Tag (EST) Nucleotides'),
+							('nucgss','Genome Survey Sequence (GSS) Nucleotides'),
+							('gene','Gene'),
+							('genome','Genome'),
+						)
 
 class EntrezSearchForm(forms.Form):
 	database = forms.ChoiceField(choices=entrez_databases, label='Entrez Database')
@@ -137,20 +138,37 @@ def search(request, type):
 	return HttpResponseNotFound()
 
 @login_required
+def entrez_import(request):
+	if request.method == 'POST' and 'import' in request.POST and 'database' in request.POST:
+		ids = request.POST.getlist('import')
+		#TODO, check that we were handed back valid IDs
+		database = request.POST['database']
+		for id in ids:
+			handle = Entrez.efetch(db=database, id=id, rettype="gb")
+			records = SeqIO.parse(handle, 'gb')
+			for r in records:
+				if len(Gene.objects.filter(name=r.name, owner=request.user)) == 0:
+					Gene.add(r, 'NT', request.user)
+
+
+@login_required
 def add_submit(request, type):
 	if request.method == 'POST':
 		if type == "BB":
 			form = BBForm(request.POST)
 			if form.is_valid():
-				if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
-					Gene.add(form.cleaned_data['id'], type, request.user)
+				#if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
+				#	Gene.add(form.cleaned_data['id'], type, request.user)
+				print 'partsregistry import not implemented!'
 		elif type == "NT":
-			print "UNIMPLEMENTED: IMPORT FROM ENTREZ"
+			entrez_import(request)
 			return HttpResponseRedirect('/fragment')
 		elif type == "UL":
 			form = ULForm(request.POST, request.FILES)
 			if form.is_valid():
-				if len(Gene.objects.filter(name=form.cleaned_data['file'].name.split('.')[0], owner=request.user)) == 0:
-					Gene.add(form.cleaned_data['file'], type, request.user)
+				records = SeqIO.parse(form.cleaned_data['file'])
+				for record in records:
+					if len(Gene.objects.filter(name=record.name, owner=request.user)) == 0:
+						Gene.add(record, type, request.user)
 		return HttpResponseRedirect('/fragment')
 	return HttpResponseNotFound()

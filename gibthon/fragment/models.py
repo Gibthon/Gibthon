@@ -54,22 +54,10 @@ class Gene(models.Model):
 	def __unicode__(self):
 		return self.name
 	
-	def add(_data, _origin, _user):
-		if _origin == "BB":
-			gbf = urllib.urlretrieve('http://www.cambridgeigem.org/gbdownload/'+_data+'.gb')[0]
-		elif _origin == "NT":
-			handle = Entrez.esearch(db='nucleotide', term=_data)
-			record = Entrez.read(handle)
-			gbid = record['IdList'][0]
-			print gbid
-			handle = Entrez.efetch(db="nucleotide", id=gbid, rettype="gb")
-			gbf = handle.fp
-		elif _origin == "UL":
-			gbf = _data
-		record = SeqIO.read(gbf,'genbank')
-		g = Gene(owner=_user, name=record.name,description=record.description,sequence=record.seq, origin=_origin)
+	def add(_record, _origin, _user):
+		g = Gene(owner=_user, name=_record.name,description=_record.description,sequence=_record.seq, origin=_origin)
 		g.save()
-		for feature in record.features:
+		for feature in _record.features:
 			f = Feature.add(feature,g,_origin)
 		return g
 	add = staticmethod(add)

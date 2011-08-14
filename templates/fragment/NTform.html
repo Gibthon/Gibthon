@@ -14,7 +14,13 @@ var data = {'database': $form.find('#id_database').val(),
 				'csrfmiddlewaretoken': $form.find('input:first').val(),
 				} 
 console.log("$('#fragment_form').load('/fragment/search/NT', " + data + ");");
-$('#fragment_form').load('/fragment/search/NT', data);
+$('#fragment_form').load('/fragment/search/NT', data, function(){
+	var winHt = parseFloat($(window).height());
+	var props = {	'height': (0.9 * winHt) + 'px',
+					}
+	$('#fragment_form').css( props );
+	$('.ui-dialog').css('top', (0.02 * winHt) + 'px');
+});
 console.log("done, return false");
 return false;
 {%endblock%}
