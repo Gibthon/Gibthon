@@ -17,6 +17,7 @@ from localsettings import localsettings
 #	static_root (static file collection location) 
 #	media_root (media file location)
 #	media_url (media url)
+#	static_url (static url)
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -72,7 +73,7 @@ MEDIA_URL = localsettings.media_url
 
 STATIC_ROOT = localsettings.static_root
 
-STATIC_URL = '/static/'
+STATIC_URL = localsettings.static_url
 
 STATICFILES_DIRS = localsettings.static_dirs
 
