@@ -1,6 +1,8 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
 from django.contrib import admin
+from django.views.generic.simple import direct_to_template
+
 admin.autodiscover()
 
 
@@ -32,5 +34,7 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^captcha/', include('captcha.urls')),
+    (r'^robots.txt$', direct_to_template, {'template': 'robots.txt', 'mimetype':'text/plain'}),
+    (r'^sitemap.xml$', direct_to_template, {'template': 'sitemap.xml', 'mimetype':'text/xml'}),
 )
 
