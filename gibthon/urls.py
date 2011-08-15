@@ -20,7 +20,7 @@ toolpatterns = patterns('gibthon.views',
 	(r'^$', 'redirect_home'),
 	(r'^ligate/$', 'ligcal'),
 	(r'^ligcalc/$', 'ligate'),
-	(r'^molcalc/$', include('gibthon.molcal.urls')),
+	(r'^molcalc/', include('gibthon.molcal.urls')),
 	(r'^molcal/$', 'molcal'),
 )
 
