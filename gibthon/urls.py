@@ -32,5 +32,6 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^captcha/', include('captcha.urls')),
+    (r'^partsearch/', include('partsearch.urls')),
 )
 

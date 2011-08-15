@@ -122,6 +122,7 @@ INSTALLED_APPS = (
     'gibson',
     'molcal',
     'captcha',
+    'partsearch',
 )
 
 LOGIN_URL = '/user/login'
