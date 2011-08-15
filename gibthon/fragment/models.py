@@ -11,33 +11,6 @@ import urllib
 Entrez.email = 'entrez@gibthon.org'
 Entrez.tool = 'gibthon/biopython'
 
-class ListField(models.TextField):
-	"""
-	A field to store a list in a model
-	"""
-	__metaclass__ = models.SubfieldBase
-	
-	def __init__(self, *args, **kwargs):
-		self.token = kwargs.pop('token', ',')
-		super(ListField, self).__init__(*args, **kwargs)
-	
-	def to_python(self, value):
-		if not value: return
-		if isinstance(value, list):
-			return value
-		if not isinstance(value, str):
-			return value
-		return value.split(self.token)
-	
-	def get_db_prep_value(self, value):
-		if not value: return
-		if not (isinstance(value, list) or isinstance(value, tuple)):
-	  		value = [value,]
-		return self.token.join([unicode(s) for s in value])
-	
-	def value_to_string(self, obj):
-		value = self._get_val_from_obj(obj)
-		
 class SeqLine:
 	def __init__(self,_number,_seq):
 		self.number = _number
@@ -127,44 +100,51 @@ class Gene(models.Model):
 class Reference(models.Model):
 	"""Store a reference"""
 	gene = models.ForeignKey('Gene', related_name='references')
-	title = models.CharField(max_length=512)
-	authors = models.CharField(max_length=512)
-	journal = models.CharField(max_length=64)
+	title = models.CharField(max_length=1024)
+	authors = models.CharField(max_length=1024)
+	journal = models.CharField(max_length=1024)
 	medline_id = models.CharField(max_length=24, blank=True)
 	pubmed_id = models.CharField(max_length=24, blank=True)
 	
-	def add(_gene, _ref):
-		ref = Reference(	gene = _gene, 
-								title = _ref.title,
-								journal = _ref.journal )
-		if isinstance(_ref.authors, list):
-			ref.authors = [str(author) for author in _ref.authors]
-		else:
-			ref.authors = _ref.authors
-		
-		if hasattr(_ref, 'medline_id'):
-			ref.medline_id = _ref.medline_id
-		
-		if hasattr(_ref, 'pubmed_id'):
-			ref.pubmed_id = _ref.pubmed_id
-		
-		ref.save()
+	def add(_gene, _refs):
+		for r in _refs:
+			print "Adding Ref '%s': journal '%s'" % (r.title, r.journal)
+			ref = Reference(	gene = _gene, 
+									title = r.title,
+									journal = r.journal )
+			if isinstance(r.authors, list):
+				ref.authors = [str(author) for author in r.authors]
+			else:
+				ref.authors = r.authors
+			
+			if hasattr(r, 'medline_id'):
+				ref.medline_id = r.medline_id
+			
+			if hasattr(r, 'pubmed_id'):
+				ref.pubmed_id = r.pubmed_id
+			
+			ref.save()
 	add = staticmethod(add)
 
 class Annotation(models.Model):
 	gene = models.ForeignKey('Gene', related_name='annotations')
 	key = models.CharField(max_length=30)
-	value = ListField(max_length=1024, blank=True)
+	value = models.CharField(max_length=1024, blank=True)
 
 	def add(_gene, _key, _value):
 		"""add an annotation. Does not accept references"""
-		print "Adding annotation '%s': '%s'" % (_key, _value)
 		if _key.lower() == 'references':
-			for ref in _value:
-				Reference.add(_gene, ref)
+			Reference.add(_gene, _value)
 			return
-		a = Annotation(gene = _gene, key = _key, value = _value)
-		a.save()
+		if hasattr(_value, '__iter__'):
+			for v in _value:
+				print "Adding multi annotation '%s': '%s'" % (_key, v)
+				a = Annotation(gene= _gene, key=_key, value = str(v))
+				a.save()
+		else:
+			print "Adding annotation '%s': '%s'" % (_key, _value)
+			a = Annotation(gene = _gene, key = _key, value = str(_value))
+			a.save()
 	add = staticmethod(add)
 		
 class Feature(models.Model):
@@ -211,7 +191,7 @@ class Feature(models.Model):
 	
 class Qualifier(models.Model):
 	name = models.CharField(max_length=30)
-	data = models.CharField(max_length=150)
+	data = models.CharField(max_length=512)
 	feature = models.ForeignKey('Feature', related_name="qualifier")
 	
 	def __unicode__(self):
