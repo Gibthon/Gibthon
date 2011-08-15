@@ -172,3 +172,20 @@ def add_submit(request, type):
 						Gene.add(record, type, request.user)
 		return HttpResponseRedirect('/fragment')
 	return HttpResponseNotFound()
+	
+@login_required
+def delete(request):
+	if request.method == 'POST' and 'selected' in request.POST:
+		ids = request.POST.getlist('selected')
+		print "deleting %s" % ids
+		#remove the selected IDs from the database
+		vids = []
+		for id in ids:
+			try:
+				vids.append(int(id))
+			except ValueError:
+				pass #silently ignore the invalid ID
+		for id in vids:
+			Gene.remove(request.user, id)
+		return HttpResponseRedirect('/fragment')
+	return HttpResponseNotFound()

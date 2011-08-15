@@ -1,3 +1,20 @@
+.fragment-toolbar
+{
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	padding: .3em;
+}
+
+.fragment-left-buttons
+{
+	float: left;
+}
+.fragment-right-buttons
+{
+	float:right;
+}
+
 .add 
 {
 	margin: 0 0.4em;

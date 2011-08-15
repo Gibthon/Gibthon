@@ -1,5 +1,7 @@
 from django.db import models
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
+
 
 from Bio import SeqIO, Entrez
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
@@ -42,7 +44,7 @@ class Gene(models.Model):
 	owner = models.ForeignKey('auth.User')
 	name = models.CharField(max_length=100)
 	description = models.CharField(max_length=500)
-	sequence = models.CharField(max_length=50000)
+	sequence = models.TextField(max_length=50000)
 	ORIGIN_CHOICES = (
 		('NT', 'Nucleotide Database'),
 		('BB', 'BioBrick'),
@@ -63,6 +65,16 @@ class Gene(models.Model):
 			f = Feature.add(feature,g,_origin)
 		return g
 	add = staticmethod(add)
+	
+	def remove(_owner, _id):
+		try:
+			g = Gene.objects.get(owner=_owner, pk=_id)
+			Annotation.remove(g)
+			Feature.remove(g)
+			g.delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
 	
 	def gb(self):
 		g = SeqRecord(Seq(self.sequence,IUPAC.IUPACUnambiguousDNA()),id=self.name, name=self.name, description=self.description)
@@ -102,7 +114,7 @@ class Reference(models.Model):
 	gene = models.ForeignKey('Gene', related_name='references')
 	title = models.CharField(max_length=1024)
 	authors = models.CharField(max_length=1024)
-	journal = models.CharField(max_length=1024)
+	journal = models.CharField(max_length=512)
 	medline_id = models.CharField(max_length=24, blank=True)
 	pubmed_id = models.CharField(max_length=24, blank=True)
 	
@@ -110,8 +122,8 @@ class Reference(models.Model):
 		for r in _refs:
 			print "Adding Ref '%s': journal '%s'" % (r.title, r.journal)
 			ref = Reference(	gene = _gene, 
-									title = r.title,
-									journal = r.journal )
+									title = str(r.title),
+									journal = str(r.journal) )
 			if isinstance(r.authors, list):
 				ref.authors = [str(author) for author in r.authors]
 			else:
@@ -125,11 +137,19 @@ class Reference(models.Model):
 			
 			ref.save()
 	add = staticmethod(add)
+	
+	def remove(_gene):
+		"""remove all refs concerning _gene"""
+		try:
+			Reference.objects.filter(gene=_gene).delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
 
 class Annotation(models.Model):
 	gene = models.ForeignKey('Gene', related_name='annotations')
 	key = models.CharField(max_length=30)
-	value = models.CharField(max_length=1024, blank=True)
+	value = models.CharField(max_length=5120, blank=True)
 
 	def add(_gene, _key, _value):
 		"""add an annotation. Does not accept references"""
@@ -143,9 +163,19 @@ class Annotation(models.Model):
 				a.save()
 		else:
 			print "Adding annotation '%s': '%s'" % (_key, _value)
-			a = Annotation(gene = _gene, key = _key, value = str(_value))
+			a = Annotation(gene = _gene, key =str(_key), value = str(_value))
 			a.save()
 	add = staticmethod(add)
+	
+	def remove(_gene):
+		"""remove all annotations relating to gene"""
+		Reference.remove(_gene)
+		try:
+			obj = Annotation.objects.filter(gene=_gene)
+			obj.delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
 		
 class Feature(models.Model):
 	type = models.CharField(max_length=30)
@@ -171,6 +201,20 @@ class Feature(models.Model):
 			q.save()
 		return f
 	add = staticmethod(add)
+	
+	def remove(_gene):
+		"""remove all features of _gene"""
+		try:
+			feats = Feature.objects.filter(gene=_gene)
+			for f in feats:
+				try:
+					Qualifier.objects.filter(feature=f).delete()
+				except ObjectDoesNotExist:
+					pass
+			feats.delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
 	
 	def __unicode__(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'

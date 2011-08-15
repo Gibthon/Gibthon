@@ -6,6 +6,7 @@ urlpatterns = patterns('fragment',
 	(r'^(\d+)/.*\.gb$', 'views.download'),
 	(r'^(\d+)/.*$', 'views.fragment'),
 	(r'^add$', 'views.add'),
+	(r'^delete/$', 'views.delete'),
 	(r'^add/([A-Z]{2})$', 'views.add_submit'),
 	(r'^search/([A-Z]{2})$', 'views.search'),
 )
