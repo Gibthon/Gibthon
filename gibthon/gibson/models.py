@@ -259,9 +259,6 @@ class PrimerHalf(models.Model):
 	top = models.BooleanField()
 	length = models.PositiveSmallIntegerField()
 	
-	def len(self):
-		return len(str(self.seq()))
-		
 	def start(self):
 		if self.top ^ self.isflap():
 			return self.cfragment.end() - self.length
@@ -305,8 +302,8 @@ class PrimerHalf(models.Model):
 		return s
 	
 	def seq(self):
-		s = Seq(self.cfragment.sequence())
-		s = s[self.start()-1:self.end()]
+		s = Seq(self.cfragment.fragment.sequence)
+		s = s[self.start():self.end()]
 		if self.top: s = reverse_complement(s)
 		return s
 		
@@ -389,6 +386,9 @@ class Construct(models.Model):
 		for p in self.primer.all():
 			p.del_all()
 		n = self.cf.count()
+		for cf in self.cf.all():
+			cf.start_offset = 0
+			cf.end_offset = 0
 		for i,cf in enumerate(self.cf.all()):
 			cfu = self.cf.all()[(i+1)%n]
 			pt = Primer.objects.create(
@@ -405,8 +405,6 @@ class Construct(models.Model):
 					length = self.settings.min_overlap
 				)
 			)
-			pt.self_prime_check()
-			pt.misprime_check()
 			yield ':%d'%((((2*i)+1)*45.0)/n)
 			yield ' '*1024
 			cfd = self.cf.all()[(i-1)%n]
@@ -430,6 +428,8 @@ class Construct(models.Model):
 			if self.settings.min_primer_tm > 0:
 				pt.tm_len_primer(self.settings.min_primer_tm)
 				pb.tm_len_primer(self.settings.min_primer_tm)
+			pt.self_prime_check()
+			pt.misprime_check()
 			pb.self_prime_check()
 			pb.misprime_check()
 			yield ':%d'%((((2*i)+2)*45.0)/n)
