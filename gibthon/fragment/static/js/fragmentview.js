@@ -109,7 +109,7 @@ $.widget("ui.fragmentMeta", {
 		}
 		return ret + "</td></tr>";
 	},
-	_make_reference: function(ref):
+	_make_reference: function(ref)
 	{
 		
 	},
