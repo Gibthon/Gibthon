@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 from Bio import SeqIO, Entrez
-from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
+from Bio import SeqFeature
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
@@ -80,6 +80,22 @@ class Gene(models.Model):
 		g = SeqRecord(Seq(self.sequence,IUPAC.IUPACUnambiguousDNA()),id=self.name, name=self.name, description=self.description)
 		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.feature.all()]
 		return g.format('genbank')
+	
+	def to_seq_record(self):
+		"""Convert the Gene to a SeqRecord"""
+		#build a list of features
+		feats = [_f.to_seq_feature() for _f in self.features.all()]
+		#build a dictionary of annotations & refs
+		annot = {}
+		for a in self.annotations.all():
+			a.to_ann(annot)
+		annot['references'] = [r.to_ref() for r in self.references.all()]
+		
+		return SeqRecord(	seq = Seq(self.sequence, IUPAC.IUPACAmbiguousDNA()),
+								name = self.name,
+								description = self.description,
+								features = feats,
+								annotations = annot)		
 		
 	def pretty(self):
 		seg = 8
@@ -87,14 +103,14 @@ class Gene(models.Model):
 		s = [self.sequence[j:j+(segline*seg)] for j in range(0, len(self.sequence), segline*seg)]
 		i = range(1, len(self.sequence), segline*seg)
 		s = [SeqLine(ii,ss) for ss,ii in zip(s,i)]
-		for f in self.feature.all():
+		for f in self.features.all():
 			i = 0
 			while s[i].number < f.start - (seg*segline):
 				i += 1
 			j=i
 			while s[j].number < f.end - (seg*segline):
 				j += 1
-			q = f.qualifier.all()[0].data if f.qualifier.all() else ''
+			q = f.qualifiers.all()[0].data if f.qualifiers.all() else ''
 			if i==j:
 				s[i].features.append(LineFeature((f.start if f.start > 0 else 'start'),f.end,f.type,q))
 			else:
@@ -138,6 +154,15 @@ class Reference(models.Model):
 			ref.save()
 	add = staticmethod(add)
 	
+	def to_ref(self):
+		r = SeqFeature.Reference()
+		r.title = self.title
+		r.authors = self.authors
+		r.journal = self.journal
+		r.medline_id = self.medline_id
+		r.pubmed_id = self.pubmed_id
+		return r
+	
 	def remove(_gene):
 		"""remove all refs concerning _gene"""
 		try:
@@ -167,6 +192,10 @@ class Annotation(models.Model):
 			a.save()
 	add = staticmethod(add)
 	
+	def to_ann(self, d):
+		"""add the annotation to d"""
+		d[self.key] = self.value
+	
 	def remove(_gene):
 		"""remove all annotations relating to gene"""
 		Reference.remove(_gene)
@@ -186,7 +215,7 @@ class Feature(models.Model):
 		('r', 'Reverse'),
 	)
 	direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-	gene = models.ForeignKey('Gene', related_name="feature")
+	gene = models.ForeignKey('Gene', related_name="features")
 	
 	def add(feature, g, origin):
 		if (origin == "BB"):
@@ -216,30 +245,46 @@ class Feature(models.Model):
 			pass
 	remove = staticmethod(remove)
 	
+	def to_seq_feature(self):
+		quals = {}
+		for q in self.qualifiers.all():
+			quals[q.name] = q.data
+		s = None
+		if self.direction == 'f':
+			s = 1
+		elif self.direction == 'r':
+			s = -1
+		return SeqFeature.SeqFeature(	location = SeqFeature.FeatureLocation(self.start, self.end),
+												type = self.type,
+												strand = s,
+												qualifiers = quals) 
+	
 	def __unicode__(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'
 		if self.qualifier.all():
-			return self.qualifier.all()[0].data + pos
+			return self.qualifiers.all()[0].data + pos
 		else:
 			return self.type + pos
 	
 	def pretty(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'
 		if self.qualifier.all():
-			return self.qualifier.all()[0].data + pos
+			return self.qualifiers.all()[0].data + pos
 		else:
 			return self.type + pos
 		
 	def first(self):
-		return self.qualifier.all()[0]
+		return self.qualifiers.all()[0]
 	
 class Qualifier(models.Model):
 	name = models.CharField(max_length=30)
 	data = models.CharField(max_length=512)
-	feature = models.ForeignKey('Feature', related_name="qualifier")
+	feature = models.ForeignKey('Feature', related_name="qualifiers")
 	
 	def __unicode__(self):
 		return self.name
+	
+	
 
 
 class BBForm(forms.Form):

@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import *
 from django.shortcuts import render_to_response
 
+from Bio import SeqIO
+
 def get_fragment(user, fid):
 	try:
 		f = Gene.objects.get(pk=fid, owner=user)
@@ -49,7 +51,8 @@ def download(request, fid):
 	if f:
 		#response = HttpResponse(mimetype='chemical/seq-na-genbank')
 		response = HttpResponse(mimetype='text/plain')
-		response.write(f.gb())
+		record = f.to_seq_record()
+		SeqIO.write(record, response, 'genbank')
 		return response
 	else:
 		raise Http404()
