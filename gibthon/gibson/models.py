@@ -379,13 +379,17 @@ class Construct(models.Model):
 		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.features()]
 		return g.format('genbank')
 		
-	def process(self):
+	def process(self, reset=True):
+		# delete all existing primers
 		for p in self.primer.all():
 			p.del_all()
+		# used for returning progress
 		n = self.cf.count()
-		for cf in self.cf.all():
-			cf.start_offset = 0
-			cf.end_offset = 0
+		# reset offsets to zero
+		if reset:
+			for cf in self.cf.all():
+				cf.start_offset = 0
+				cf.end_offset = 0		
 		for i,cf in enumerate(self.cf.all()):
 			cfu = self.cf.all()[(i+1)%n]
 			pt = Primer.objects.create(
@@ -402,8 +406,6 @@ class Construct(models.Model):
 					length = self.settings.min_overlap
 				)
 			)
-			yield ':%d'%((((2*i)+1)*45.0)/n)
-			yield ' '*1024
 			cfd = self.cf.all()[(i-1)%n]
 			pb = Primer.objects.create(
 				name = self.name + '-' + cf.fragment.name + '-bottom',
@@ -427,6 +429,8 @@ class Construct(models.Model):
 				pb.tm_len_primer(self.settings.min_primer_tm)
 			pt.self_prime_check()
 			pt.misprime_check()
+			yield ':%d'%((((2*i)+1)*45.0)/n)
+			yield ' '*1024
 			pb.self_prime_check()
 			pb.misprime_check()
 			yield ':%d'%((((2*i)+2)*45.0)/n)

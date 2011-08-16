@@ -149,10 +149,10 @@ def primers(request, cid):
 
 @login_required
 @condition(etag_func=None)
-def process(request, cid):
+def process(request, cid, reset=True):
 	con = get_construct(request.user, cid)
 	if con:
-		resp = HttpResponse(con.process(), mimetype="text/plain")
+		resp = HttpResponse(con.process(reset), mimetype="text/plain")
 		return resp
 	else:
 		return HttpResponseNotFound()
@@ -333,7 +333,7 @@ def primer_offset(request, cid, pid):
 			else:
 				p.stick.cfragment.start_offset = offset
 			p.stick.cfragment.save()
-		return process(request, cid)		
+		return process(request, cid, False)		
 	else:
 		return HttpResponseNotFound()
 
@@ -342,10 +342,6 @@ def primer_offset(request, cid, pid):
 def primer_reset(request, cid):
 	con = get_construct(request.user, cid)
 	if request.method == 'GET' and con:
-		for cf in con.cf.all():
-			cf.start_offset = 0
-			cf.end_offset = 0
-			cf.save()
-		return process(request, cid)
+		return process(request, cid, True)
 	else:
 		return HttpResponseNotFound()
