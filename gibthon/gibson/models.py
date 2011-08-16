@@ -41,9 +41,6 @@ from Bio.SeqUtils.MeltingTemp import Tm_staluc
 from Bio.Seq import reverse_complement, Seq
 from django.conf import settings
 
-from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
-from django.utils.html import conditional_escape
 
 from Bio import SeqIO, Entrez
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
