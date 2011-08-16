@@ -8,6 +8,9 @@ from django.shortcuts import render_to_response
 
 from Bio import SeqIO
 
+genbank_mimetype = 'chemical/seq-na-genbank'
+#genbank_mimetype = 'text/plain'
+
 def get_fragment(user, fid):
 	try:
 		f = Gene.objects.get(pk=fid, owner=user)
@@ -49,13 +52,24 @@ def fragment(request, fid):
 def download(request, fid):
 	f = get_fragment(request.user, fid)
 	if f:
-		#response = HttpResponse(mimetype='chemical/seq-na-genbank')
-		response = HttpResponse(mimetype='text/plain')
+		response = HttpResponse(mimetype=genbank_mimetype)
 		record = f.to_seq_record()
 		SeqIO.write(record, response, 'genbank')
 		return response
 	else:
 		raise Http404()
+
+@login_required
+def download_multi(request):
+	"""download all the selected fragments in one file"""
+	if request.method == 'POST' and 'selected' in request.POST:
+		ids = request.POST.getlist('selected')
+		genes = Gene.objects.filter(id__in = ids)
+		records = [g.to_seq_record() for g in genes]
+		response = HttpResponse(mimetype=genbank_mimetype)
+		SeqIO.write(records, response, 'genbank')
+		return response
+	raise Http404()
 
 @login_required
 def add(request):

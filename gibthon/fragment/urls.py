@@ -4,6 +4,7 @@ from django.conf import settings
 urlpatterns = patterns('fragment',
 	(r'^$', 'views.fragments'),
 	(r'^(\d+)/.*\.gb$', 'views.download'),
+	(r'^download/$', 'views.download_multi'),
 	(r'^(\d+)/.*$', 'views.fragment'),
 	(r'^add$', 'views.add'),
 	(r'^delete/$', 'views.delete'),

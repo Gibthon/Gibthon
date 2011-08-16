@@ -22,6 +22,7 @@
 			<button id="fragment_form_open"></button>
 		</span>
 		<span class="fragment-right-buttons">
+			<button id="download_btn"></button>
 			<button id="delete_btn"></button>
 		</span>
 		<div style="clear:both;"></div>
@@ -126,9 +127,15 @@ var fragment_form_init = function() {
 
 var handle_updated_selection = function(event, data){
 	if( data['selected'] != 0 )
+	{
 		$('#delete_btn').button('enable');
+		$('#download_btn').button('enable');
+	}
 	else
+	{
 		$('#delete_btn').button('disable');
+		$('#download_btn').button('disable');
+	}
 }
 
 var show_delete_dialog = function(){
@@ -173,6 +180,16 @@ $(document).ready(function() {
 	}).click(function () {
 		$('#fragment_form').dialog('open');
 	});
+	
+	$('#download_btn').button({
+		label:"Download",
+		icons:{primary:'ui-icon-link'},
+		disabled: true,
+	}).click(function () {
+		$('#select_form')
+			.prop('action', 'download/')
+			.submit();
+	});	
 	
 	$('#delete_btn').button({
 		label:"Delete Selection",
