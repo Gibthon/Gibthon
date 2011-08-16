@@ -12,6 +12,7 @@ ERROR = -1
 
 class JsonResponse(HttpResponse):
 	def __init__(self, data, state = OK):
+		print "returning JSON: '%s'" % json.dumps([state, data]) 
 		HttpResponse.__init__(self, json.dumps([state, data]), mimetype='application/json')
 
 get_values = ['meta', 'seq', 'annotations', 'refs', 'feats']
@@ -23,7 +24,7 @@ def get(request, _id):
 		the_id = int(_id)
 	except ValueError:
 		raise Http404
-		
+	print "api.get(request, %i) method: '%s', GET: '%s'" % (the_id, request.method, request.GET)
 	#if request.is_ajax() and 'value' in request.GET:
 	if 'value' in request.GET:
 		value = request.GET['value'].lower()
@@ -37,6 +38,7 @@ def get(request, _id):
 		if value == 'meta':
 			data = {	'name': g.name,
 						'desc': g.description,
+						'origin': g.get_origin_display(),
 					 }
 		elif value == 'seq':
 			#return a section of the sequence

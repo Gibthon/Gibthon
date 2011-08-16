@@ -1,0 +1,50 @@
+.top-box
+{
+	margin:10px 10px 0px 10px; 
+	width:450px; 
+	padding-top:5px;
+}
+
+.bottom-box
+{
+	border-top:none; 
+	margin:0px 10px; 
+	width:440px;
+	padding:5px;
+}
+
+.info
+{
+	margin-left: 2em;
+}
+
+.tr
+{
+	background-color: ghostwhite;
+}
+
+.tr-alt
+{
+	background-color: lightblue;
+}
+
+#drop_down
+{
+	display: none;
+}
+
+#desc
+{
+	margin-bottom: .5em;
+}
+
+#origin
+{
+	font-style: italic;
+	margin-bottom: .2em;
+}
+
+#more_details
+{
+	cursor: pointer;
+}
