@@ -122,7 +122,7 @@ $('document').ready(function () {
 					p = parseInt(this.responseText.split(':').pop());
 					$('#process_progress').progressbar('value', p);
 					if (p==100){
-						window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'
+						window.location.reload();
 					}
 				}
 				h.send(null);

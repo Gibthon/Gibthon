@@ -275,7 +275,7 @@ class PrimerHalf(models.Model):
 		
 	def extend(self):
 		self.length += 1
-		if self.start() < self.cfragment.start_feature.start or self.end() > self.cfragment.end_feature.end:
+		if self.start() < (self.cfragment.start_feature.start - self.cfragment.start_offset) or self.end() > (self.cfragment.end_feature.end + self.cfragment.end_offset):
 			self.length -= 1
 			return False
 		else:
@@ -379,61 +379,66 @@ class Construct(models.Model):
 		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.features()]
 		return g.format('genbank')
 		
-	def process(self, reset=True):
-		# delete all existing primers
-		for p in self.primer.all():
-			p.del_all()
+	def process(self, reset=True, new=True):
+		if new:
+			# delete all existing primers
+			for p in self.primer.all():
+				p.del_all()
 		# used for returning progress
 		n = self.cf.count()
 		# reset offsets to zero
 		if reset:
 			for cf in self.cf.all():
 				cf.start_offset = 0
-				cf.end_offset = 0		
-		for i,cf in enumerate(self.cf.all()):
-			cfu = self.cf.all()[(i+1)%n]
-			pt = Primer.objects.create(
-				name = self.name + '-' + cf.fragment.name + '-top',
-				construct = self,
-				stick = PrimerHalf.objects.create(
-					cfragment = cf,
-					top = True,
-					length = self.settings.min_overlap
-				),
-				flap = PrimerHalf.objects.create(
-					cfragment = cfu,
-					top = True,
-					length = self.settings.min_overlap
+				cf.end_offset = 0
+				cf.save()
+		if new:
+			for i,cf in enumerate(self.cf.all()):
+				cfu = self.cf.all()[(i+1)%n]
+				pt = Primer.objects.create(
+					name = self.name + '-' + cf.fragment.name + '-top',
+					construct = self,
+					stick = PrimerHalf.objects.create(
+						cfragment = cf,
+						top = True,
+						length = self.settings.min_overlap
+					),
+					flap = PrimerHalf.objects.create(
+						cfragment = cfu,
+						top = True,
+						length = self.settings.min_overlap
+					)
 				)
-			)
-			cfd = self.cf.all()[(i-1)%n]
-			pb = Primer.objects.create(
-				name = self.name + '-' + cf.fragment.name + '-bottom',
-				construct = self,
-				stick = PrimerHalf.objects.create(
-					cfragment = cf,
-					top = False,
-					length = self.settings.min_overlap
-				),
-				flap = PrimerHalf.objects.create(
-					cfragment = cfd,
-					top = False,
-					length = self.settings.min_overlap
+				cfd = self.cf.all()[(i-1)%n]
+				pb = Primer.objects.create(
+					name = self.name + '-' + cf.fragment.name + '-bottom',
+					construct = self,
+					stick = PrimerHalf.objects.create(
+						cfragment = cf,
+						top = False,
+						length = self.settings.min_overlap
+					),
+					flap = PrimerHalf.objects.create(
+						cfragment = cfd,
+						top = False,
+						length = self.settings.min_overlap
+					)
 				)
-			)
+		else:
+			for p in self.primer.all():
+				p.stick.length = self.settings.min_overlap
+				p.flap.length = self.settings.min_overlap
+				p.save()
+		for i,p in enumerate(self.primer.all()):
 			if self.settings.min_anneal_tm > 0:
-				pt.tm_len_anneal(self.settings.min_anneal_tm)
-				pb.tm_len_anneal(self.settings.min_anneal_tm)
+				p.tm_len_anneal(self.settings.min_anneal_tm)
 			if self.settings.min_primer_tm > 0:
-				pt.tm_len_primer(self.settings.min_primer_tm)
-				pb.tm_len_primer(self.settings.min_primer_tm)
-			pt.self_prime_check()
-			pt.misprime_check()
-			yield ':%d'%((((2*i)+1)*45.0)/n)
+				p.tm_len_primer(self.settings.min_primer_tm)
+			p.self_prime_check()
+			yield ':%d'%(((2*i)+1)*(90.0/(4.0*n)))
 			yield ' '*1024
-			pb.self_prime_check()
-			pb.misprime_check()
-			yield ':%d'%((((2*i)+2)*45.0)/n)
+			p.misprime_check()
+			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
 		yield ':100'		
 
