@@ -198,36 +198,101 @@ $.widget("ui.fragmentSequence", {
 		this.$len = this.$el.find('#length');
 		this.$prog = this.$el.find('#progress');
 		this.$bar = this.$el.find('#progressbar').progressbar({value: 0,});
+		this.$barval = this.$el.find('.ui-progressbar-value');
 		this.$loader = this.$el.find('#loader');
 		this.$seq = this.$el.find('#seq_wrap');
 		this.len = 0;
 		this.prog = 0;
+		this._get_alphabet();	
 	},
-	_length: function(data) {
-		if(data[0] != 0)
-		{
-			console.log(data[1] + " while getting length");
-			return;
-		}
-		this.len = data[1];
-		this.$len.text(data[1]);
-		if(this.len > 1000) //if we should load progressively 
-		{
-			this.$loader.slideDown(100);
-		}
-		
+	_get_seq: function(){
+		var self = this;
+		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq', 'offset': this.prog}, function(data) {
+			if(data[0] != 0)
+			{
+				console.log(data[1] + " while getting seq");
+				return;
+			}
+			var olen = data[1].length;
+			var oprog = self.prog;
+			self.prog = self.prog + olen;
+			
+			if((self.prog) < self.len)
+			{
+				//we need to issue another request
+				self._get_seq();			
+			}
+			else
+			{
+				self.$loader.slideUp(100);
+			}
+			
+			added = 0;
+			while(added < olen)
+			{
+				self.$seq.append(self._make_block(data[1], oprog + added));
+				data[1] = data[1].slice(10);
+				added = added + 10;
+			}
+			
+			self.$prog.text(self.prog);
+			self.$bar.progressbar('value', parseInt((100 * self.prog) / self.len));
+		});
 	},
-	_seq_data: function(data)
-	{
-		if(data[0] != 0)
+	_get_alphabet: function(){
+		var self = this;
+		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'alpha',}, function(data) {
+			if(data[0] != 0)
+			{
+				console.log(data[1] + " while getting alphabet");
+				return;
+			}
+			self.alphabet = data[1];
+			self._get_len();
+		});
+	},
+	_get_len: function(){
+		var self = this;
+		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'len',}, function(data) {
+			if(data[0] != 0)
+			{
+				console.log(data[1] + " while getting length");
+				return;
+			}
+			self.len = data[1];
+			self.$len.text(data[1]);
+			if(self.len > 2000) //if we should load progressively 
+			{
+				self.$loader.slideDown(100);
+			}
+			self._get_seq();
+		});
+	},
+	_complement: function(string){
+		var ret = "";
+		for(i in string)
 		{
-			console.log(data[1] + " while getting seq");
-			return;
+			ret = ret + this.alphabet[string[i]];
 		}
-		//be lazy for now
-		this.$seq.append(data[1]);
-		this.prog = this.prog + data[1].length;
-		
+		return ret;
+	},
+	_make_block: function(sequence, start){
+		seq = sequence.substr(0,10);
+		cseq = this._complement(seq);
+		return '' +
+		'<div id="fe-content-' + start + '" class="fe-content-div">' +
+		'	<div id="fe-feattop-' + start + '" class="fe-features">' +
+		'	</div>' +
+		'	<div style="position:relative;">'  +
+		'		<div id="fe-htop-' + start + '" class="fe-hidden">' + seq + '</div>' +
+		'		<div id="fe-hbottom-' + start + '" class="fe-hidden">' + cseq + '</div>' +
+		'		<div id="fe-number-' + start + '" class="fe-label fe-number">' + start + '</div>' + 
+		'		<div id="fe-marker-' + start + '" class="fe-label fe-marker">|</div>' +
+		'		<div id="fe-top-' + start + '" class="fe-sequence fe-top">' + seq + '</div>' +
+		'		<div id="fe-bottom-' + start + '" class="fe-sequence fe-bottom">' + cseq + '</div>' +
+		'	</div>' +
+		'	<div id="fe-featbottom-' + start + '" class="fe-features"></div>' + 
+		'</div>';
 	},
 });
 

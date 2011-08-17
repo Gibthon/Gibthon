@@ -81,7 +81,7 @@ def get_feats(g, request):
 	return JsonResponse(data)
 	
 def get_len(g,request):
-	return JsonRespnse(len(g))
+	return JsonResponse(len(g.sequence))
 
 def get_alpha(g, request):
 	#assume Ambiguous DNA

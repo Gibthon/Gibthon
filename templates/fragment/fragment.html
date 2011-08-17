@@ -43,19 +43,7 @@
 			</div>
 		</div>
 	<div id="sequence">
-		<div id="loader" class="ui-state-highlight content middle-box">
-			<span id="load_span"><b>Loading:</b> <span id="progress">xxx</span>/<span id="length">yyyy</span> bp </span>
-			<span id="progress_span">
-				<div id="progressbar" ></div>			
-			</span>
-		</div>
-			
-		<div class="ui-widget-content ui-corner-bottom bottom-box content">
-			
-			<div id="seq_wrap">
-				
-			</div>
-		</div>
+		
 	</div>
 {% endblock %}
 
@@ -70,6 +58,6 @@ $(document).ready(function() {
 		});
 	$('#fragment_info').fragmentMeta({id: {{ fragment.id }}});
 	
-	$('#progressbar').progressbar({value: 59,});
+	$('#sequence').fragmentSequence({id: {{fragment.id}},});
 });
 {% endblock %}
