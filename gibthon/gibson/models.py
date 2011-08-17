@@ -71,6 +71,21 @@ class Settings(models.Model):
 	def __unicode__(self):
 		return 'Settings for ' + self.construct.name
 
+class PCRSettings(models.Model):
+	construct = AutoOneToOneField('Construct', related_name='pcrsettings')
+	repeats = models.PositiveSmallIntegerField(default=1)
+	volume_each = models.DecimalField(max_digits=3, decimal_places=1, default=12.5)
+	error_margin = models.PositiveSmallIntegerField(default=10)
+	buffer_s = models.DecimalField(max_digits=3, decimal_places=1, default=10)
+	buffer_d = models.DecimalField(max_digits=3, decimal_places=1, default=1)
+	dntp_s = models.DecimalField(max_digits=3, decimal_places=1, default=10)
+	dntp_d = models.DecimalField(max_digits=3, decimal_places=1, default=0.8)
+	enzyme_s = models.DecimalField(max_digits=3, decimal_places=1, default=2.5)
+	enzyme_d = models.DecimalField(max_digits=3, decimal_places=1, default=2.5)
+	primer_d = models.DecimalField(max_digits=3, decimal_places=1, default=0.4)
+	template_d = models.DecimalField(max_digits=4, decimal_places=1, default=100)
+	
+
 class Warning(models.Model):
 	primer = models.ForeignKey('Primer', related_name='warning')
 	# four warning types at the moment

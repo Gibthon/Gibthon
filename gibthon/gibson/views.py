@@ -12,6 +12,7 @@ from django.core.exceptions import *
 
 import csv
 import time
+import json
 from copy import copy
 
 def fix_request(reqp):
@@ -343,5 +344,26 @@ def primer_reset(request, cid):
 	con = get_construct(request.user, cid)
 	if request.method == 'GET' and con:
 		return process(request, cid, reset=True, new=False)
+	else:
+		return HttpResponseNotFound()
+
+@login_required
+def primer_save(request, cid):
+	con = get_construct(request.user, cid)
+	if request.method == 'POST' and con:
+		data = json.loads(request.POST['data'])[0]
+		con.pcrsettings.__dict__.update(data['pcrsettings'])
+		con.pcrsettings.save()
+		for f in data['fragments']:
+			cf = ConstructFragment.objects.get(pk=f['id'])
+			cf.concentration = f['t_c']
+			cf.save()
+			p = cf.primer_top()
+			p.concentration = f['p_t_c']
+			p.save()
+			p = cf.primer_bottom()
+			p.concentration = f['p_b_c']
+			p.save()
+		return HttpResponse('OK')
 	else:
 		return HttpResponseNotFound()
