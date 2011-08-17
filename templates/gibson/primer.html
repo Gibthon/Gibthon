@@ -37,7 +37,7 @@
 <p>Want to edit the start/end positions to avoid misprimes? Drag and drop the orange base.</p>
 <p><strong>Flap</strong> ({{ primer.flap.cfragment.fragment.name }}) <em>- {{ primer.flap.length }} bp, {{ primer.flap.tm|floatformat }}&deg;C</em></p>
 <div style="font-family:monospace; padding:10px;">
-<table>
+<table class="primert">
 <tr id="flap">
 {{ primer.flap.seq_surround|safe }}
 </tr>
@@ -46,7 +46,7 @@
 <br />
 <p><strong>Stick</strong> ({{ primer.stick.cfragment.fragment.name }}) <em>- {{ primer.stick.length }} bp, {{ primer.stick.tm|floatformat }}&deg;C</em></p>
 <div style="font-family:monospace; padding:10px;">
-<table>
+<table class="primert">
 <tr id="stick">
 {{ primer.stick.seq_surround|safe }}
 </tr>

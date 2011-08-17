@@ -10,8 +10,8 @@
 <script src="{{ STATIC_URL }}/js/jquery-ui.min.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/ajax.js" type="text/javascript"></script>
 {% block js-include %}{% endblock %}
-<script type="text/javascript">
 {% block js %}{% endblock %}
+<script type="text/javascript">
 $(document).ready(function() {
 	$('button#login')
 		.button({
@@ -105,7 +105,7 @@ $(document).ready(function() {
 			<a href="/help/gibthon/" id="menu_help_gibthon">Construct Designer</a>
 		</div>
 	</div>
-	<div class="ui-widget-content ui-corner-all content">
+	<div class="ui-widget-content ui-corner-all content" style="margin-top:-6px;">
 		<button id="back">Back</button>
 		<a href="#" id="up">Up</a>
 		<button id="forward">Forward</button>

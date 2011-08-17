@@ -504,6 +504,12 @@ class ConstructFragment(models.Model):
 			seq = str(reverse_complement(Seq(seq)))
 		return seq[self.start()-1:self.end()]
 	
+	def tm(self):
+		return ((self.primer_top().stick.tm() + self.primer_bottom().stick.tm())/2)-4
+	
+	def time(self):
+		return (self.end()-self.start()+1)*45.0/1000
+	
 	def __unicode__(self):
 		return self.construct.name + ' : ' + self.fragment.name + ' (' + str(self.order) + ')'
 

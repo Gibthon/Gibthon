@@ -52,6 +52,7 @@
 {% endblock %}
 
 {% block js %}
+<script type="text/javascript">
 $(document).ready(function() {
 	$('button#download')
 		.button({
@@ -61,4 +62,5 @@ $(document).ready(function() {
 			window.location.href = '{{ fragment.name }}.gb';
 		});
 });
+</script>
 {% endblock %}

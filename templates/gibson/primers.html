@@ -9,10 +9,11 @@
 	border-bottom:2px solid blue;
 	background-color:PaleTurquoise;
 }
-td {
+table.primert td {
 	padding:2px;
 }
-table {
+
+table.primert {
 	border-spacing:0;
 }
 
@@ -67,9 +68,66 @@ div.fragment_name {
 		</div>
 	{% endfor %}
 	</div>
-	<div style="height:10px; clear:both;"></div>
 </div>
-<div id="primer_info"></div>
+<div id="primer_info">
+	<div class="ui-widget-content ui-corner-all content">
+		<h3>Summary</h3>
+		<p><table style="margin-left:30px;">
+		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
+		{% for primer in construct.primer.all %}
+		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:2 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:2 }}</td></tr>
+		{% endfor %}
+		</table></p>
+	</div>
+	<div class="ui-widget-content ui-corner-all content">
+		<h3>Protocol</h3>
+		<table class="protocol" style="margin-left:30px;">
+		<tr><th>Reagent</th><th>Stock</th><th>Desired</th><th style="width:50px;"></th><th colspan="2"></th></tr>
+		<tr><td>Buffer</td><td><input class="mix" id="buffer_stock" style="width:30px;" value="10" /> X</td><td><input class="mix" id="buffer_desired" style="width:30px;" value="1" /> X</td><th></th><th>Repeats</th><td><input class="mix" id="repeats" style="width:30px;" value="1" /></td></tr>
+		<tr><td>dNTPs</td><td><input class="mix" id="dntp_stock" style="width:30px;" value="10" /> mM</td><td><input class="mix" id="dntp_desired" style="width:30px;" value="0.8" /> mM</td><th></th><th>Volume each</th><td><input class="mix" id="volume_each" style="width:30px;" value="12.5" /> &mu;l</td></tr>
+		<tr><td>Enzyme</td><td><input class="mix" id="enzyme_stock" style="width:30px;" value="2.5" /> U/&mu;l</td><td><input class="mix" id="enzyme_desired" style="width:30px;;" value="2.5" /> U</td><th></th><th>Error margin</th><td><input class="mix" id="error_margin" style="width:30px;" value="10" /> %</td></tr>
+		<tr><td>Primer</td><th></th><td><input class="mix" id="primer_desired" style="width:30px;" value="0.4" /> &mu;M</td><th colspan="3"></th></tr>
+		<tr><td>Template</td><th></th><td><input class="mix" id="template_desired" style="width:30px;" value="100" /> ng</td><th colspan="3"></th></tr>
+		</table>
+		<p></p>
+		{% for fragment in construct.cf.all %}
+			<div class="ui-widget-content ui-corner-all"><p>
+				<h4>With {{ fragment.fragment.name }}</h4>
+				<div style="float:left; padding-left:30px;">
+					<form class="mixform">
+					<table class="protocol">
+						<tr><th style="width:250px;">Reagent</th><th>Conc.</th><th>Volume</th></tr>
+						<tr><td>Buffer</td><th></th><td class="buffer_vol"></td></tr>
+						<tr><td>dNTPs</td><th></th><td class="dntp_vol"></td></tr>
+						<tr><td>{{ fragment.primer_top.name }}</td><td><input class="mix" name="primer_top_stock" style="width:30px;" value="50" /> &mu;M</td><td class="primer_top_vol"></td></tr>
+						<tr><td>{{ fragment.primer_bottom.name }}</td><td><input class="mix" name="primer_bottom_stock" style="width:30px;" value="50" /> &mu;M</td><td class="primer_bottom_vol"></td></tr>
+						<tr><td>{{ fragment.fragment.name }}</td><td><input class="mix" name="template_stock" style="width:30px;" value="100" /> ng/&mu;l</td><td class="template_vol"></td></tr>
+						<tr><td>Enzyme</td><th></th><td class="enzyme_vol"></td></tr>
+						<tr><td>Water</td><th></th><td class="water_vol"></td></tr>
+						<tr><th>Total Volume</th><th></th><th class="total_vol"></th></tr>
+					</table>
+					</form>
+				</div>
+				<div style="float:right; padding-right:30px;">
+					<table class="protocol" style="float:right; margin-right:30px;">
+						<tr><th colspan="3">PCR Instructions</th></tr>
+						<tr><td>Initial Melting</td><td>98&deg;C</td><td>30s</td></tr>
+						<tr><th colspan="3">Begin cycle: Repeat 30 times</th></tr>
+						<tr><td>Melting</td><td>98&deg;C</td><td>10s</td></tr>
+						<tr><td>Annealing</td><td>{{ fragment.tm|floatformat:0 }}&deg;C</td><td>15s</td></tr>
+						<tr><td>Elongation</td><td>72&deg;C</td><td>{{ fragment.time|floatformat:0 }}s</td></tr>
+						<tr><th colspan="3">End cycle</th></tr>
+						<tr><td>Final elongation</td><td>72&deg;C</td><td>7m30s</td></tr>
+						<tr><td>Final hold</td><td>4&deg;C</td><td>&#8734;</td></tr>
+					</table>
+				</div>				
+				<div style="clear:both;"></div>
+				<p></p>
+			</div>
+			<p></p>
+		{% endfor %}
+	</div>
+</div>
 
 {% endblock %}
 
@@ -92,6 +150,7 @@ div.fragment_name {
 
 
 {% block js %}
+<script type="text/javascript">
 function makeHttpObject() {
   try {return new XMLHttpRequest();}
   catch (error) {}
@@ -103,6 +162,32 @@ function makeHttpObject() {
   throw new Error("Could not create HTTP request object.");
 }
 $('document').ready(function () {
+
+	var update_mix = function () {	
+		var m = $('#repeats')[0].value * (1 + $('#error_margin')[0].value/100);
+		var v_enzyme = (m*$('#enzyme_desired')[0].value/$('#enzyme_stock')[0].value).toFixed(1);
+		var v_buffer = (m*$('#volume_each')[0].value * $('#buffer_desired')[0].value / $('#buffer_stock')[0].value).toFixed(1);
+		var v_dntp = (m*$('#volume_each')[0].value * $('#dntp_desired')[0].value / $('#dntp_stock')[0].value).toFixed(1);
+		$('.mixform').each(function(index) {	
+			var v_template = (m*$('#template_desired')[0].value/this.elements['template_stock'].value).toFixed(1);
+			var v_primer_top = (m*$('#volume_each')[0].value * $('#primer_desired')[0].value / this.elements['primer_top_stock'].value).toFixed(1);
+			var v_primer_bottom = (m*$('#volume_each')[0].value * $('#primer_desired')[0].value / this.elements['primer_bottom_stock'].value).toFixed(1);
+			var v_water = ((m*$('#volume_each')[0].value) - v_template - v_enzyme - v_buffer - v_dntp - v_primer_top - v_primer_bottom).toFixed(1);
+			$($('td.template_vol')[index]).html(v_template);
+			$($('td.enzyme_vol')[index]).html(v_enzyme);
+			$($('td.buffer_vol')[index]).html(v_buffer);
+			$($('td.dntp_vol')[index]).html(v_dntp);
+			$($('td.primer_top_vol')[index]).html(v_primer_top);
+			$($('td.primer_bottom_vol')[index]).html(v_primer_bottom);
+			$($('td.water_vol')[index]).html(v_water);
+			$($('th.total_vol')[index]).html(($('#volume_each')[0].value * m).toFixed(1));
+		});
+	}
+	$('.mix').change(function(){
+		update_mix();
+	});
+	update_mix();
+
 	$('button#download_primers').button({
 		icons:{primary:'ui-icon-transferthick-e-w'}
 	}).click(function(event){
@@ -175,6 +260,7 @@ $('document').ready(function () {
 	$('button.primer_button').click(function() {
 		$('#wait').dialog('open');
 		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
+			$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
 			$('.primer_info_wrapper:hidden').show()
 			$('#wait').dialog('close');
 		});
@@ -195,6 +281,5 @@ $('document').ready(function () {
 		$('.primer_info_wrapper').show();
 	}
 });
-	
-
+</script>
 {% endblock %}

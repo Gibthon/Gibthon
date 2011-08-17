@@ -227,10 +227,12 @@ Strand B: Top:    5' <span style="color:gray;">CGGA</span><span style="color:dar
 {% endblock %}
 
 {% block js %}
+<script type="text/javascript">
 $(document).ready(function () {
 	var stop = false;
 	$('#tabs').tabs();
 	$('#ext_demo_wrapper').slideView();
 	$('#dna_demo_wrapper').slideView();
 });
+</script>
 {% endblock %}
