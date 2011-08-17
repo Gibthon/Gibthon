@@ -54,14 +54,16 @@ td.warningcell {
 
 {% block menu %}
 |
-<button id="download_primers">Download Primers (.csv)</button>
+<button id="download_primers">Download (.csv)</button>
+<button id="download_protocol">Protocol</button>
 |
 <button id="reset_offset">Reset Offsets</button>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-	<h3>Primers for {{ construct.name }}</h3>
+	<h3>Primers</h3>
+	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
 	<div>
 	{% for cf in construct.cf.all %}
 		<div style="float:left;">
@@ -86,66 +88,52 @@ td.warningcell {
 <div id="primer_info">
 	<div class="ui-widget-content ui-corner-all content">
 		<h3>Summary</h3>
-		<p><table style="margin-left:30px;">
+		<p><table style="margin-left:30px;" class="protocol">
 		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
 		{% for primer in construct.primer.all %}
-		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:2 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:2 }}</td></tr>
+		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:0 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:0 }}</td></tr>
 		{% endfor %}
 		</table></p>
 	</div>
 	<div class="ui-widget-content ui-corner-all content">
-		<h3>PCR Protocol</h3>
+		<h3>PCR Particulars</h3>
 		<p>Fill in the details for all of your primers to download protocol information</p>
 		<div id="warning" class="ui-state-highlight ui-corner-all" style="padding:5px; margin-left:auto; margin-right:auto; width:500px; margin-bottom:5px;">Warning! Some of your components have a volume of less than 1&mu;l. Consider diluting them before adding to the mix.</div>
-		<table class="protocol" style="margin-left:30px;">
-		<tr><th>Reagent</th><th>Stock</th><th>Desired</th><th style="width:50px;"></th><th colspan="2"></th></tr>
-		<tr><td>Buffer</td><td><input class="mix" id="buffer_stock" value="10" /> X</td><td><input class="mix" id="buffer_desired" value="1" /> X</td><th></th><th>Repeats</th><td><input class="mix" id="repeats" value="1" /></td></tr>
-		<tr><td>dNTPs</td><td><input class="mix" id="dntp_stock" value="10" /> mM</td><td><input class="mix" id="dntp_desired" value="0.8" /> mM</td><th></th><th>Volume each</th><td><input class="mix" id="volume_each" value="12.5" /> &mu;l</td></tr>
-		<tr><td>Enzyme</td><td><input class="mix" id="enzyme_stock" value="2.5" /> U/&mu;l</td><td><input class="mix" id="enzyme_desired" value="2.5" /> U</td><th></th><th>Error margin</th><td><input class="mix" id="error_margin" value="0" /> %</td></tr>
-		<tr><td>Primer</td><th></th><td><input class="mix" id="primer_desired" value="0.4" /> &mu;M</td><th colspan="3"></th></tr>
-		<tr><td>Template</td><th></th><td><input class="mix" id="template_desired" value="100" /> ng</td><th colspan="3"></th></tr>
-		</table>
-		<p></p>
-		<div id="protocol-accordion">
-		{% for fragment in construct.cf.all %}
-				<h3 style="padding:10px 10px 10px 20px;">{{ fragment.fragment.name }}</h3>
-				<div style="font-size:1.2em">
-				<div style="float:left; padding-left:30px;">
-					<form class="mixform">
-					<table class="protocol">
-						<tr><th style="width:250px;">Reagent</th><th>Conc.</th><th>Volume</th></tr>
-						<tr><td>Buffer</td><th></th><td><input class="mix" name="buffer_vol" readonly /> &mu;l</td></tr>
-						<tr><td>dNTPs</td><th></th><td><input class="mix" name="dntp_vol" readonly /> &mu;l</td></tr>
-						<tr><td>{{ fragment.primer_top.name }}</td><td><input class="mix" name="primer_top_stock" value="5" /> &mu;M</td><td><input class="mix" name="primer_top_vol" readonly /> &mu;l</td></tr>
-						<tr><td>{{ fragment.primer_bottom.name }}</td><td><input class="mix" name="primer_bottom_stock" value="5" /> &mu;M</td><td><input class="mix" name="primer_bottom_vol" readonly /> &mu;l</td></tr>
-						<tr><td>{{ fragment.fragment.name }}</td><td><input class="mix" name="template_stock" value="100" /> ng/&mu;l</td><td><input class="mix" name="template_vol" readonly /> &mu;l</td></tr>
-						<tr><td>Enzyme</td><th></th><td><input class="mix" name="enzyme_vol" readonly /> &mu;l</td></tr>
-						<tr><td>Water</td><th></th><td><input class="mix" name="water_vol" readonly /> &mu;l</td></tr>
-						<tr><th>Total Volume</th><th></th><th><input class="mix" name="total_vol" readonly /> &mu;l</th></tr>
-					</table>
-					</form>
-				</div>
-				<div style="float:right; padding-right:30px;">
-					<table class="protocol" style="float:right; margin-right:30px;">
-						<tr><th colspan="3">PCR Instructions</th></tr>
-						<tr><td>Initial Melting</td><td>98&deg;C</td><td>30s</td></tr>
-						<tr><th colspan="3">Begin cycle: Repeat 30 times</th></tr>
-						<tr><td>Melting</td><td>98&deg;C</td><td>10s</td></tr>
-						<tr><td>Annealing</td><td>{{ fragment.tm|floatformat:0 }}&deg;C</td><td>15s</td></tr>
-						<tr><td>Elongation</td><td>72&deg;C</td><td>{{ fragment.time|floatformat:0 }}s</td></tr>
-						<tr><th colspan="3">End cycle</th></tr>
-						<tr><td>Final elongation</td><td>72&deg;C</td><td>7m30s</td></tr>
-						<tr><td>Final hold</td><td>4&deg;C</td><td>&#8734;</td></tr>
-					</table>
-				</div>				
-				<div style="clear:both;"></div>
-				<p></p>
-				</div>
-		{% endfor %}
+		<div style="width:310px; float:left;">
+			<table class="protocol"><tr><th>Stock</th></tr></table>
+			{% for cf in construct.cf.all %}
+			<form class="mixform" id="{{ cf.fragment.name }}">
+				<table class="protocol">
+					<tr><th colspan="2" style="width:150px;">{{ cf.fragment.name }}</th><td>Top</td><td><input class="mix" value="{{ cf.primer_top.concentration }}" /> &mu;M</td></tr>
+					<tr><td>Template</td><td><input class="mix" value="{{ cf.concentration }}" /> ng/&mu;l</td><td>Bottom</td><td><input class="mix" value="{{ cf.primer_bottom.concentration }}" /> &mu;M</td></tr>
+					<tr><th colspan="4">&nbsp;</th></tr>
+				</table>
+			</form>
+			{% endfor %}
+			
 		</div>
-	</div>
-	<div class="ui-widget-content ui-corner-all content">
-		<h3>Gibson Assembly Protocol</h3>
+		<div style="width:200px; float:left;">
+			<table class="protocol">
+				<tr><th colspan="2">&nbsp;</th></tr>
+				<tr><th>Repeats</th><td><input class="mix" id="repeats" value="1" /></td></tr>
+				<tr><th>Volume each</th><td><input class="mix" id="volume_each" value="12.5" /> &mu;l</td></th></tr>
+				<tr><th>Error margin</th><td><input class="mix" id="error_margin" value="0" /> %</td></tr>
+			</table>
+		</div>
+		<div style="width:270px; float:left;">
+			<table class="protocol">
+				<tr><th>Reagent</th><th>Stock</th><th>Desired</th></tr>
+				<tr><td>Buffer</td><td><input class="mix" id="buffer_stock" value="10" /> X</td><td><input class="mix" id="buffer_desired" value="1" /> X</td></tr>
+				<tr><td>dNTPs</td><td><input class="mix" id="dntp_stock" value="10" /> mM</td><td><input class="mix" id="dntp_desired" value="0.8" /> mM</td></tr>
+				<tr><td>Enzyme</td><td><input class="mix" id="enzyme_stock" value="2.5" /> U/&mu;l</td><td><input class="mix" id="enzyme_desired" value="2.5" /> U</td></tr>
+				<tr><td>Primer</td><th></th><td><input class="mix" id="primer_desired" value="0.4" /> &mu;M</td></tr>
+				<tr><td>Template</td><th></th><td><input class="mix" id="template_desired" value="100" /> ng</td></tr>
+			</table>
+		</div>
+		<div style="width:400px; float:right; margin:10px; padding:5px;" class="ui-widget-content ui-corner-all">
+			If you see an orange box, it means that you will need to pipette less than 1&mu;l of something. You are advised to dilute before adding to the mix.
+		</div>
+		<div style="clear:both;"></div>
 	</div>
 </div>
 
@@ -192,6 +180,9 @@ $(document).ready(function() {
 		icons:{primary:'ui-icon-transferthick-e-w'}
 	}).click(function(event){
 		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
+	});
+	$('button#download_protocol').button({
+		icons:{primary:'ui-icon-clipboard'}
 	});
 });
 </script>

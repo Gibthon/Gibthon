@@ -89,6 +89,7 @@ class Primer(models.Model):
 	flap = models.OneToOneField('PrimerHalf', related_name='flap')
 	stick = models.OneToOneField('PrimerHalf', related_name='stick')
 	boxplot = models.ImageField(upload_to='boxplots')
+	concentration = models.DecimalField(default=5, max_digits=4, decimal_places=1)
 	
 	class Meta:
 		ordering = ['stick']
@@ -455,6 +456,7 @@ class ConstructFragment(models.Model):
 	start_offset = models.IntegerField()
 	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature')
 	end_offset = models.IntegerField()
+	concentration = models.DecimalField(default=100, max_digits=4, decimal_places=1)
 
 	class Meta:
 		ordering = ['order']

@@ -136,7 +136,7 @@ def load_primer(request, cid, pid):
 @login_required
 def primers(request, cid):
 	con = get_construct(request.user, cid)
-	if con:
+	if con and len(con.primer.all()) == 2*len(con.cf.all()):
 		t = loader.get_template('gibson/primers.html')
 		c = RequestContext(request, {
 			'construct': con,

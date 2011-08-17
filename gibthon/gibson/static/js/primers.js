@@ -130,9 +130,13 @@ $('document').ready(function () {
 		collapsible:true,
 	});
 	$('#warning').hide();
-	var mix = new Mix();
 	$('.mix').change(function(){
-		mix.go();
+		validate(this);
+		if ($('.errorcell').size() > 0){
+			$('button#download_protocol').button('disable');
+		} else {
+			$('button#download_protocol').button('enable');
+		}
 	});
 	$('button#reset_offset').button({
 		icons:{primary:'ui-icon-refresh'}
