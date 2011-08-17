@@ -67,7 +67,7 @@ td.warningcell {
 		<div style="float:left;">
 			<div style="width:150px;">
 				{% with cf.primer_top as primer %}
-				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</a>
+				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</button>
 				{% endwith %}
 			</div>
 			<div style="clear:both"></div>
@@ -76,7 +76,7 @@ td.warningcell {
 			</div>
 			<div style="width:150px;">
 				{% with cf.primer_bottom as primer %}
-				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</a>
+				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</button>
 				{% endwith %}
 			</div>
 		</div>
@@ -166,4 +166,33 @@ td.warningcell {
 	<div id="process_progress" style="height:22px;"></div>
 </div>
 
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function() {
+	$('button.primer_button').click(function() {
+		$('#wait').dialog('open');
+		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
+			$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
+			$('.primer_info_wrapper:hidden').show()
+			$('#wait').dialog('close');
+		});
+		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
+	});
+	if ('{{ primer }}' != ''){
+		$('#wait').dialog('open');
+		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}', function() {
+			$('.primer_info_wrapper:hidden').show()
+			$('#wait').dialog('close');
+		});
+		$('.primer_info_wrapper').show();
+	}
+	$('button#download_primers').button({
+		icons:{primary:'ui-icon-transferthick-e-w'}
+	}).click(function(event){
+		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
+	});
+});
+</script>
 {% endblock %}

@@ -134,12 +134,6 @@ $('document').ready(function () {
 	$('.mix').change(function(){
 		mix.go();
 	});
-
-	$('button#download_primers').button({
-		icons:{primary:'ui-icon-transferthick-e-w'}
-	}).click(function(event){
-		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
-	});
 	$('button#reset_offset').button({
 		icons:{primary:'ui-icon-refresh'}
 	}).click(function () {
@@ -204,27 +198,11 @@ $('document').ready(function () {
 			$('.ui-dialog-titlebar-close').show();
 		}
 	});
-	$('button.primer_button').click(function() {
-		$('#wait').dialog('open');
-		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
-			$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
-			$('.primer_info_wrapper:hidden').show()
-			$('#wait').dialog('close');
-		});
-		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
-	});
+	
 	$('button.primer_top').button({
 		icons:{primary:'ui-icon-circle-arrow-w'}
 	});
 	$('button.primer_bottom').button({
 		icons:{secondary:'ui-icon-circle-arrow-e'}
 	});
-	if ('{{ primer }}' != ''){
-		$('#wait').dialog('open');
-		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}', function() {
-			$('.primer_info_wrapper:hidden').show()
-			$('#wait').dialog('close');
-		});
-		$('.primer_info_wrapper').show();
-	}
 });
