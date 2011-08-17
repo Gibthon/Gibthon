@@ -12,10 +12,81 @@ ERROR = -1
 
 class JsonResponse(HttpResponse):
 	def __init__(self, data, state = OK):
-		print "returning JSON: '%s'" % json.dumps([state, data]) 
 		HttpResponse.__init__(self, json.dumps([state, data]), mimetype='application/json')
 
-get_values = ['meta', 'seq', 'annotations', 'refs', 'feats']
+# functions which get the appropriate data
+def get_meta(g, request):
+	return JsonResponse({	'name': g.name,
+									'desc': g.description,
+									'origin': g.get_origin_display(),
+									'length': len(g.sequence)
+								})
+					
+def get_seq(g, request):
+	#return a section of the sequence
+	try:
+		offset = int(request.GET.get('offset', 0))
+	except ValueError:
+		return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
+	try:
+		length = int(request.GET.get('length', 1000))
+	except ValueError:
+		return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
+	return JsonResponse(g.sequence[offset : offset+length])
+	
+def get_annotations(g, request):
+	#return a dict of the annotations
+	data = {}
+	for a in g.annotations.all():
+		if a.key not in data:
+			data[a.key] = []
+		data[a.key].append(a.value)
+	return JsonResponse(data)
+	
+def get_refs(g, request):
+	#get references
+	data = []
+	for r in g.references.all():
+		data.append({	'title': r.title,
+							'authors':r.authors,
+							'journal':r.journal,
+							'medline_id':r.medline_id,
+							'pubmed_id':r.pubmed_id,
+						})
+	return JsonResponse(data)
+	
+def get_feats(g, request):
+	#get features
+	data = []
+	for f in g.features.all():
+		quals = []
+		for q in f.qualifiers.all():
+			quals.append({	'name': q.name,
+								'data': q.data,
+							 })
+		s = None
+		if f.direction == 'f':
+			s = 1
+		elif f.direction == 'r':
+			s = -1
+		data.append({	'start': f.start,
+							'end': f.end,
+							'strand': s,
+							'type': f.type,
+							'qualifiers': quals,
+						})
+	return JsonResponse(data)
+	
+def get_len(g,request):
+	return JsonRespnse(len(g))
+
+get_map = 	{	'meta': get_meta,
+					'seq': get_seq,
+					'annotations': get_annotations,
+					'refs': get_refs,
+					'feats': get_feats,
+					'len': get_len,
+				}
 
 @login_required
 def get(request, _id):
@@ -24,71 +95,15 @@ def get(request, _id):
 		the_id = int(_id)
 	except ValueError:
 		raise Http404
-	print "api.get(request, %i) method: '%s', GET: '%s'" % (the_id, request.method, request.GET)
+
 	#if request.is_ajax() and 'value' in request.GET:
 	if 'value' in request.GET:
 		value = request.GET['value'].lower()
-		if not value in get_values:
+		if not value in get_map:
 			return JsonResponse("ERROR: Invalid value '%s'." % value, ERROR)
 		try:
 			g = Gene.objects.get(id = the_id, owner=request.user)
 		except ObjectDoesNotExist:
 			return JsonResponse("ERROR: Fragment with ID='%s' does not exist." % id, ERROR)
-		
-		if value == 'meta':
-			data = {	'name': g.name,
-						'desc': g.description,
-						'origin': g.get_origin_display(),
-						'length': len(g.sequence)
-					 }
-		elif value == 'seq':
-			#return a section of the sequence
-			try:
-				offset = int(request.GET.get('offset', 0))
-			except ValueError:
-				return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
-			try:
-				length = int(request.GET.get('length', 1000))
-			except ValueError:
-				return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
-			data = g.sequence[offset : offset+length]
-		elif value == 'annotations':
-			#return a dict of the annotations
-			data = {}
-			for a in g.annotations.all():
-				if a.key not in data:
-					data[a.key] = []
-				data[a.key].append(a.value)
-		elif value == 'refs':
-			#get references
-			data = []
-			for r in g.references.all():
-				data.append({	'title': r.title,
-									'authors':r.authors,
-									'journal':r.journal,
-									'medline_id':r.medline_id,
-									'pubmed_id':r.pubmed_id,
-								})
-		elif value == 'feats':
-			#get features
-			data = []
-			for f in g.features.all():
-				quals = []
-				for q in f.qualifiers.all():
-					quals.append({	'name': q.name,
-										'data': q.data,
-									 })
-				s = None
-				if f.direction == 'f':
-					s = 1
-				elif f.direction == 'r':
-					s = -1
-				data.append({	'start': f.start,
-									'end': f.end,
-									'strand': s,
-									'type': f.type,
-									'qualifiers': quals,
-								})
-		#all went well, return the JSON
-		return JsonResponse(data)
+		return get_map[value](g, request)
 	raise Http404
