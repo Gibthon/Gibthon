@@ -44,7 +44,7 @@ class Gene(models.Model):
 	owner = models.ForeignKey('auth.User')
 	name = models.CharField(max_length=100)
 	description = models.CharField(max_length=500)
-	sequence = models.TextField(max_length=50000)
+	sequence = models.TextField(max_length=10000000)
 	ORIGIN_CHOICES = (
 		('NT', 'Nucleotide Database'),
 		('BB', 'BioBrick'),

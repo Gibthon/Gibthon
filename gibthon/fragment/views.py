@@ -119,10 +119,14 @@ def entrez_search(request):
 			#we have a valid search, time to make the search
 			query = form.cleaned_data['query']
 			database = form.cleaned_data['database']
+			print "from form"
 			#fetch a list of Ids which match
 			handle = Entrez.esearch(db=database, term=query)
+			print "done search"
 			record = Entrez.read(handle)
+			print "read handle"
 			ids = record['IdList']
+			print "got ids"
 			#fetch summary information for each id
 			summaries = []
 			for id in ids:
