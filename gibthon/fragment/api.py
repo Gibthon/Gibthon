@@ -39,6 +39,7 @@ def get(request, _id):
 			data = {	'name': g.name,
 						'desc': g.description,
 						'origin': g.get_origin_display(),
+						'length': len(g.sequence)
 					 }
 		elif value == 'seq':
 			#return a section of the sequence

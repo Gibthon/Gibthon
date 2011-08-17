@@ -25,7 +25,7 @@
 
 .tr-alt
 {
-	background-color: lightblue;
+	background-color: rgb(208, 229, 245);
 }
 
 #drop_down
@@ -47,4 +47,44 @@
 #more_details
 {
 	cursor: pointer;
+}
+
+.ref
+{
+	margin-bottom: 1em;
+}
+
+.ref-title-div
+{
+	width: 80%;
+	float: left;
+}
+
+.ref-title
+{
+	margin: 0.2em 0.5em 0.2em 0em;
+	font-style: italic;
+}
+
+.ref-search-btn
+{
+	margin: .2em;
+}
+
+.ref-search-div
+{
+	width: 20%;
+	float:left;
+}
+
+.ref-detail
+{
+	margin-left: 1.2em;
+	padding-right: 6.4em;
+}
+
+.ref-title, .ref-authors, .ref-link, .ref-journal
+{
+	padding: .1em 0;
+	margin-bottom: 0.25em;
 }

@@ -48,7 +48,7 @@ $.widget("ui.fragmentMeta", {
 			if(data[0] == 0)
 			{
 				self.$desc.text(data[1].desc);
-				self.$origin.text("From: " + data[1].origin);
+				self.$origin.text(data[1].length + "bp, " + data[1].origin);
 			}
 			else
 			{
@@ -73,6 +73,27 @@ $.widget("ui.fragmentMeta", {
 			}
 		});
 		
+		//fetch references
+		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'refs',}, function(data) {
+			if(data[0] == 0)
+			{
+				for (key in data[1])
+				{
+					self.$ref.append(self._make_reference(data[1][key]));
+				}
+				$('.ref-search-btn').button({
+														icons: {
+															primary: 'ui-icon-search'
+																},
+														label: 'Google',
+													});
+			}
+			else
+			{
+				console.log(data[1] + ", while getting references.");
+			}
+		});
+		
 	},
 	show: function() {
 		var self = this;
@@ -83,7 +104,7 @@ $.widget("ui.fragmentMeta", {
 		this.$icon
 			.removeClass('ui-icon-triangle-1-s')
 			.addClass('ui-icon-triangle-1-n');
-		this.$dd.slideDown(100);
+		this.$dd.slideDown(250);
 	},
 	hide: function() {
 		var self = this;
@@ -94,7 +115,7 @@ $.widget("ui.fragmentMeta", {
 		this.$icon
 			.removeClass('ui-icon-triangle-1-n')
 			.addClass('ui-icon-triangle-1-s');
-		this.$dd.slideUp(100);
+		this.$dd.slideUp(250);
 	},
 	_make_annotation: function(key, value_list, alt) {
 		var cls = 'tr';
@@ -111,7 +132,42 @@ $.widget("ui.fragmentMeta", {
 	},
 	_make_reference: function(ref)
 	{
+		var ret = '' +
+		'<div class="ref">' +
+		'	<div class="ref-title-wrap">' +
+		'		<div class="ref-title-div">' +
+		'			<h4 class="ref-title">' +
+		'				' + ref.title +
+		'			</h4>' +
+		'		</div>' +
+		'		<div class="ref-search-div">' +
+		'			<button class="ref-search-btn" onclick="window.open(\'http://www.google.com?q=' + ref.title + '\',\'_blank\');"></button>' +
+		'		</div>' +
+		'		<div style="clear:both;"></div>' +
+		'	</div>' +
+		'	<div class="ref-detail">' +
+		'		<div class="ref-authors-div">' +
+		'			<h6 class="ref-authors">' + ref.authors + '</h6>'
+		'		</div>' +
+		'		<div class="ref-journal-div">' +
+		'			<h6 class="ref-journal">' + ref.journal + '</h6>' +
+		'		</div>' +
+		'		<div class="ref-links">';
 		
+		if(ref.medline_id != "")
+		{
+			ret = ret + '<h6 class="ref-link">Meline ID: ' + ref.medline_id + '</h6>';
+		}
+		if(ref.pubmed_id != "")
+		{
+			ret = ret + '<h6 class="ref-link">PubMed ID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/' + 
+					ref.pubmed_id + '" target="_blank">' + ref.pubmed_id + '</a></h6>';
+		}
+		ret = ret + 
+		'		</div>' +
+		'	</div>' +
+		'</div>';
+		return ret;
 	},
 });
 
