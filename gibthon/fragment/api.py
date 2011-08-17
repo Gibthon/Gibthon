@@ -7,6 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 
 import simplejson as json
 
+from Bio.Alphabet import IUPAC
+from Bio.Seq import Seq
+
 OK = 0
 ERROR = -1
 
@@ -80,12 +83,23 @@ def get_feats(g, request):
 def get_len(g,request):
 	return JsonRespnse(len(g))
 
+def get_alpha(g, request):
+	#assume Ambiguous DNA
+	let = Seq(IUPAC.IUPACAmbiguousDNA.letters, IUPAC.IUPACAmbiguousDNA())
+	rlet = let.complement()
+	data = {}
+	for i in range(len(let)):
+		data[let[i].lower()] = rlet[i].lower()
+		data[let[i].upper()] = rlet[i].upper()
+	return JsonResponse(data)
+
 get_map = 	{	'meta': get_meta,
 					'seq': get_seq,
 					'annotations': get_annotations,
 					'refs': get_refs,
 					'feats': get_feats,
 					'len': get_len,
+					'alpha': get_alpha,
 				}
 
 @login_required

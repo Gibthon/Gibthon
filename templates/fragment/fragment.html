@@ -14,45 +14,49 @@
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
-<div id="construct-wrapper" style="float:right; margin:10px; width:300px;">
-	<div class="ui-widget-header ui-corner-top">
-	<h4>Found in {{ fragment.construct_slave.count }} construct{{ fragment.construct_slave.count|pluralize }}</h4>
+
+		<div class="ui-widget-content ui-corner-top top-box content">
+			<div id="fragment_head_wrap">	
+				<div id="fragment_info_wrap">
+					<div id="fragment_info"></div>
+				</div>
+			
+				<div id="fragment_construct_wrap">
+					<div id="construct_wrap">
+						<div class="ui-widget-header ui-corner-top">
+						<h4>Found in {{ fragment.construct_slave.count }} construct{{ fragment.construct_slave.count|pluralize }}</h4>
+						</div>
+						<div class="ui-widget-content ui-corner-bottom">
+							{% if fragment.construct_slave.all %}
+							<ul>
+								{% for construct in fragment.construct_slave.all %}
+									<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
+								{% endfor %}
+							</ul>
+							{% else %}
+							<p>Not found in any constructs yet</p>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<div style="clear:both;"></div>
+			</div>
+		</div>
+	<div id="sequence">
+		<div id="loader" class="ui-state-highlight content middle-box">
+			<span id="load_span"><b>Loading:</b> <span id="progress">xxx</span>/<span id="length">yyyy</span> bp </span>
+			<span id="progress_span">
+				<div id="progressbar" ></div>			
+			</span>
+		</div>
+			
+		<div class="ui-widget-content ui-corner-bottom bottom-box content">
+			
+			<div id="seq_wrap">
+				
+			</div>
+		</div>
 	</div>
-	<div class="ui-widget-content ui-corner-bottom">
-		{% if fragment.construct_slave.all %}
-		<ul>
-			{% for construct in fragment.construct_slave.all %}
-				<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
-			{% endfor %}
-		</ul>
-		{% else %}
-		<p>Not found in any constructs yet</p>
-		{% endif %}
-	</div>
-</div>
-<div id="fragment_info">
-	
-</div>
-<hr />
-<div style="font-family:monospace; font-size:1.2em; margin-left:30px;">
-{% for line in fragment.pretty %}
-	<div style="float:left; width:50px;">
-	{{ line.number }}
-	</div>
-	<div style="float:left;">
-	<span class="top_strand">{{ line.seq }}</span><br />
-	<span style="color:#aaaaaa; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ line.rseq }}</span>
-	{% for feature in line.features %}
-		<br /><span style="color:red; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.block|safe }}</span>
-		<br /><span style="user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.type|safe }}</span>
-	{% endfor %}
-	<div style="height:10px;"></div>
-	</div>
-	<div style="clear:both;"></div>
-{% endfor %}
-</div>
-</div>
 {% endblock %}
 
 {% block js %}
@@ -65,5 +69,7 @@ $(document).ready(function() {
 			window.location.href = '{{ fragment.name }}.gb';
 		});
 	$('#fragment_info').fragmentMeta({id: {{ fragment.id }}});
+	
+	$('#progressbar').progressbar({value: 59,});
 });
 {% endblock %}

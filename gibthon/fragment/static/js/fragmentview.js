@@ -85,7 +85,7 @@ $.widget("ui.fragmentMeta", {
 														icons: {
 															primary: 'ui-icon-search'
 																},
-														label: 'Google',
+														label: 'Search',
 													});
 			}
 			else
@@ -168,6 +168,66 @@ $.widget("ui.fragmentMeta", {
 		'	</div>' +
 		'</div>';
 		return ret;
+	},
+});
+
+})( jQuery );	
+
+var initial_sequence_html = '' +
+'<div id="loader" class="ui-state-highlight content middle-box">' +
+'	<span id="load_span"><b>Loading:</b> <span id="progress">0</span>/<span id="length">0</span> bp </span>' +
+'	<span id="progress_span">' +
+'		<div id="progressbar" ></div>' +			
+'	</span>' +
+'</div>' +
+'<div class="ui-widget-content ui-corner-bottom bottom-box content">' +	
+'	<div id="seq_wrap">' +
+'	</div>' +
+'</div>';
+
+
+(function( $, undefined ) {
+
+$.widget("ui.fragmentSequence", {
+	options: {
+		id: 0,
+	},
+	_create: function() {
+		var self = this;
+		this.$el = $(this.element[0]).html(initial_sequence_html);
+		this.$len = this.$el.find('#length');
+		this.$prog = this.$el.find('#progress');
+		this.$bar = this.$el.find('#progressbar').progressbar({value: 0,});
+		this.$loader = this.$el.find('#loader');
+		this.$seq = this.$el.find('#seq_wrap');
+		this.len = 0;
+		this.prog = 0;
+	},
+	_length: function(data) {
+		if(data[0] != 0)
+		{
+			console.log(data[1] + " while getting length");
+			return;
+		}
+		this.len = data[1];
+		this.$len.text(data[1]);
+		if(this.len > 1000) //if we should load progressively 
+		{
+			this.$loader.slideDown(100);
+		}
+		
+	},
+	_seq_data: function(data)
+	{
+		if(data[0] != 0)
+		{
+			console.log(data[1] + " while getting seq");
+			return;
+		}
+		//be lazy for now
+		this.$seq.append(data[1]);
+		this.prog = this.prog + data[1].length;
+		
 	},
 });
 

@@ -1,16 +1,93 @@
 .top-box
 {
-	margin:10px 10px 0px 10px; 
-	width:450px; 
-	padding-top:5px;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.middle-box
+{
+	border-top: none;
+	margin-top: 0; 
+	padding-top: 0;
+	margin-bottom: 0;
+	padding-bottom: 0;
+	border-left: 1px solid rgb(166, 201, 226);
+	border-right: 1px solid rgb(166, 201, 226);
 }
 
 .bottom-box
 {
-	border-top:none; 
-	margin:0px 10px; 
-	width:440px;
-	padding:5px;
+	margin-top: 0; 
+	padding-top: 0;
+	border-top: none;
+}
+
+#load_span
+{
+	margin-left: 1.5em;
+	font-size: 1.2em; 
+	width: 30%;
+}
+
+#loader
+{
+	display: none;
+}
+
+#progress_span
+{
+	width: 65%;
+	float: right;
+	margin-top: .2em;
+	margin-bottom: .2em;
+}	
+
+#progressbar
+{
+	margin: .2em;
+	height: 1em;
+	border: 1px solid rgb(250, 212, 46);
+	background-color: rgb(238, 238, 255) !important;
+}
+
+#progressbar .ui-progressbar-value
+{
+	background-image: none;
+	border: 1px solid rgb(250, 212, 46);
+	background-color: rgb(241, 226, 116);
+}
+
+
+#fragment_info_wrap
+{
+	float: left;
+	width: 60%;
+}
+
+#fragment_info
+{
+	margin: 10px;
+}
+
+#fragment_construct_wrap
+{
+	float: left;
+	width: 40%;
+}
+
+#construct_wrap
+{
+	margin: 10px;
+}
+
+#annot_div
+{
+	padding-right: 1.2em;
+}
+
+#seq_wrap
+{
+	margin: .5em;
 }
 
 .info
@@ -47,6 +124,7 @@
 #more_details
 {
 	cursor: pointer;
+	margin-left: 15px;
 }
 
 .ref
