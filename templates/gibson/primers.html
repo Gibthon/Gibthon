@@ -207,7 +207,7 @@ $(document).ready(function() {
 	$('button#pcr_instructions').button({
 		icons:{primary:'ui-icon-script'}
 	}).click(function() {
-		$.get('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/pcr');
+		window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/pcr';
 	});
 });
 </script>

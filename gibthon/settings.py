@@ -118,6 +118,7 @@ INSTALLED_APPS = (
     'gibson',
     'molcal',
     'captcha',
+    'ligcalc',
 )
 
 LOGIN_URL = '/user/login'

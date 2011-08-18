@@ -14,6 +14,8 @@ from collections import OrderedDict
 import csv, time, json, zipfile
 from copy import copy
 from cStringIO import StringIO
+from reportlab.pdfgen import canvas
+
 
 
 def fix_request(reqp):
@@ -390,7 +392,6 @@ def pcr_instructions(request, cid):
 	if con:
 		response = HttpResponse(mimetype='application/zip')
 		response['Content-Disposition'] = 'filename='+con.name+'-pcr.zip'
-		
 		pcr = [(con.name + '-' + cf.fragment.name+'.pcr',pcr_cycle(cf)) for cf in con.cf.all()]
 		buffer = StringIO()
 		zip = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)
@@ -404,3 +405,51 @@ def pcr_instructions(request, cid):
 		return response
 	else:
 		return HttpReponseNotFound
+		
+def protocol_download(request, cid):
+	con = get_construct(request.user, cid)
+	if con:
+		#set up response headers
+		response = HttpResponse(mimetype='application/zip')
+		response['Content-Disposition'] = 'filename='+con.name+'.zip'
+		# get all the pcr instruction files
+		pcr = [(con.name + '-' + cf.fragment.name+'.pcr',pcr_cycle(cf)) for cf in con.cf.all()]
+		# write the csv file
+		csvbuffer = StringIO()
+		writer = csv.writer(csvbuffer)
+		writer.writerow(['Name', 'Length', 'Melting Temperature', 'Sequence'])
+		for p in con.primer.all():
+			writer.writerow(p.csv())
+		csvbuffer.flush()
+		# write the zip file
+		zipbuffer = StringIO()
+		zip = zipfile.ZipFile(zipbuffer, 'w', zipfile.ZIP_DEFLATED)
+		# add the pcr files
+		for name, f in pcr:
+			zip.writestr(con.name+'/pcr/'+name, f)
+		# add the csv file
+		zip.writestr(con.name+'/primers.csv', csvbuffer.getvalue())
+		# closing of buffers and return
+		csvbuffer.close()
+		zip.close()
+		zipbuffer.flush()
+		ret_zip = zipbuffer.getvalue()
+		zipbuffer.close()
+		response.write(ret_zip)
+		return response
+	else:
+		return HttpResponseNotFound
+
+def pdf(request, cid):
+	con = get_construct(request.user, cid)
+	if con:
+		response = HttpResponse(mimetype='application/pdf')
+		p = canvas.Canvas(response)
+		p.setTitle(con.name)
+		p.setAuthor('Gibthon Construct Designer')
+		p.drawString(2, 2, "Hello world.")
+		p.showPage()
+		p.save()
+		return response
+	else:
+		return HttpResponseNotFound
