@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block css-include %}
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/ligate.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/ligate.css" />
 {% endblock %}
 
 {% block js-include %}
-<script type="text/javascript" src="{{ MEDIA_URL }}/js/ligate.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/ligate.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -44,6 +44,12 @@
 	<div style="float:left; margin:10px; width:595px;">
 		<div class="ui-widget-header ui-corner-top"><button id="button-addrow" name="button-addrow" onmouseup="addTableRow($('#input'));" style="margin:2px; float:right; font-size:0.8em;"></button><h4>Components</h4></div>
 		<div class="ui-widget-content ui-corner-bottom">
+		{% if user.is_authenticated %}
+		<p>Start typing in the name field to bring up a list of your fragments</p>
+		{% endif %}
+		{% if not user.is_authenticated %}
+		<p>Log in to access your library of fragments.</p>
+		{% endif %}
             <table id="input">
                 <tr>
                     <th>Name</th>
@@ -74,3 +80,26 @@
 	</div>
 </div>
 {% endblock %}
+
+{% if user.is_authenticated %}
+{% block js %}
+<script type="text/javascript">
+var handleAutoComplete = function () {
+	$('input[name="name"]').autocomplete({
+		source:'get',
+		minLength:1,
+		focus: function( event, ui ) {
+			$(this).val( ui.item.label );
+			return false;
+		},
+		select: function( event, ui ) {
+			$('~ td > input[name="length"]', this.parentNode)[0].value=ui.item.length;
+		}
+	});
+}
+$(document).ready(function() {
+	handleAutoComplete();
+});
+</script>
+{% endblock %}
+{% endif %}

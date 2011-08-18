@@ -142,6 +142,7 @@ function addTableRow(jQtable){
         }
     });
     react = new Reaction();
+    handleAutoComplete();
     $(":input").change(function(){
 		react.go();
 	});
