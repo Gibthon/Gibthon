@@ -14,8 +14,7 @@ from collections import OrderedDict
 import csv, time, json, zipfile
 from copy import copy
 from cStringIO import StringIO
-from reportlab.pdfgen import canvas
-
+from xhtml2pdf import pisa
 
 
 def fix_request(reqp):
@@ -444,12 +443,12 @@ def pdf(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
 		response = HttpResponse(mimetype='application/pdf')
-		p = canvas.Canvas(response)
-		p.setTitle(con.name)
-		p.setAuthor('Gibthon Construct Designer')
-		p.drawString(2, 2, "Hello world.")
-		p.showPage()
-		p.save()
+		t = loader.get_template('gibson/pdf_primer.html')
+		c = RequestContext(request)
+		pdfbuffer = StringIO()
+		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer)
+		response.write(pdfbuffer.getvalue())
+		pdfbuffer.close()
 		return response
 	else:
 		return HttpResponseNotFound
