@@ -420,6 +420,14 @@ def protocol_download(request, cid):
 		for p in con.primer.all():
 			writer.writerow(p.csv())
 		csvbuffer.flush()
+		# write the pdf
+		t = loader.get_template('gibson/pdf_primer.html')
+		c = RequestContext(request,{
+			'construct':con,
+		})
+		pdfbuffer = StringIO()
+		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer)
+		pdfbuffer.flush()
 		# write the zip file
 		zipbuffer = StringIO()
 		zip = zipfile.ZipFile(zipbuffer, 'w', zipfile.ZIP_DEFLATED)
@@ -428,8 +436,11 @@ def protocol_download(request, cid):
 			zip.writestr(con.name+'/pcr/'+name, f)
 		# add the csv file
 		zip.writestr(con.name+'/primers.csv', csvbuffer.getvalue())
+		# add the pdf
+		zip.writestr(con.name+'/'+con.name+'.pdf', pdfbuffer.getvalue())
 		# closing of buffers and return
 		csvbuffer.close()
+		pdfbuffer.close()
 		zip.close()
 		zipbuffer.flush()
 		ret_zip = zipbuffer.getvalue()
@@ -439,12 +450,15 @@ def protocol_download(request, cid):
 	else:
 		return HttpResponseNotFound
 
+@login_required
 def pdf(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
 		response = HttpResponse(mimetype='application/pdf')
 		t = loader.get_template('gibson/pdf_primer.html')
-		c = RequestContext(request)
+		c = RequestContext(request,{
+			'construct':con,
+		})
 		pdfbuffer = StringIO()
 		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer)
 		response.write(pdfbuffer.getvalue())
