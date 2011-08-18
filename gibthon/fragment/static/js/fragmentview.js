@@ -291,8 +291,12 @@ $.widget("ui.fragmentSequence", {
 	},
 	_make_row: function(start){
 		var s = "";
+		var end = start + this.rowlength;
 		if( start == 0)
+		{
 			s = " " + this.seq.substr(start, this.rowlength - 1);
+			end = end - 1;
+		}
 		else
 			s = this.seq.substr(start - 1, this.rowlength);
 		
@@ -305,9 +309,37 @@ $.widget("ui.fragmentSequence", {
 		}
 		var cseq = this._complement(seq);
 		
+		var fwd_feats = "";
+		var rev_feats = "";
+		for(f in this.features)
+		{
+			var feat = this.features[f];
+			if((feat.end < start) || (feat.start > end))
+				continue;
+		console.log("start-end: " + start + "-" + end + " : feat" + feat.start + "-" + feat.end);
+			var a = feat.start - start;
+			if(a < 0) a = 0;
+			var b = feat.end - feat.start;
+			if((a + b) > this.rowlength) b = this.rowlength - a;
+			var c = end - feat.end;
+			if( c < 0) c = 0;
+			var feat_html = '' +
+			'<div class="feat-div">' + 
+				this._make_blank(a) + 
+				'<span class="feat-hl">' + this._make_blank(b) + '</span>' +
+				this._make_blank(c) +
+			'</div>';
+		console.log("a, b, c: " + a + ", " + b + ", " + c);
+		console.log("feat_html: " + feat_html);
+			if(feat.strand > 0) fwd_feats = fwd_feats + feat_html;
+			else rev_feats = rev_feats + feat_html;
+			
+		}
+		
+		
 		this.$seq.append( '' +
 		'<div id="row-' + start + '" class="row unselectable" unselectable="on">' +
-		'	<div id="feat-fwd-' + start + '" class="feat-ref feat"></div>' +
+		'	<div id="feat-fwd-' + start + '" class="feat-ref feat unselectable" unselectable="on">' + fwd_feats + '</div>' +
 		'	<div style="position:relative;">'  +
 		'		<div id="fwd-' + start + '" class="seq-fwd seq selectable">' + seq + '</div>' +
 		'<div class="ladder unselectable" unselectable="on"></div>' +
@@ -315,10 +347,19 @@ $.widget("ui.fragmentSequence", {
 		'<div class="ladder unselectable" unselectable="on"></div>' +
 		'		<div id="rev-' + start + '" class="seq-rev seq unselectable" unselectable="on">' + cseq + '</div>' +
 		'	</div>' +
-		'	<div id="feat-rev-' + start + '" class="feat-rev feat unselectable" unselectable="on"></div>' + 
+		'	<div id="feat-rev-' + start + '" class="feat-rev feat unselectable" unselectable="on">' + rev_feats + '</div>' + 
 		'</div>');
 		
 		return this.rowlength;
+	},
+	_make_blank: function(num)
+	{
+		ret = "";
+		for(var i = 0; i < num; i = i + 1)
+		{
+			ret = ret + " ";
+		}
+		return ret;
 	},
 });
 

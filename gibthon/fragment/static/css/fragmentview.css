@@ -227,4 +227,11 @@
 	height: 1px;
 	background-color: black;
 }
- 
+.feat
+{
+	white-space: pre;
+}
+.feat-hl
+{
+	background-color: red;
+}
