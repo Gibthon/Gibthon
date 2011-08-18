@@ -3,6 +3,7 @@ from django.conf import settings
 
 primerpatterns = patterns('gibson.views',
 	(r'^$', 'primers'),
+	(r'^pcr$', 'pcr_instructions'),
 	(r'^save$', 'primer_save'),
 	(r'^reset$', 'primer_reset'),
 	(r'^csv$', 'csv_primers'),

@@ -10,10 +10,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import condition
 from django.core.exceptions import *
 
-import csv
-import time
-import json
+from collections import OrderedDict
+import csv, time, json, zipfile
 from copy import copy
+from cStringIO import StringIO
+
 
 def fix_request(reqp):
 	rp = copy(reqp)
@@ -367,3 +368,39 @@ def primer_save(request, cid):
 		return HttpResponse('OK')
 	else:
 		return HttpResponseNotFound()
+
+def pcr_step(name, temp, time):
+	return {"type":"step", "name":name, "temp":str(temp), "time":str(time)}
+
+def pcr_cycle(cf):
+	tm = int((cf.primer_top().tm() + cf.primer_bottom().tm())/2 - 4)
+	t = int(cf.fragment.length() * 45.0/1000.0)
+	cycle = OrderedDict()
+	cycle['type'] = 'cycle'
+	cycle['count'] = 30
+	cycle['steps'] = [pcr_step('Melting',98,10), pcr_step('Annealing', tm, 10), pcr_step('Elongation', 72, t)]
+	pcr = OrderedDict()
+	pcr['name'] = cf.construct.name + '-' + cf.fragment.name
+	pcr['steps'] = [pcr_step('Initial Melting',98,30), cycle, pcr_step('Final Elongation', 72, 450),pcr_step('Final Hold', 4, 0)]
+	pcr['lidtemp']  = 110
+	return json.dumps(pcr, indent=4)
+
+def pcr_instructions(request, cid):
+	con = get_construct(request.user, cid)
+	if con:
+		response = HttpResponse(mimetype='application/zip')
+		response['Content-Disposition'] = 'filename='+con.name+'-pcr.zip'
+		
+		pcr = [(con.name + '-' + cf.fragment.name+'.pcr',pcr_cycle(cf)) for cf in con.cf.all()]
+		buffer = StringIO()
+		zip = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED)
+		for name, f in pcr:
+			zip.writestr(name, f)
+		zip.close()
+		buffer.flush()
+		ret_zip = buffer.getvalue()
+		buffer.close()
+		response.write(ret_zip)
+		return response
+	else:
+		return HttpReponseNotFound

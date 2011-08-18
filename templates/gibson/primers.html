@@ -56,6 +56,7 @@ td.warningcell {
 |
 <button id="download_primers">Download (.csv)</button>
 <button id="download_protocol">Protocol</button>
+<button id="pcr_instructions">PCR Instructions</button>
 |
 <button id="reset_offset">Reset Offsets</button>
 {% endblock %}
@@ -202,6 +203,11 @@ $(document).ready(function() {
 	});
 	$('button#download_protocol').button({
 		icons:{primary:'ui-icon-clipboard'}
+	});
+	$('button#pcr_instructions').button({
+		icons:{primary:'ui-icon-script'}
+	}).click(function() {
+		$.get('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/pcr');
 	});
 });
 </script>
