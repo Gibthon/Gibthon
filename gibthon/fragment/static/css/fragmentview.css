@@ -22,6 +22,22 @@
 	border-top: none;
 }
 
+.unselectable 
+{
+   -moz-user-select: -moz-none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+.selectable 
+{
+   -moz-user-select: text;
+   -khtml-user-select: text;
+   -webkit-user-select: text;
+   user-select: text;
+}
+
 #load_span
 {
 	margin-left: 1.5em;
@@ -83,12 +99,6 @@
 #annot_div
 {
 	padding-right: 1.2em;
-}
-
-#seq_wrap
-{
-	margin: .5em;
-	word-break: break-word;
 }
 
 .info
@@ -168,72 +178,53 @@
 	margin-bottom: 0.25em;
 }
 
-/*
-*
-* -- Fragment editor
-*
+/* *** Fragment view
 */
-.fe-content-div
+
+#seq_wrap
 {
-	float:left;
+	margin: .5em;
+	word-break: break-word;
+}
+
+#seq_inner
+{
+	margin-right: auto;
+	margin-left: auto;
+}
+.seq-label
+{
+	font: 0.8em 'Arial',sans-serif;
+	display: inline-block;
+	width: 3.7em;
+	margin-right: 0.64em;
+}
+.row
+{	
+	font: 1.1em 'Courier New',monospace;
+	display: inline-block;
+	margin-right: auto;
+	margin-left: auto;
 	position: relative;
-	display:inline-block;
-	margin: 0.2em 0.2em 0.2em 0em;
-	width: 6.4em;
-	height: auto;
+	margin: 1em 0;
 }
-.fe-sequence-div
+.seq
 {
-	position: relative;
+	white-space: pre;
+	height: 1em;
+	margin: .2em 0;
 }
-.fe-sequence
+.seq-fwd
 {
-	font: 1em 'Courier New',monospace;
-	width: 6.56em;
+	margin-bottom: .1em;
 }
-.fe-top
+.seq-rev
 {
-	margin-bottom: 1.2em;
+	margin-top: 0;
 }
-.fe-bottom
+.ladder
 {
-	margin-top: 1.2em;
+	height: 1px;
+	background-color: black;
 }
-.fe-label
-{
-	position: absolute;
-	font: bold 0.6em arial,sans-serif;
-	cursor: default;
-	text-align: center;
-	top: 2.2em; bottom: auto;
-}
-.fe-number
-{
-	left: -3.8em; right: 5.8em;
-}
-.fe-marker
-{
-	left: 0.625em; right: 0;
-}
-.fe-hidden
-{
-	display: none;
-}
-.fe-sl
-{
-	background-color: #00aeff;
-	cursor: pointer;
-}
-.fe-nosl
-{
-	background-color: ghostwhite;
-	cursor: auto;
-}
-#fe-content-0 .fe-sequence
-{
-	text-indent: 0.64em;
-}
-.fe-hl-over
-{
-	background-color: yellow !important;
-}
+ 

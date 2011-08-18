@@ -24,7 +24,42 @@ def get_meta(g, request):
 									'origin': g.get_origin_display(),
 									'length': len(g.sequence)
 								})
-					
+
+def get_seq_meta(g, request):
+	"""get all the sequence metadata"""		
+	#get features
+	feats = []
+	for f in g.features.all():
+		quals = []
+		for q in f.qualifiers.all():
+			quals.append({	'name': q.name,
+								'data': q.data,
+							 })
+		s = None
+		if f.direction == 'f':
+			s = 1
+		elif f.direction == 'r':
+			s = -1
+		feats.append({	'start': f.start,
+							'end': f.end,
+							'strand': s,
+							'type': f.type,
+							'qualifiers': quals,
+						})
+		
+	#assume Ambiguous DNA
+	let = Seq(IUPAC.IUPACAmbiguousDNA.letters, IUPAC.IUPACAmbiguousDNA())
+	rlet = let.complement()
+	alpha = {}
+	for i in range(len(let)):
+		alpha[let[i].lower()] = rlet[i].lower()
+		alpha[let[i].upper()] = rlet[i].upper()
+	
+	return JsonResponse({	'len': len(g.sequence),
+									'feats': feats,
+									'alpha': alpha,
+								})
+	
 def get_seq(g, request):
 	#return a section of the sequence
 	try:
@@ -100,6 +135,7 @@ get_map = 	{	'meta': get_meta,
 					'feats': get_feats,
 					'len': get_len,
 					'alpha': get_alpha,
+					'seq_meta': get_seq_meta,
 				}
 
 @login_required

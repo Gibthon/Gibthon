@@ -1,4 +1,17 @@
 
+function px2em(input) 
+{
+    var emSize = parseFloat($('body').css("font-size"));
+    return (input / emSize);
+}
+
+function em2px(input) 
+{
+    var emSize = parseFloat($('body').css("font-size"));
+    return (input * emSize);
+}
+
+
 var meta_initial_html = '' +
 '<div class="ui-widget-content ui-corner-top top-box" >' +
 '	<h3 id="desc"></h3>' +
@@ -182,8 +195,12 @@ var initial_sequence_html = '' +
 '</div>' +
 '<div class="ui-widget-content ui-corner-bottom bottom-box content">' +	
 '	<div id="seq_wrap">' +
+'		<div id="seq_inner" class="unselectable" unselectable="on">' +
+'		</div>' +
 '	</div>' +
 '</div>';
+
+var char_width = 0.64;
 
 
 (function( $, undefined ) {
@@ -193,6 +210,7 @@ $.widget("ui.fragmentSequence", {
 		id: 0,
 	},
 	_create: function() {
+	console.log("_create");
 		var self = this;
 		this.$el = $(this.element[0]).html(initial_sequence_html);
 		this.$len = this.$el.find('#length');
@@ -200,72 +218,67 @@ $.widget("ui.fragmentSequence", {
 		this.$bar = this.$el.find('#progressbar').progressbar({value: 0,});
 		this.$barval = this.$el.find('.ui-progressbar-value');
 		this.$loader = this.$el.find('#loader');
-		this.$seq = this.$el.find('#seq_wrap');
+		this.$seq = this.$el.find('#seq_inner');
 		this.len = 0;
-		this.prog = 0;
-		this._get_alphabet();	
+		this.seq = "";
+		this.pos = 0;
+		this.rowlength = 10 * parseInt(px2em(this.$el.width()) / (11 * char_width));
+		this._get_seq_meta();	
 	},
-	_get_seq: function(){
+	_get_seq_meta: function(){
+		console.log("_get_len");
 		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq', 'offset': this.prog}, function(data) {
+		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq_meta',}, function(data) {
+			if(data[0] != 0)
+			{
+				console.log(data[1] + " while getting sequence metadata");
+				return;
+			}
+			self.len = data[1].len;
+			self.$len.text(data[1].len);
+			if(self.len > 2000) //if we should load progressively 
+			{
+				self.$loader.slideDown(100);
+			}
+			
+			self.features = data[1].feats;
+			self.alphabet = data[1].alpha;
+			self.alphabet[' '] = ' ';
+			
+			self._get_seq(0);
+		});
+	},
+	_get_seq: function(offset){
+		var self = this;
+		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq', 'offset': offset}, function(data) {
 			if(data[0] != 0)
 			{
 				console.log(data[1] + " while getting seq");
 				return;
 			}
-			var olen = data[1].length;
-			var oprog = self.prog;
-			self.prog = self.prog + olen;
-			
-			if((self.prog) < self.len)
+			self.seq = self.seq + data[1];
+			var flush = false;//should we flush all the sequence?
+			if(self.seq.length < self.len)//is there more data to come?
 			{
-				//we need to issue another request
-				self._get_seq();			
+				//get some more data
+				self._get_seq(self.seq.length);
 			}
 			else
 			{
-				self.$loader.slideUp(100);
+				flush = true;
+				self.$loader.slideUp(500);
 			}
 			
-			added = 0;
-			while(added < olen)
+			//while we have enough data to make a complete row
+			while((self.seq.length - self.pos) > self.rowlength)
 			{
-				self.$seq.append(self._make_block(data[1], oprog + added));
-				data[1] = data[1].slice(10);
-				added = added + 10;
-			}
+				self.pos = self.pos + self._make_row(self.pos);
+			} 
+			if(flush)
+				self.pos = self.pos + self._make_row(self.pos);
 			
-			self.$prog.text(self.prog);
-			self.$bar.progressbar('value', parseInt((100 * self.prog) / self.len));
-		});
-	},
-	_get_alphabet: function(){
-		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'alpha',}, function(data) {
-			if(data[0] != 0)
-			{
-				console.log(data[1] + " while getting alphabet");
-				return;
-			}
-			self.alphabet = data[1];
-			self._get_len();
-		});
-	},
-	_get_len: function(){
-		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'len',}, function(data) {
-			if(data[0] != 0)
-			{
-				console.log(data[1] + " while getting length");
-				return;
-			}
-			self.len = data[1];
-			self.$len.text(data[1]);
-			if(self.len > 2000) //if we should load progressively 
-			{
-				self.$loader.slideDown(100);
-			}
-			self._get_seq();
+			self.$prog.text(self.seq.length);
+			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
 		});
 	},
 	_complement: function(string){
@@ -276,23 +289,36 @@ $.widget("ui.fragmentSequence", {
 		}
 		return ret;
 	},
-	_make_block: function(sequence, start){
-		seq = sequence.substr(0,10);
-		cseq = this._complement(seq);
-		return '' +
-		'<div id="fe-content-' + start + '" class="fe-content-div">' +
-		'	<div id="fe-feattop-' + start + '" class="fe-features">' +
-		'	</div>' +
+	_make_row: function(start){
+		var s = "";
+		if( start == 0)
+			s = " " + this.seq.substr(start, this.rowlength - 1);
+		else
+			s = this.seq.substr(start - 1, this.rowlength);
+		
+		var seq = "";
+		var label = "";
+		for(var i = 0; i < this.rowlength; i = i + 5)
+		{
+			seq = seq + s.substr(i, 5) + " ";
+			label = label + '<div class="seq-label">' + (start + i) + '</div>';
+		}
+		var cseq = this._complement(seq);
+		
+		this.$seq.append( '' +
+		'<div id="row-' + start + '" class="row unselectable" unselectable="on">' +
+		'	<div id="feat-fwd-' + start + '" class="feat-ref feat"></div>' +
 		'	<div style="position:relative;">'  +
-		'		<div id="fe-htop-' + start + '" class="fe-hidden">' + seq + '</div>' +
-		'		<div id="fe-hbottom-' + start + '" class="fe-hidden">' + cseq + '</div>' +
-		'		<div id="fe-number-' + start + '" class="fe-label fe-number">' + start + '</div>' + 
-		'		<div id="fe-marker-' + start + '" class="fe-label fe-marker">|</div>' +
-		'		<div id="fe-top-' + start + '" class="fe-sequence fe-top">' + seq + '</div>' +
-		'		<div id="fe-bottom-' + start + '" class="fe-sequence fe-bottom">' + cseq + '</div>' +
+		'		<div id="fwd-' + start + '" class="seq-fwd seq selectable">' + seq + '</div>' +
+		'<div class="ladder unselectable" unselectable="on"></div>' +
+		'		<div id="label-' + start + '"> ' + label + ' </div>' +
+		'<div class="ladder unselectable" unselectable="on"></div>' +
+		'		<div id="rev-' + start + '" class="seq-rev seq unselectable" unselectable="on">' + cseq + '</div>' +
 		'	</div>' +
-		'	<div id="fe-featbottom-' + start + '" class="fe-features"></div>' + 
-		'</div>';
+		'	<div id="feat-rev-' + start + '" class="feat-rev feat unselectable" unselectable="on"></div>' + 
+		'</div>');
+		
+		return this.rowlength;
 	},
 });
 
