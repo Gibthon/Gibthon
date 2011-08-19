@@ -50,18 +50,20 @@ td.warningcell {
 
 {% block js-include %}
 <script src="{{ STATIC_URL }}/js/primers.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.cookie-modified.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block menu %}
 |
-<button id="download_primers">Download Primers (.csv)</button>
+<button id="download">Download Primers and Protocols</button>
 |
 <button id="reset_offset">Reset Offsets</button>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-	<h3>Primers for {{ construct.name }}</h3>
+	<h3>Primers</h3>
+	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
 	<div>
 	{% for cf in construct.cf.all %}
 		<div style="float:left;">
@@ -86,66 +88,56 @@ td.warningcell {
 <div id="primer_info">
 	<div class="ui-widget-content ui-corner-all content">
 		<h3>Summary</h3>
-		<p><table style="margin-left:30px;">
+		<p><table style="margin-left:30px;" class="protocol">
 		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
 		{% for primer in construct.primer.all %}
-		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:2 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:2 }}</td></tr>
+		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:0 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:0 }}</td></tr>
 		{% endfor %}
 		</table></p>
 	</div>
 	<div class="ui-widget-content ui-corner-all content">
-		<h3>PCR Protocol</h3>
+		<h3>PCR Particulars</h3>
 		<p>Fill in the details for all of your primers to download protocol information</p>
+		<p>Don't forget to save your changes!</p>
 		<div id="warning" class="ui-state-highlight ui-corner-all" style="padding:5px; margin-left:auto; margin-right:auto; width:500px; margin-bottom:5px;">Warning! Some of your components have a volume of less than 1&mu;l. Consider diluting them before adding to the mix.</div>
-		<table class="protocol" style="margin-left:30px;">
-		<tr><th>Reagent</th><th>Stock</th><th>Desired</th><th style="width:50px;"></th><th colspan="2"></th></tr>
-		<tr><td>Buffer</td><td><input class="mix" id="buffer_stock" value="10" /> X</td><td><input class="mix" id="buffer_desired" value="1" /> X</td><th></th><th>Repeats</th><td><input class="mix" id="repeats" value="1" /></td></tr>
-		<tr><td>dNTPs</td><td><input class="mix" id="dntp_stock" value="10" /> mM</td><td><input class="mix" id="dntp_desired" value="0.8" /> mM</td><th></th><th>Volume each</th><td><input class="mix" id="volume_each" value="12.5" /> &mu;l</td></tr>
-		<tr><td>Enzyme</td><td><input class="mix" id="enzyme_stock" value="2.5" /> U/&mu;l</td><td><input class="mix" id="enzyme_desired" value="2.5" /> U</td><th></th><th>Error margin</th><td><input class="mix" id="error_margin" value="0" /> %</td></tr>
-		<tr><td>Primer</td><th></th><td><input class="mix" id="primer_desired" value="0.4" /> &mu;M</td><th colspan="3"></th></tr>
-		<tr><td>Template</td><th></th><td><input class="mix" id="template_desired" value="100" /> ng</td><th colspan="3"></th></tr>
-		</table>
-		<p></p>
-		<div id="protocol-accordion">
-		{% for fragment in construct.cf.all %}
-				<h3 style="padding:10px 10px 10px 20px;">{{ fragment.fragment.name }}</h3>
-				<div style="font-size:1.2em">
-				<div style="float:left; padding-left:30px;">
-					<form class="mixform">
-					<table class="protocol">
-						<tr><th style="width:250px;">Reagent</th><th>Conc.</th><th>Volume</th></tr>
-						<tr><td>Buffer</td><th></th><td><input class="mix" name="buffer_vol" readonly /> &mu;l</td></tr>
-						<tr><td>dNTPs</td><th></th><td><input class="mix" name="dntp_vol" readonly /> &mu;l</td></tr>
-						<tr><td>{{ fragment.primer_top.name }}</td><td><input class="mix" name="primer_top_stock" value="5" /> &mu;M</td><td><input class="mix" name="primer_top_vol" readonly /> &mu;l</td></tr>
-						<tr><td>{{ fragment.primer_bottom.name }}</td><td><input class="mix" name="primer_bottom_stock" value="5" /> &mu;M</td><td><input class="mix" name="primer_bottom_vol" readonly /> &mu;l</td></tr>
-						<tr><td>{{ fragment.fragment.name }}</td><td><input class="mix" name="template_stock" value="100" /> ng/&mu;l</td><td><input class="mix" name="template_vol" readonly /> &mu;l</td></tr>
-						<tr><td>Enzyme</td><th></th><td><input class="mix" name="enzyme_vol" readonly /> &mu;l</td></tr>
-						<tr><td>Water</td><th></th><td><input class="mix" name="water_vol" readonly /> &mu;l</td></tr>
-						<tr><th>Total Volume</th><th></th><th><input class="mix" name="total_vol" readonly /> &mu;l</th></tr>
-					</table>
-					</form>
-				</div>
-				<div style="float:right; padding-right:30px;">
-					<table class="protocol" style="float:right; margin-right:30px;">
-						<tr><th colspan="3">PCR Instructions</th></tr>
-						<tr><td>Initial Melting</td><td>98&deg;C</td><td>30s</td></tr>
-						<tr><th colspan="3">Begin cycle: Repeat 30 times</th></tr>
-						<tr><td>Melting</td><td>98&deg;C</td><td>10s</td></tr>
-						<tr><td>Annealing</td><td>{{ fragment.tm|floatformat:0 }}&deg;C</td><td>15s</td></tr>
-						<tr><td>Elongation</td><td>72&deg;C</td><td>{{ fragment.time|floatformat:0 }}s</td></tr>
-						<tr><th colspan="3">End cycle</th></tr>
-						<tr><td>Final elongation</td><td>72&deg;C</td><td>7m30s</td></tr>
-						<tr><td>Final hold</td><td>4&deg;C</td><td>&#8734;</td></tr>
-					</table>
-				</div>				
-				<div style="clear:both;"></div>
-				<p></p>
-				</div>
-		{% endfor %}
+		<div style="width:310px; float:left;">
+			<table class="protocol"><tr><th>Stock</th></tr></table>
+			{% for cf in construct.cf.all %}
+			<form class="mixform">
+				<table class="protocol">
+					<tr><th colspan="2" style="width:150px;">{{ cf.fragment.name }}</th><td>Top</td><td><input class="mix" value="{{ cf.primer_top.concentration }}" name="p_t_c" /> &mu;M</td></tr>
+					<tr><td>Template</td><td><input class="mix" value="{{ cf.concentration }}" name="temp_c" /> ng/&mu;l</td><td>Bottom</td><td><input class="mix" value="{{ cf.primer_bottom.concentration }}" name="p_b_c" /> &mu;M</td></tr>
+					<tr><th colspan="4">&nbsp;</th></tr>
+					<input type="hidden" value="{{ cf.id }}" name="id" />
+				</table>
+			</form>
+			{% endfor %}
 		</div>
-	</div>
-	<div class="ui-widget-content ui-corner-all content">
-		<h3>Gibson Assembly Protocol</h3>
+		<form id="pcrform">
+		<div style="width:200px; float:left;">
+			<table class="protocol">
+				<tr><th colspan="2">&nbsp;</th></tr>
+				<tr><th>Repeats</th><td><input class="mix" name="repeats" value="{{ construct.pcrsettings.repeats }}" /></td></tr>
+				<tr><th>Volume each</th><td><input class="mix" name="volume_each" value="{{ construct.pcrsettings.volume_each }}" /> &mu;l</td></th></tr>
+				<tr><th>Error margin</th><td><input class="mix" name="error_margin" value="{{ construct.pcrsettings.error_margin }}" /> %</td></tr>
+			</table>
+		</div>
+		<div style="width:270px; float:left;">
+			<table class="protocol">
+				<tr><th>Reagent</th><th>Stock</th><th>Desired</th></tr>
+				<tr><td>Buffer</td><td><input class="mix" name="buffer_s" value="{{ construct.pcrsettings.buffer_s }}" /> X</td><td><input class="mix" name="buffer_d" value="{{ construct.pcrsettings.buffer_d }}" /> X</td></tr>
+				<tr><td>dNTPs</td><td><input class="mix" name="dntp_s" value="{{ construct.pcrsettings.dntp_s }}" /> mM</td><td><input class="mix" name="dntp_d" value="{{ construct.pcrsettings.dntp_d }}" /> mM</td></tr>
+				<tr><td>Enzyme</td><td><input class="mix" name="enzyme_s" value="{{ construct.pcrsettings.enzyme_s }}" /> U/&mu;l</td><td><input class="mix" name="enzyme_d" value="{{ construct.pcrsettings.enzyme_d }}" /> U</td></tr>
+				<tr><td>Primer</td><th></th><td><input class="mix" name="primer_d" value="{{ construct.pcrsettings.primer_d }}" /> &mu;M</td></tr>
+				<tr><td>Template</td><th></th><td><input class="mix" name="template_d" value="{{ construct.pcrsettings.template_d }}" /> ng</td></tr>
+			</table>
+		</div>
+		</form>
+		<div style="width:400px; float:right; margin:10px; padding:5px;" class="ui-widget-content ui-corner-all">
+			<button id="save">Save</button> <span id="save_status"></span><br />
+			If you see an orange box, it means that you will need to pipette less than 1&mu;l of something. You are advised to dilute before adding to the mix.
+		</div>
+		<div style="clear:both;"></div>
 	</div>
 </div>
 
@@ -171,6 +163,21 @@ td.warningcell {
 {% block js %}
 <script type="text/javascript">
 $(document).ready(function() {
+	$('button#save')
+		.button({
+			icons:{primary:'ui-icon-disk'}
+		})
+		.click(function() {
+			forms = [];
+			$('.mixform').each(function(){
+				forms.push('{"id":"' + this.elements['id'].value + '","t_c":'+this.elements['temp_c'].value+',"p_t_c":'+this.elements['p_t_c'].value+',"p_b_c":'+this.elements['p_b_c'].value+'}');
+			});
+			settings = [];
+			$.each($('#pcrform')[0].elements, function (i,e) {
+				settings.push('"' + e.name + '":"' + e.value + '"');
+			});
+			$.post('save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
+		});
 	$('button.primer_button').click(function() {
 		$('#wait').dialog('open');
 		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
@@ -188,10 +195,24 @@ $(document).ready(function() {
 		});
 		$('.primer_info_wrapper').show();
 	}
-	$('button#download_primers').button({
-		icons:{primary:'ui-icon-transferthick-e-w'}
-	}).click(function(event){
-		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
+	var downloadTimer;
+	$('button#download').button({
+		icons:{primary:'ui-icon-clipboard'}
+	}).click(function() {
+		$('#wait').dialog('open');
+		var token = new Date().getTime();
+		downloadTimer = window.setInterval(function () {
+			var cookieValue = $.cookie('fileDownloadToken');
+			if (cookieValue == token) {
+				$('#wait').dialog('close');
+				window.clearInterval(downloadTimer);
+				$.cookie('fileDownloadToken', null);
+			}
+		},500);
+		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download?tk='+token;
+		
+
+		//window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download';
 	});
 });
 </script>

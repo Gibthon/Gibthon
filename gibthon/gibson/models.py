@@ -71,6 +71,45 @@ class Settings(models.Model):
 	def __unicode__(self):
 		return 'Settings for ' + self.construct.name
 
+class PCRSettings(models.Model):
+	construct = AutoOneToOneField('Construct', related_name='pcrsettings')
+	repeats = models.PositiveSmallIntegerField(default=1)
+	volume_each = models.DecimalField(max_digits=3, decimal_places=1, default=12.5)
+	error_margin = models.PositiveSmallIntegerField(default=10)
+	buffer_s = models.DecimalField(max_digits=3, decimal_places=1, default=10)
+	buffer_d = models.DecimalField(max_digits=3, decimal_places=1, default=1)
+	dntp_s = models.DecimalField(max_digits=3, decimal_places=1, default=10)
+	dntp_d = models.DecimalField(max_digits=3, decimal_places=1, default=0.8)
+	enzyme_s = models.DecimalField(max_digits=3, decimal_places=1, default=2.5)
+	enzyme_d = models.DecimalField(max_digits=3, decimal_places=1, default=2.5)
+	primer_d = models.DecimalField(max_digits=3, decimal_places=1, default=0.4)
+	template_d = models.DecimalField(max_digits=4, decimal_places=1, default=100)
+	
+	def m(self):
+		return self.repeats * (1+(self.error_margin/100))
+	
+	def buffer_v(self):
+		return self.m() * self.volume_each * self.buffer_d/self.buffer_s
+	
+	def dntp_v(self):
+		return self.m() * self.volume_each * self.dntp_d/self.dntp_s
+	
+	def enzyme_v(self):
+		return self.m() * self.enzyme_d/self.enzyme_s
+	
+	def primer_v(self, primer_s):
+		return self.m() * self.volume_each * self.primer_d/primer_s
+	
+	def template_v(self, template_s):
+		return self.m() * self.template_d/template_s
+	
+	def water_v(self, primer_t_s, primer_b_s, template_s):
+		return (self.m()*self.volume_each) - self.buffer_v() - self.dntp_v() - self.enzyme_v() - self.primer_v(primer_t_s) - self.primer_v(primer_b_s) - self.template_v(template_s)
+	
+	def total_v(self):
+		return self.m() * self.volume_each
+	
+
 class Warning(models.Model):
 	primer = models.ForeignKey('Primer', related_name='warning')
 	# four warning types at the moment
@@ -89,6 +128,10 @@ class Primer(models.Model):
 	flap = models.OneToOneField('PrimerHalf', related_name='flap')
 	stick = models.OneToOneField('PrimerHalf', related_name='stick')
 	boxplot = models.ImageField(upload_to='boxplots')
+	concentration = models.DecimalField(default=5, max_digits=4, decimal_places=1)
+	
+	def vol(self):
+		return self.construct.pcrsettings.primer_v(primer_s=self.concentration)
 	
 	class Meta:
 		ordering = ['stick']
@@ -337,6 +380,9 @@ class Construct(models.Model):
 			dna += f.sequence()
 		return dna
 	
+	def length(self):
+		return len(self.sequence())
+	
 	def features(self):
 		acc = 0
 		for fr in self.cf.all():
@@ -352,6 +398,9 @@ class Construct(models.Model):
 				f.end -= fr.start() - acc - 1
 				yield f
 			acc += fr.end() - fr.start() + 1
+	
+	def feature_count(self):
+		return sum(1 for f in self.features())
 	
 	def features_pretty(self):
 		acc = 0
@@ -455,6 +504,7 @@ class ConstructFragment(models.Model):
 	start_offset = models.IntegerField()
 	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature')
 	end_offset = models.IntegerField()
+	concentration = models.DecimalField(default=100, max_digits=4, decimal_places=1)
 
 	class Meta:
 		ordering = ['order']
@@ -509,6 +559,12 @@ class ConstructFragment(models.Model):
 	
 	def time(self):
 		return (self.end()-self.start()+1)*45.0/1000
+	
+	def vol(self):
+		return self.construct.pcrsettings.template_v(self.concentration)
+	
+	def water_v(self):
+		return self.construct.pcrsettings.water_v(self.primer_top().concentration, self.primer_bottom().concentration, self.concentration)
 	
 	def __unicode__(self):
 		return self.construct.name + ' : ' + self.fragment.name + ' (' + str(self.order) + ')'
