@@ -80,26 +80,3 @@
 	</div>
 </div>
 {% endblock %}
-
-{% if user.is_authenticated %}
-{% block js %}
-<script type="text/javascript">
-var handleAutoComplete = function () {
-	$('input[name="name"]').autocomplete({
-		source:'get',
-		minLength:1,
-		focus: function( event, ui ) {
-			$(this).val( ui.item.label );
-			return false;
-		},
-		select: function( event, ui ) {
-			$('~ td > input[name="length"]', this.parentNode)[0].value=ui.item.length;
-		}
-	});
-}
-$(document).ready(function() {
-	handleAutoComplete();
-});
-</script>
-{% endblock %}
-{% endif %}
