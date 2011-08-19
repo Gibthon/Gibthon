@@ -225,13 +225,61 @@
 .ladder
 {
 	height: 1px;
-	background-color: black;
+	background-color: grey;
+	margin: .1em 0;
+}
+.label-div
+{
+	background-color: lightgrey;
 }
 .feat
 {
 	white-space: pre;
 }
+.feat-div
+{
+	height: .8em;
+	overflow: hidden;
+}
 .feat-hl
 {
 	background-color: red;
+	border: 1px solid darkred;
+	height: .5em;
+	display: inline-block;
+}
+.feat-type-cds
+{
+	background-color: red;
+	border: 1px solid darkred;
+}
+.feat-type-gene
+{
+	background-color: yellow;
+	border: 1px solid orange;
+}
+.feat-type-misc_feature
+{
+	background-color: brown;
+	border: 1px solid black;
+}
+.feat-type-mrna
+{
+	background-color: blue;
+	border: 1px solid darkblue;
+}
+.feat-type-source
+{
+	background-color: green;
+	border: 1px solid darkgreen;
+}
+.feat-type-exxon
+{
+	background-color: grey;
+	border: 1px solid black;
+}
+.feat-type-sts
+{
+	background-color: pink;
+	border: 1px solid red;
 }

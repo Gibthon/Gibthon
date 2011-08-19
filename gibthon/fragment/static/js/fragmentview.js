@@ -210,7 +210,6 @@ $.widget("ui.fragmentSequence", {
 		id: 0,
 	},
 	_create: function() {
-	console.log("_create");
 		var self = this;
 		this.$el = $(this.element[0]).html(initial_sequence_html);
 		this.$len = this.$el.find('#length');
@@ -226,7 +225,6 @@ $.widget("ui.fragmentSequence", {
 		this._get_seq_meta();	
 	},
 	_get_seq_meta: function(){
-		console.log("_get_len");
 		var self = this;
 		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq_meta',}, function(data) {
 			if(data[0] != 0)
@@ -313,25 +311,9 @@ $.widget("ui.fragmentSequence", {
 		var rev_feats = "";
 		for(f in this.features)
 		{
-			var feat = this.features[f];
-			if((feat.end < start) || (feat.start > end))
-				continue;
-		console.log("start-end: " + start + "-" + end + " : feat" + feat.start + "-" + feat.end);
-			var a = feat.start - start;
-			if(a < 0) a = 0;
-			var b = feat.end - feat.start;
-			if((a + b) > this.rowlength) b = this.rowlength - a;
-			var c = end - feat.end;
-			if( c < 0) c = 0;
-			var feat_html = '' +
-			'<div class="feat-div">' + 
-				this._make_blank(a) + 
-				'<span class="feat-hl">' + this._make_blank(b) + '</span>' +
-				this._make_blank(c) +
-			'</div>';
-		console.log("a, b, c: " + a + ", " + b + ", " + c);
-		console.log("feat_html: " + feat_html);
-			if(feat.strand > 0) fwd_feats = fwd_feats + feat_html;
+			var feat_html = make_feat_html(start, start + this.rowlength, this.features[f]);
+
+			if(this.features[f].strand > 0) fwd_feats = fwd_feats + feat_html;
 			else rev_feats = rev_feats + feat_html;
 			
 		}
@@ -339,28 +321,69 @@ $.widget("ui.fragmentSequence", {
 		
 		this.$seq.append( '' +
 		'<div id="row-' + start + '" class="row unselectable" unselectable="on">' +
+		'	<div class="ladder unselectable" unselectable="on"></div>' +
 		'	<div id="feat-fwd-' + start + '" class="feat-ref feat unselectable" unselectable="on">' + fwd_feats + '</div>' +
 		'	<div style="position:relative;">'  +
 		'		<div id="fwd-' + start + '" class="seq-fwd seq selectable">' + seq + '</div>' +
-		'<div class="ladder unselectable" unselectable="on"></div>' +
-		'		<div id="label-' + start + '"> ' + label + ' </div>' +
-		'<div class="ladder unselectable" unselectable="on"></div>' +
+		'		<div id="label-' + start + '" class="label-div"> ' + label + ' </div>' +
 		'		<div id="rev-' + start + '" class="seq-rev seq unselectable" unselectable="on">' + cseq + '</div>' +
 		'	</div>' +
-		'	<div id="feat-rev-' + start + '" class="feat-rev feat unselectable" unselectable="on">' + rev_feats + '</div>' + 
+		'	<div id="feat-rev-' + start + '" class="feat-rev feat unselectable" unselectable="on">' + rev_feats + '</div>' +
+		'<div class="ladder unselectable" unselectable="on"></div>' + 
 		'</div>');
 		
 		return this.rowlength;
 	},
-	_make_blank: function(num)
-	{
-		ret = "";
-		for(var i = 0; i < num; i = i + 1)
-		{
-			ret = ret + " ";
-		}
-		return ret;
-	},
+	
 });
 
 })( jQuery );	
+
+
+/*
+*
+**** Helper functions
+*
+*/
+var make_feat_html = function(r_s, r_e, feature)
+{
+	var f_s = feature.start + 1; var f_e = feature.end + 1; //features stored as 0-offset
+	if(f_e < f_s) //make certain the end and the start are the right way around
+	{
+		var t = f_e; f_e = f_s; f_s = t;
+	}
+	//check if the feature is not present in the row
+	if((f_e < r_s) || (f_s > r_e))
+	{
+		return "";
+	}
+	
+	var left = f_s - r_s;
+	if(left < 0) left = 0;
+	var right = r_e - f_e;
+	if(right < 0) right = 0;
+	
+	var l = r_e - r_s;
+	
+	var r = "";
+	for(var i = 0; i < l; i = i + 5)
+	{
+		for(var j = 0; j < 5; j = j + 1)
+		{
+			if((i+j) == left)
+			{
+				r = r + '<span class="feat-hl feat-type-' + feature.type + '">';
+			}
+			if((l - (i+j)) == right)
+			{
+				r = r + '</span>';
+			}
+			r = r + ' ';
+		}
+		
+		if((i+j) < l)
+			r = r + ' ';
+	}
+	
+	return '<div class="feat-div">' + r + '</div>';	
+}
