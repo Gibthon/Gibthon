@@ -122,6 +122,7 @@ INSTALLED_APPS = (
 )
 
 LOGIN_URL = '/user/login'
+LOGIN_REDIRECT_URL = '/user/profile/'
 
 # captcha settings
 
