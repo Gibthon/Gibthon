@@ -50,13 +50,12 @@ td.warningcell {
 
 {% block js-include %}
 <script src="{{ STATIC_URL }}/js/primers.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.cookie-modified.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block menu %}
 |
-<button id="download_primers">Download (.csv)</button>
-<button id="download_protocol">Protocol</button>
-<button id="pcr_instructions">PCR Instructions</button>
+<button id="download">Download Primers and Protocols</button>
 |
 <button id="reset_offset">Reset Offsets</button>
 {% endblock %}
@@ -196,18 +195,24 @@ $(document).ready(function() {
 		});
 		$('.primer_info_wrapper').show();
 	}
-	$('button#download_primers').button({
-		icons:{primary:'ui-icon-transferthick-e-w'}
-	}).click(function(event){
-		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
-	});
-	$('button#download_protocol').button({
+	var downloadTimer;
+	$('button#download').button({
 		icons:{primary:'ui-icon-clipboard'}
-	});
-	$('button#pcr_instructions').button({
-		icons:{primary:'ui-icon-script'}
 	}).click(function() {
-		window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/pcr';
+		$('#wait').dialog('open');
+		var token = new Date().getTime();
+		downloadTimer = window.setInterval(function () {
+			var cookieValue = $.cookie('fileDownloadToken');
+			if (cookieValue == token) {
+				$('#wait').dialog('close');
+				window.clearInterval(downloadTimer);
+				$.cookie('fileDownloadToken', null);
+			}
+		},500);
+		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download?tk='+token;
+		
+
+		//window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download';
 	});
 });
 </script>

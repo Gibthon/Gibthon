@@ -9,6 +9,7 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import condition
 from django.core.exceptions import *
+from django.conf import settings
 
 from collections import OrderedDict
 import csv, time, json, zipfile
@@ -55,7 +56,7 @@ def download(request, cid):
 		return HttpResponseNotFound()
 
 @login_required
-def settings(request, cid):
+def construct_settings(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
 		if request.method == 'POST':
@@ -404,13 +405,16 @@ def pcr_instructions(request, cid):
 		return response
 	else:
 		return HttpReponseNotFound
-		
-def protocol_download(request, cid):
+
+def primer_download(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
+		print request.GET['tk']
 		#set up response headers
+		#response = HttpResponse(mimetype='application/zip')
 		response = HttpResponse(mimetype='application/zip')
-		response['Content-Disposition'] = 'filename='+con.name+'.zip'
+		response['Content-Disposition'] = 'attachment; filename='+con.name+'.zip'
+		response.set_cookie('fileDownloadToken',request.GET['tk'])
 		# get all the pcr instruction files
 		pcr = [(con.name + '-' + cf.fragment.name+'.pcr',pcr_cycle(cf)) for cf in con.cf.all()]
 		# write the csv file
@@ -458,11 +462,16 @@ def pdf(request, cid):
 		t = loader.get_template('gibson/pdf_primer.html')
 		c = RequestContext(request,{
 			'construct':con,
+			'each':5.0/con.fragments.all().count()
 		})
 		pdfbuffer = StringIO()
-		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer)
+		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer, link_callback=fetch_resources)
 		response.write(pdfbuffer.getvalue())
 		pdfbuffer.close()
 		return response
 	else:
 		return HttpResponseNotFound
+
+def fetch_resources(uri, rel):
+	path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "")[1:])
+	return path
