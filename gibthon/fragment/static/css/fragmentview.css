@@ -192,6 +192,10 @@
 	margin-right: auto;
 	margin-left: auto;
 }
+.selected
+{
+	background-color: lightblue;
+}
 .seq-label
 {
 	font: 0.8em 'Arial',sans-serif;
@@ -213,6 +217,10 @@
 	white-space: pre;
 	height: 1em;
 	margin: .2em 0;
+}
+.seq-hid
+{
+	display: none;
 }
 .seq-fwd
 {
