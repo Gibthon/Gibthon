@@ -273,7 +273,10 @@ $.widget("ui.fragmentSequence", {
 				self.pos = self.pos + self._make_row(self.pos);
 			} 
 			if(flush)
+			{
 				self.pos = self.pos + self._make_row(self.pos);
+				self._label_features();
+			}
 			
 			self.$prog.text(self.seq.length);
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
@@ -311,7 +314,7 @@ $.widget("ui.fragmentSequence", {
 		var rev_feats = "";
 		for(f in this.features)
 		{
-			var feat_html = make_feat_html(start, start + this.rowlength, this.features[f]);
+			var feat_html = make_feat_html(start, start + this.rowlength, this.features[f], f);
 
 			if(this.features[f].strand > 0) fwd_feats = fwd_feats + feat_html;
 			else rev_feats = rev_feats + feat_html;
@@ -334,7 +337,16 @@ $.widget("ui.fragmentSequence", {
 		
 		return this.rowlength;
 	},
-	
+	_label_features: function()
+	{
+		for(f in this.features)
+		{
+			$('.feat-id-' + f).tipTip({
+				maxWidth: '800px',
+				content: make_feat_tooltip(this.features[f]),
+			});
+		}
+	},
 });
 
 })( jQuery );	
@@ -345,7 +357,7 @@ $.widget("ui.fragmentSequence", {
 **** Helper functions
 *
 */
-var make_feat_html = function(r_s, r_e, feature)
+var make_feat_html = function(r_s, r_e, feature, f_id)
 {
 	var f_s = feature.start + 1; var f_e = feature.end + 1; //features stored as 0-offset
 	if(f_e < f_s) //make certain the end and the start are the right way around
@@ -372,7 +384,7 @@ var make_feat_html = function(r_s, r_e, feature)
 		{
 			if((i+j) == left)
 			{
-				r = r + '<span class="feat-hl feat-type-' + feature.type + '">';
+				r = r + '<span class="feat-hl feat-type-' + feature.type + ' feat-id-' + f_id + '">';
 			}
 			if((l - (i+j)) == right)
 			{
@@ -386,4 +398,26 @@ var make_feat_html = function(r_s, r_e, feature)
 	}
 	
 	return '<div class="feat-div">' + r + '</div>';	
+}
+var make_feat_tooltip = function(feature)
+{
+	var strand = '';
+	if(feature.strand == 1)
+		strand = 'fwd';
+	else if(feature.strand == -1)
+		strand = 'rev';
+		
+	var ret = '' +
+	'<table style="word-wrap:break-word;">' +
+	'	<tr><td style="min-width:7em;">Type :</td><td>' + feature.type + '</td></tr>' +
+	'	<tr><td>Location :</td><td>' + (feature.start) + '-' + (feature.end) + '</td></tr>' +
+	'	<tr><td>Length</td><td>' + (feature.end - feature.start) + '</td></tr>' +
+	'	<tr><td>Strand :</td><td>' + strand + '</td></tr>';
+	
+	for(i in feature.qualifiers)
+	{
+		ret = ret + '<tr><td>' + feature.qualifiers[i].name + '</td><td>' + feature.qualifiers[i].data + '</td></tr>';
+	}
+	ret = ret + '</table>';
+	return ret;
 }
