@@ -200,12 +200,12 @@ var initial_sequence_html = '' +
 '	</span>' +
 '	<span id="right_btns" style="float:right;margin:.2em;">' +
 '		<span id="view">' +
-'			<input type="radio" id="ds" name="ds" title="Show Double Stranded" checked="checked" />' +
-'			<label for="ds">DS</label>' +
-'			<input type="radio" id="ss" name="ss" title="Show Single Stranded"/>' +
-'			<label for="ss">SS</label>' +
-'			<input type="radio" id="ss" name="ns" title="Only Show Label" />' +
-'			<label for="ns">NS</label>' +
+'			<input type="radio" id="ds" name="view" checked="checked" />' +
+'			<label for="ds" title="Show Double Stranded">DS</label>' +
+'			<input type="radio" id="ss" name="view" />' +
+'			<label for="ss" title="Show Single Stranded">SS</label>' +
+'			<input type="radio" id="ns" name="view" />' +
+'			<label for="ns" title="Only Show Label">NS</label>' +
 '		</span>' +
 //'		<button class="select_reqd" id="edit_btn"></button>' +
 '	</span>' +
@@ -249,6 +249,18 @@ $.widget("ui.fragmentSequence", {
 		});
 		
 		this.$el.find('#view').buttonset();
+		this.$el.find('#ds').click(function(){
+			self.$el.find('.seq-fwd').slideDown(100);
+			self.$el.find('.seq-rev').slideDown(100);
+		});
+		this.$el.find('#ss').click(function(){
+			self.$el.find('.seq-fwd').slideDown(100);
+			self.$el.find('.seq-rev').slideUp(100);
+		});
+		this.$el.find('#ns').click(function(){
+			self.$el.find('.seq-fwd').slideUp(100);
+			self.$el.find('.seq-rev').slideUp(100);
+		});
 	/*	
 		this.$el.find('#edit_btn').button({
 			label: "Edit Selection",
