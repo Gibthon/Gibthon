@@ -38,6 +38,20 @@
    user-select: text;
 }
 
+#seq_toolbar
+{
+	position: relative;
+	background-color: lightblue;
+	z-index:4;
+}
+
+.fixed
+{
+	position:fixed !important;
+	top:0;
+	margin-left:180px;
+}
+
 #load_span
 {
 	margin-left: 1.5em;
@@ -290,4 +304,15 @@
 {
 	background-color: pink;
 	border: 1px solid red;
+}
+.copy_option
+{
+	margin: .5em 0;
+}
+.copy_label
+{
+	margin-top: .2em;
+	text-align: left;
+	margin-left: 5em;
+	font-weight: bold;
 }

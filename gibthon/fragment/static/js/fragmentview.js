@@ -193,6 +193,24 @@ var initial_sequence_html = '' +
 '		<div id="progressbar" ></div>' +			
 '	</span>' +
 '</div>' +
+'<div id="seq_toolbar" class="content middle-box">' +
+'	<span id="left_btns" style="float:left;margin:.2em;">' +
+'		<button class="select_reqd" id="copy_btn"></button>' +
+'		<button id="select_btn"></button>' +
+'	</span>' +
+'	<span id="right_btns" style="float:right;margin:.2em;">' +
+'		<span id="view">' +
+'			<input type="radio" id="ds" name="ds" title="Show Double Stranded" checked="checked" />' +
+'			<label for="ds">DS</label>' +
+'			<input type="radio" id="ss" name="ss" title="Show Single Stranded"/>' +
+'			<label for="ss">SS</label>' +
+'			<input type="radio" id="ss" name="ns" title="Only Show Label" />' +
+'			<label for="ns">NS</label>' +
+'		</span>' +
+//'		<button class="select_reqd" id="edit_btn"></button>' +
+'	</span>' +
+'	<div style="clear:both;"></div>' +
+'</div>' +
 '<div class="ui-widget-content ui-corner-bottom bottom-box content">' +	
 '	<div id="seq_wrap unselectable" unselectable="on">' +
 '		<div id="seq_inner" class="unselectable" unselectable="on">' +
@@ -216,6 +234,29 @@ $.widget("ui.fragmentSequence", {
 	_create: function() {
 		var self = this;
 		this.$el = $(this.element[0]).html(initial_sequence_html);
+		
+		this.$el.find('#copy_btn').button({
+			label: "Copy Selection",
+			icons: {primary: 'ui-icon-copy'}
+		}).click(function() {
+			show_copy_dialog();
+		});
+		this.$el.find('#select_btn').button({
+			label: "Select All",
+			icons: {primary: 'ui-icon-triangle-2-e-w'}
+		}).click( function() {
+			self._select(1, self.len + 1);
+		});
+		
+		this.$el.find('#view').buttonset();
+	/*	
+		this.$el.find('#edit_btn').button({
+			label: "Edit Selection",
+			icons: {primary: 'ui-icon-pencil'}
+		});
+	*/	
+		this._toolbar_height = $('#seq_toolbar').offset().top;
+				
 		this.$len = this.$el.find('#length');
 		this.$prog = this.$el.find('#progress');
 		this.$bar = this.$el.find('#progressbar').progressbar({value: 0,});
@@ -231,9 +272,15 @@ $.widget("ui.fragmentSequence", {
 		this._get_char_width();
 		this._mouse_down = false;
 		
-		$(window).mouseup(function(event) {self._window_mouse_up();});
+		$(window)
+			.mouseup(function(event) {self._window_mouse_up();})
+			.scroll(function(event) {self._on_scroll();});
 				
-		this.rows = new Array();
+		this.seq_disp = new Array();
+		this.seq_text = new Array();
+		this._selected = false;
+		this._update_toolbar();
+		
 	},
 	_get_seq_meta: function(){
 		var self = this;
@@ -288,23 +335,11 @@ $.widget("ui.fragmentSequence", {
 				self.pos = self.pos + self._make_row(self.pos);
 				self._label_features();
 				self._get_char_width();
-				//for(i in self.rows)
-				//{
-				//	console.log('this.rows[' + i + '].find(".seq-fwd")text() = ' + self.rows[i].find('.seq-fwd').text());
-				//}
 			}
 			
 			self.$prog.text(self.seq.length);
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
 		});
-	},
-	_complement: function(string){
-		var ret = "";
-		for(i in string)
-		{
-			ret = ret + this.alphabet[string[i]];
-		}
-		return ret;
 	},
 	_make_row: function(start){
 		var self = this;
@@ -323,7 +358,7 @@ $.widget("ui.fragmentSequence", {
 		for(var i = 0; i < this.rowlength; i = i + 5)
 		{
 			seq = seq + s.substr(i, 5) + " ";
-			label = label + '<div class="seq-label">' + (start + i) + '</div>';
+			label = label + '<div class="seq-label unselectable" unselectable="on">' + (start + i) + '</div>';
 		}
 		var cseq = this._complement(seq);
 		
@@ -344,8 +379,7 @@ $.widget("ui.fragmentSequence", {
 			.addClass('row unselectable')
 			.html(	'<div class="ladder unselectable" unselectable="on"></div>' +
 					'<div id="' + start + '-fwd-feat" class="feat-ref feat unselectable" unselectable="on">' + fwd_feats + '</div>' +
-					'<div style="position:relative;">'  +
-					'	<div id="' + start + '-fwd-hid" class="seq-fwd-hid seq-hid unselectable" unselectable="on">' + seq + '</div>' +
+					'<div class="sequenceStrands" id="' + start + '-seq-strands" style="position:relative;">'  +
 					'	<div id="' + start + '-fwd" class="seq-fwd seq unselectable" unselectable="on">' + seq + '</div>' +
 					'	<div id="' + start + '-label" class="label-div unselectable" unselectable="on">' + label + '</div>' +
 					'	<div id="' + start + '-rev" class="seq-rev seq unselectable" unselectable="on">' + cseq + '</div>' +
@@ -354,14 +388,16 @@ $.widget("ui.fragmentSequence", {
 					'<div class="ladder unselectable" unselectable="on"></div>'
 			);
 		
-		$row.find('.seq-fwd')
+		$row.find('.sequenceStrands')
 			.mousedown	(function(event) {self._on_mouse_down(event);})
 			.mouseup 	(function(event) {self._on_mouse_up	 (event);})
 			.mousemove	(function(event) {self._on_mouse_move(event);});
 		
 		this.$seq.append($row);
-		this.rows.push($row);
-	//console.log('pushed to rows, length: ' + this.rows.length + ', $row.find(".seq-fwd")text() = ' + $row.find('.seq-fwd').text());
+		
+		this.seq_disp.push($row.find('.seq-fwd'));
+		this.seq_text.push(seq);
+	
 		return this.rowlength;
 	},
 	_label_features: function()
@@ -375,74 +411,119 @@ $.widget("ui.fragmentSequence", {
 		}
 	},
 //SELECTION FUNCTIONS
+	_clear_selection: function()
+	{
+		if(this._selected)
+		{
+			$rm = this.$el.find('.selected');
+			if($rm.length > 0)
+			{
+			var self = this;
+			$rm.each( function(i, item) {
+				row =  parseInt($(this).parent().attr('id').split('-')[0]);
+				row = Math.floor( row / self.rowlength);
+				
+				self.seq_disp[row].html(self.seq_text[row]);
+			});
+		}
+		}
+		this._selected = false;
+		this._update_toolbar();
+	},
 	_select: function(start, end)
 	{
-		if(start > end)
+		if(!this._selected)
 		{
-			var t = end; end = start; start = t;
+			this._selected = true;
+			this._update_toolbar();
 		}
-		if(this._selected && (this._select_start == start) && (this._select_end == end))
+		if(start > end) {var t = end; end = start; start = t;}
+		if((start == this._select_start) && (end == this._select_end))
 			return;
+		
 		
 		this._select_start = start;
 		this._select_end = end;
+		
+		var sr = Math.floor(start / this.rowlength);
+		var er = Math.floor(end / this.rowlength);
+		
+		//tag old selection for removal
+		this.$el.find('.selected').addClass('oldSelection');
+		
+		if(sr == er) //special case
+		{
+			this._select_row(sr, start, end);
+		}
+		else
+		{
+			this._select_row(sr, start);
+			for(var i = sr + 1; i < er; i = i + 1)
+				this._select_row(i);
+			this._select_row(er, 0, end);
+		}
+		
+		$rm = this.$el.find('.oldSelection');
+		if($rm.length > 0)
+		{
+			var self = this;
+			$rm.each( function(i, item) {
+				row =  parseInt($(this).parent().attr('id').split('-')[0]);
+				row = Math.floor( row / self.rowlength);
 				
-		this._selected = true;		
-		//work out the start and end rows
-		var sr = parseInt(Math.floor(start / this.rowlength));
-		var er = parseInt(Math.floor(end / this.rowlength));
-		
-		var $sr = this.rows[sr].contents().children('.seq-fwd');
-		var $srh = this.rows[sr].contents().children('.seq-fwd-hid');
-		var $er = this.rows[er].contents().children('.seq-fwd');
-		var $erh = this.rows[er].contents().children('.seq-fwd-hid');
-		
-		sr_ = toPadded(start - this.rowlength * sr);
-		er_ = toPadded(end   - this.rowlength * er);
-		
-		//sr == er
-		if(sr == er)
-		{
- 			var html = $srh.text().substr(0, sr_) + 
-						select_start + 
-							$srh.text().substr(sr_, er_ - sr_) + 
-						select_end +
-						$srh.text().substr(er_);
-			$sr.html(html);
-			return;
+				self.seq_disp[row].html(self.seq_text[row]);
+			});
 		}
+	},
+	_select_row: function(row, start, end)
+	{
+		if(start == undefined)
+			start = 0;
+		else
+			start = toPadded(start % this.rowlength);
+		if(end == undefined)
+			end = toPadded(this.rowlength);
+		else
+			end = toPadded(end % this.rowlength);
 		
-		//change start row
-		$sr.html( $srh.text().substr(0, sr_) + select_start + $srh.text().substr(sr_) + select_end);
-		
-		//change imtemediate rows
-		for(var row = sr + 1; row < er; row = row + 1)
+		var t = this.seq_text[row];
+		this.seq_disp[row].html(	t.substring(0, start) +
+									select_start +
+									t.substring(start, end) +
+									select_end +
+									t.substring(end)
+								);
+	},
+	get_sel: function()
+	{
+		if(!this._selected)
+			return ""
+		return this.seq.substring(this._select_start - 1, this._select_end - 1);
+	},
+	get_rev: function() {return this._reverse(this.get_sel());},
+	get_cmp: function() {return this._complement(this.get_sel());},
+	get_rev_cmp: function() {return this._reverse_complement(this.get_sel());},
+	_update_toolbar: function()
+	{
+		if(this._selected)
 		{
-			this._select_row(row);
+			$('.select_reqd').each( function(){
+				$(this).button('enable');
+			});
 		}
-		
-		//change end row
-		$er.html( select_start + $erh.text().substr(0, er_) + select_end + $erh.text().substr(er_));
-	},
-	_select_row: function(row)
-	{
-		var $row = this.rows[row].contents().children('.seq-fwd');
-		var $rowh= this.rows[row].contents().children('.seq-fwd-hid');
-		$row.html(select_start + $rowh.text() + select_end);
-	},
-	_clear_selection: function()
-	{
-		this._selected = false;
-		$('.selected').parents('.seq-fwd').each( function()
+		else
 		{
-			$(this).html( $(this).prev().text());
-		});
+			$('.select_reqd').each( function(){
+				$(this).button('disable');
+			});
+		}
 	},
 //MOUSE FUNCTIONS
 	_on_mouse_down: function(event)
 	{
 		this._mouse_down_stamp = event.timeStamp;
 		this._mouse_down_pos = this._get_mouse_pos(event);
+		this._active_row = this._get_mouse_row(event);
 		this._mouse_down = true;
 	},
 	_on_mouse_move: function(event)
@@ -471,22 +552,33 @@ $.widget("ui.fragmentSequence", {
 			}
 		}
 		var pos = this._get_mouse_pos(event);
-		if(this._selected) this._clear_selection();
+		//if(this._selected) this._clear_selection();
 		this._select(this._mouse_down_pos, pos);
 	},
 	_window_mouse_up: function()
 	{
 		this._mouse_down = false;
 	},
+	_get_mouse_row: function(event)
+	{
+		return parseInt(event.currentTarget.id.split('-')[0]);
+	},
 	_get_mouse_pos: function(event) //given a mouse event, return the offset of the clicked character.
 	{
 		var largenum = parseInt(event.currentTarget.id.split('-')[0]);
 		
-		var smallnum = Math.floor((event.pageX - $(event.target).offset().left) / this.char_width);
+		var smallnum = Math.floor((event.pageX - $(event.currentTarget).offset().left) / this.char_width);
 		smallnum = toUnPadded(smallnum);
-		
+		//console.log("smallnum = " + smallnum);
 		//if($(event.target).hasClass('selected')) console.log('selected position:' + largenum + ' + ' + smallnum + " event.currentTarget.id=" + event.currentTarget.id);
 		return largenum + smallnum;
+	},
+	_on_scroll: function(event)
+	{
+		if($(window).scrollTop() > this._toolbar_height)
+			$('#seq_toolbar').addClass('fixed');
+		else
+			$('#seq_toolbar').removeClass('fixed');
 	},
 	_get_char_width: function()
 	{
@@ -498,7 +590,32 @@ $.widget("ui.fragmentSequence", {
 			this.char_width = $r.width() / $r.text().length;
 		}
 		return this.char_width;
-	}
+	},
+//SEQUENCE FUNCTIONS
+	_complement: function(string){
+		var ret = "";
+		for(i in string)
+		{
+			ret = ret + this.alphabet[string[i]];
+		}
+		return ret;
+	},
+	_reverse: function(string){
+		var ret = "";
+		for(var i = string.length - 1; i >= 0; i = i-1)
+		{
+			ret = ret + string[i];
+		}
+		return ret;
+	},
+	_reverse_complement: function(string){
+		var ret = "";
+		for(var i = string.length - 1; i >= 0; i = i-1)
+		{
+			ret = ret + this.alphabet[string[i]];
+		}
+		return ret;
+	},
 });
 
 })( jQuery );	

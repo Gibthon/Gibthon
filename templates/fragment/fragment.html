@@ -49,10 +49,45 @@
 	</div>
 {% endblock %}
 
+{% block dialog%}
+<div id='copy_dialog'>
+	<div style="text-align:center;margin-top:1.5em;">
+		<p>
+			<div class="copy_option">
+				<div class="copy_label">Forward Strand (5'->3')</div>
+				<input class="copy_ip" id="fwd_53" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Forward Strand Reversed (3'->5')</div>
+				<input class="copy_ip" id="fwd_35" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Compliment</div>
+				<input class="copy_ip" id="rev_35" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Reverse Compliment</div>
+				<input class="copy_ip" id="rev_53" type="text" readonly="readonly" size=50/>
+			</div>
+		</p>
+		<div>
+			<button id="copy_close"></button>
+		</div>
+	</div>
+</div>
+{%endblock%}
+
 {% block js %}
+var show_copy_dialog = function(){
+	$('#fwd_53').val( $('#sequence').fragmentSequence('get_sel'));
+	$('#fwd_35').val( $('#sequence').fragmentSequence('get_rev'));
+	$('#rev_35').val( $('#sequence').fragmentSequence('get_cmp'));
+	$('#rev_53').val( $('#sequence').fragmentSequence('get_rev_cmp'));
+	$('#copy_dialog').dialog('open');
+}
+
 $(document).ready(function() {
-	$('button#download')
-		.button({
+	$('button#download').button({
 			icons:{primary:'ui-icon-link'}
 		})
 		.click(function() {
@@ -61,5 +96,30 @@ $(document).ready(function() {
 	$('#fragment_info').fragmentMeta({id: {{ fragment.id }}});
 	
 	$('#sequence').fragmentSequence({id: {{fragment.id}},});
+	
+	$('#copy_dialog').dialog({
+		autoOpen:false,
+		resizable:false,
+		modal:true,
+		title:"Copy",
+		height:"360",
+		width:"640"
+	});
+	
+	$('.copy_option').children('input')
+		.focus( function() {
+			$('.copy_ip').blur();
+			this.select();
+		})
+		.blur( function() {
+			this.selectionStart = this.selectionEnd = -1;
+		});
+	
+	$('#copy_close').button({
+			label: 'Close',
+			icons:{primary:'ui-icon-close'}
+	}).click(function() {
+		$('#copy_dialog').dialog('close');
+	});
 });
 {% endblock %}
