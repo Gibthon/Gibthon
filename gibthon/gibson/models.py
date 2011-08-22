@@ -188,7 +188,7 @@ class Primer(models.Model):
 	
 	def self_prime_check(self):
 		# check for self prime events
-		name = str(self.name)
+		name = str(self.id)
 		cwd = os.getcwd()
 		# perform all work here. this should be in settings at some point
 		wd = settings.UNAFOLD_WD
@@ -250,8 +250,8 @@ class Primer(models.Model):
 		
 	
 	def misprime_check(self):
-		primer_name = str(self.name)
-		fragment_name = str(self.construct.name) + '-' + str(self.stick.cfragment.fragment.name)
+		primer_name = str(self.id)
+		fragment_name = str(self.construct.id) + '-' + str(self.stick.cfragment.id)
 		cwd = os.getcwd()
 		wd = settings.UNAFOLD_WD
 		os.chdir(wd)

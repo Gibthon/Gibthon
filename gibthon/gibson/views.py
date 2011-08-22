@@ -406,17 +406,20 @@ def pcr_instructions(request, cid):
 	else:
 		return HttpReponseNotFound
 
+
+@login_required
 def primer_download(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
 		print request.GET['tk']
 		#set up response headers
-		#response = HttpResponse(mimetype='application/zip')
 		response = HttpResponse(mimetype='application/zip')
 		response['Content-Disposition'] = 'attachment; filename='+con.name+'.zip'
 		response.set_cookie('fileDownloadToken',request.GET['tk'])
+		
 		# get all the pcr instruction files
 		pcr = [(con.name + '-' + cf.fragment.name+'.pcr',pcr_cycle(cf)) for cf in con.cf.all()]
+		
 		# write the csv file
 		csvbuffer = StringIO()
 		writer = csv.writer(csvbuffer)
@@ -424,14 +427,16 @@ def primer_download(request, cid):
 		for p in con.primer.all():
 			writer.writerow(p.csv())
 		csvbuffer.flush()
+		
 		# write the pdf
 		t = loader.get_template('gibson/pdf_primer.html')
 		c = RequestContext(request,{
 			'construct':con,
+			'each':5.0/con.fragments.all().count()
 		})
 		pdfbuffer = StringIO()
-		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer)
-		pdfbuffer.flush()
+		pdf = pisa.CreatePDF(StringIO(t.render(c).encode("ISO-8859-1")), pdfbuffer, link_callback=fetch_resources)
+		
 		# write the zip file
 		zipbuffer = StringIO()
 		zip = zipfile.ZipFile(zipbuffer, 'w', zipfile.ZIP_DEFLATED)
@@ -442,6 +447,8 @@ def primer_download(request, cid):
 		zip.writestr(con.name+'/primers.csv', csvbuffer.getvalue())
 		# add the pdf
 		zip.writestr(con.name+'/'+con.name+'.pdf', pdfbuffer.getvalue())
+		# add the gb
+		zip.writestr(con.name+'/'+con.name+'.gb', con.gb())
 		# closing of buffers and return
 		csvbuffer.close()
 		pdfbuffer.close()
