@@ -42,7 +42,7 @@ class Gene(models.Model):
 	owner = models.ForeignKey('auth.User')
 	name = models.CharField(max_length=100)
 	description = models.CharField(max_length=500)
-	sequence = models.CharField(max_length=50000)
+	sequence = models.TextField()
 	ORIGIN_CHOICES = (
 		('NT', 'Nucleotide Database'),
 		('BB', 'BioBrick'),
@@ -61,17 +61,18 @@ class Gene(models.Model):
 			handle = Entrez.esearch(db='nucleotide', term=_data)
 			record = Entrez.read(handle)
 			gbid = record['IdList'][0]
-			print gbid
 			handle = Entrez.efetch(db="nucleotide", id=gbid, rettype="gb")
 			gbf = handle.fp
 		elif _origin == "UL":
 			gbf = _data
 		record = SeqIO.read(gbf,'genbank')
 		g = Gene(owner=_user, name=record.name,description=record.description,sequence=record.seq, origin=_origin)
+		if len(record.seq > 100000):
+			return False
 		g.save()
 		for feature in record.features:
 			f = Feature.add(feature,g,_origin)
-		return g
+		return True
 	add = staticmethod(add)
 	
 	def gb(self):

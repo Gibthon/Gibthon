@@ -44,12 +44,12 @@
 var fragment_form_default =
 '<p class="woo">Select Source:</p>' +
 '<div style="text-align:center">' +
-'	<a class="add" href="add/BB" title="Parts Registry"><img src="{{ MEDIA_URL }}/images/fragment/BioBrick.png" alt="Parts Registry"/></a>' +
-'	<a class="add" href="add/NT" title="Nucleotide Database"><img src="{{ MEDIA_URL }}/images/fragment/Nucleotide.png" alt="Nucleotide Database" /></a>' +
-'	<a class="add" href="add/UL" title="Upload"><img src="{{ MEDIA_URL }}/images/fragment/Upload.jpg" alt="Upload" /></a>' +
+'	<a class="add" href="add/BB" title="Parts Registry"><img src="{{ STATIC_URL }}/images/fragment/BioBrick.png" alt="Parts Registry"/></a>' +
+'	<a class="add" href="add/NT" title="Nucleotide Database"><img src="{{ STATIC_URL }}/images/fragment/Nucleotide.png" alt="Nucleotide Database" /></a>' +
+'	<a class="add" href="add/UL" title="Upload"><img src="{{ STATIC_URL }}/images/fragment/Upload.jpg" alt="Upload" /></a>' +
 '</div>';
 var fragment_form_loader =
-'<div style="text-align:center"><img src="{{ MEDIA_URL }}/images/spinner.gif" alt="Loading" /></div>';
+'<div style="text-align:center"><img src="{{ STATIC_URL }}/images/spinner.gif" alt="Loading" /></div>';
 var fragment_form_init = function() {
 	$('#fragment_form').html(fragment_form_default);
 	$('.add').click(function(event) {

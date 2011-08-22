@@ -76,20 +76,24 @@ def add(request):
 @login_required
 def add_submit(request, type):
 	if request.method == 'POST':
+		ok = False
 		if type == "BB":
 			form = BBForm(request.POST)
 			if form.is_valid():
 				if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
-					Gene.add(form.cleaned_data['id'], type, request.user)
+					ok = Gene.add(form.cleaned_data['id'], type, request.user)
 		elif type == "NT":
 			form = NTForm(request.POST)
 			if form.is_valid():
 				if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
-					Gene.add(form.cleaned_data['id'], type, request.user)
+					ok = Gene.add(form.cleaned_data['id'], type, request.user)
 		elif type == "UL":
 			form = ULForm(request.POST, request.FILES)
 			if form.is_valid():
 				if len(Gene.objects.filter(name=form.cleaned_data['file'].name.split('.')[0], owner=request.user)) == 0:
-					Gene.add(form.cleaned_data['file'], type, request.user)
-		return HttpResponseRedirect('/fragment')
+					ok = Gene.add(form.cleaned_data['file'], type, request.user)
+		if ok:
+			return HttpResponseRedirect('/fragment')
+		else:
+			return HttpResponseNotFound()
 	return HttpResponseNotFound()
