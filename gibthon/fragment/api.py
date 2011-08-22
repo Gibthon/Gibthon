@@ -129,14 +129,14 @@ def get_alpha(g, request):
 	return JsonResponse(data)
 
 get_map = 	{	'meta': get_meta,
-					'seq': get_seq,
-					'annotations': get_annotations,
-					'refs': get_refs,
-					'feats': get_feats,
-					'len': get_len,
-					'alpha': get_alpha,
-					'seq_meta': get_seq_meta,
-				}
+				'seq': get_seq,
+				'annotations': get_annotations,
+				'refs': get_refs,
+				'feats': get_feats,
+				'len': get_len,
+				'alpha': get_alpha,
+				'seq_meta': get_seq_meta,
+			}
 
 @login_required
 def get(request, _id):
@@ -156,4 +156,21 @@ def get(request, _id):
 		except ObjectDoesNotExist:
 			return JsonResponse("ERROR: Fragment with ID='%s' does not exist." % id, ERROR)
 		return get_map[value](g, request)
+	raise Http404
+
+@login_required
+def entrez(request):
+	"""
+	Handle JSON Entrez request
+	type: 
+	  -search: return a list of matching ids
+	  -summary: return a summary of the given id
+	  -import: import the given id
+	"""
+	if 'type' in request.GET:
+		type = request.GET['type']
+		if type not in ['search', 'info', 'import']:
+			raise Http404
+		
+		
 	raise Http404
