@@ -2,6 +2,22 @@
 
 {% block css-include %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/datatable.css" />
+<style type="text/css">
+td.centre {
+	text-align:center;
+}
+span.origin_icon {
+	float:right;
+	margin:5px;
+}
+span.type_icon {
+	float:right;
+	margin:5px;
+}
+td {
+	padding-left:5px;
+}
+</style>
 {% endblock %}
 
 
@@ -10,31 +26,63 @@
 {% endblock %}
 
 {% block menu %}
+|
+<a href="add">Add Selected</a>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
 <h2>Inbox</h2>
+<h4>{{ user.channel }}</h4>
+<p>You have {{ user.inbox.unread.count }} unread message{{ user.inbox.unread.count|pluralize }} and {{ user.inbox.not_added.count }} not yet added.</p>
 <div style="padding:10px;">
 	<table class="inbox_table">
 		<thead>
-			<tr><th>Name</th><th>Description</th><th>Added?</th></tr>
+			<tr><th></th><th>Received</th><th>From</th><th>Description</th><th>Add</th><th></th><th></th></tr>
 		</thead>
 		<tbody>
-			 {% for message in user.inbox.constructmessage.all %}
-				<tr><td>{{ message.sender }}</td><td>{{ message.received }}</td><td>{{ message.added }}</td></tr>
+			 {% for message in user.inbox.message.all %}
+				<tr>
+					<td>
+						<span class="ui-icon ui-icon-circle-plus" style="margin:6px 6px 6px 2px;"></span>
+					</td><td>
+						{{ message.received|date:"j/n/y G:i" }}
+						{% if message.read %}
+						{% else %}
+							<span style="color:red; font-weight:bold; font-size:0.6em; padding-left:5px;">New</span>
+						{% endif %}
+					</td><td>
+						{{ message.sender }}
+					</td><td>
+						{{ message.description }}
+					</td><td>
+						<input class="add_message" type="checkbox"{% if message.added %} checked="true" disabled="true"{% endif %} />
+					</td><td>
+						{{ message.id }}
+					</td><td>
+						{{ message.received|date:"U" }}
+					</td>
+				</tr>
 			{% endfor %}
 		</tbody>
-	</table>
-	<table class="inbox_table">
-		<thead>
-			<tr><th>Name</th><th>Description</th><th>Added?</th></tr>
-		</thead>
-		<tbody>
-			 {% for message in user.inbox.fragmentmessage.all %}
-				<tr><td>{{ message.sender }}</td><td>{{ message.received }}</td><td>{{ message.added }}</td></tr>
-			{% endfor %}
-		</tbody>
+		<tfoot>
+			<tr> <td></td> <td></td> <td></td> <th>
+				Type <select>
+					<option value="">---------</option>
+					<option>Construct</option>
+					<option>Fragment</option>
+				</select>
+				Origin <select>
+					<option value="">------------------------</option>
+					<option>Gibthon Construct Designer</option>
+					<option>Genetic Engineering of Cells</option>
+					<option>Parts Registry</option>
+					<option>Unknown</option>
+				</select>
+				</th> <th style="text-align:center; padding-left:5px;">
+					<input type="checkbox" id="add_all" />
+				</th> <th></th> <th></th> </tr>
+		</tfoot>
 	</table>
 </div>
 
@@ -47,21 +95,94 @@
 
 {% block js %}
 <script type="text/javascript">
+
+var messageDetail = function ( nTr ) {
+	sOut = '<p>Message content</p><textarea cols="104" rows="10" readonly="true" style="font-family:monospace;" id="message_detail"></textarea>';
+	return sOut;
+}
+
 $(document).ready(function() {
 	$('.inbox_table').dataTable({
 		bAutoWidth: false,
 		bJQueryUI: true,
+		aaSorting: [[1,'desc']],
 		aoColumns: [
+			{
+				sWidth:"10px",
+				bSortable:false
+			},
+			{
+				sWidth:"200px",
+				iDataSort:6
+			},
 			{
 				sWidth:"200px"
 			},
 			{
-				sWidth:"504px"
+				sWidth:"504px",
+				bSortable:false,
+				bSearchable:false
 			},
 			{
-				sWidth:"70px"
+				sWidth:"50px",
+				sClass:"centre",
+				bSortable:false,
+				bSearchable:false
+			},
+			{
+				bVisible:false,
+				bSortable:false
+			},
+			{
+				bVisible:false,
+				bSearchable:false
 			}
 		]
+	});
+	$('.inbox_table tr td:first-child span').live('click', function () {
+		var nTr = this.parentNode.parentNode;
+		if ($(this).hasClass('ui-icon-circle-minus')) {
+			$('.inbox_table').dataTable().fnClose(nTr);
+			$(this).removeClass('ui-icon-circle-minus');
+			$(this).addClass('ui-icon-circle-plus');
+		} else {
+			$('.inbox_table').dataTable().fnOpen(nTr, messageDetail(nTr), 'details');
+			var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
+			$('textarea#message_detail').load(message_id+'/detail');
+			$(this).removeClass('ui-icon-circle-plus');
+			$(this).addClass('ui-icon-circle-minus');
+			$('+ td span', this.parentNode).remove();
+		}
+	});
+	$('.inbox_table select').change(function () {
+		$('.inbox_table').dataTable().fnFilter( $(this).val(), 3);
+	});
+	$('input#add_all').change(function () {
+		var boxes = $('input.add_message:enabled');
+		if(this.checked) {
+			boxes.each(function (i,e) {
+				e.checked = true;
+			});
+		} else {
+			boxes.each(function (i,e) {
+				e.checked = false;
+			});
+		}
+			
+	});
+	$('a[href="add"]').button({
+		icons:{primary:'ui-icon-plusthick'}
+	}).click(function(event) {
+		event.preventDefault();
+		var table = $('.inbox_table').dataTable();
+		var toAdd = [];
+		$('input:checkbox:enabled:checked').each(function () {
+			var nTr = this.parentNode.parentNode;
+			toAdd.push(parseInt(table.fnGetData(nTr)[5]));
+		});
+		$.post('add', {'mids':toAdd}, function(data) {
+			console.log(data);
+		});
 	});
 });
 </script>

@@ -6,9 +6,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.core.exceptions import *
+
+from accounts.models import *
 
 from gibthon.views import redirect_home
 
+import json
+
+def get_message(user, mid):
+	try:
+		m = Message.objects.get(pk=mid, inbox__user=user)
+	except ObjectDoesNotExist:
+		return False
+	else:
+		return m
 
 def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 	if request.user.is_authenticated():
@@ -104,8 +116,23 @@ def register(request):
 
 @login_required
 def inbox(request):
+	request.user.inbox.fetch()
 	t = loader.get_template('user/inbox.html')
 	c = RequestContext(request, {
 		'title':'Inbox',
 	})
 	return HttpResponse(t.render(c))
+	
+def message_detail(request, mid):
+	m = get_message(request.user, mid)
+	if not m.read:
+		m.read = True
+		m.save()
+	return HttpResponse(json.dumps(json.loads(m.data), indent=4))
+
+def fetch(request):
+	old_unread = request.user.inbox.unread().count()
+	request.user.inbox.fetch()
+	new_unread = request.user.inbox.unread().count()
+	not_added = request.user.inbox.not_added().count()
+	return HttpResponse(json.dumps([new_unread-old_unread, new_unread, not_added]))

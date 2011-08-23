@@ -3,6 +3,10 @@ from django.contrib.auth.models import User, UserManager
 from annoying.fields import AutoOneToOneField
 from django.contrib.contenttypes.models import ContentType
 
+from gibthon.messages import MessagePasser
+
+import json
+
 class GibthonUser(User):
 	
 	objects = UserManager()
@@ -15,35 +19,52 @@ class Inbox(models.Model):
 	
 	def __unicode__(self):
 		return self.user.username + "'s inbox"
-		
+	
 	def unread(self):
 		return self.message.filter(read=False)
 		
 	def not_added(self):
 		return self.message.filter(added=False)
 		
-	def constructmessage(self):
-		return ConstructMessage.objects.filter(inbox=self)
+	def messagePasser(self):
+		return MessagePasser(self.user.channel())
 	
-	def fragmentmessage(self):
-		return FragmentMessage.objects.filter(inbox=self)
+	def fetch(self):
+		messages = self.messagePasser().fetch()
+		if messages == []:
+			return True
+		else:
+			for message in messages:
+				_data = json.dumps(message['data'])
+				_sender = message['source']
+				_origin = message['source'].lower()
+				_type = 'cn'
+				m = Message.objects.create(inbox=self, sender=_sender, data=_data, type=_type, origin=_origin)
+			self.messagePasser().clear()
+				
 
 class Message(models.Model):
 	inbox = models.ForeignKey('Inbox', related_name='message')
 	sender = models.CharField(max_length=50)
 	data = models.TextField()
-	received = models.DateField(auto_now_add=True)
-	read = models.BooleanField()
-	added = models.BooleanField()
+	received = models.DateTimeField(auto_now_add=True)
+	read = models.BooleanField(default=False)
+	added = models.BooleanField(default=False)
+	TYPE_CHOICES = (
+		('cn', 'Construct'),
+		('fr', 'Fragment'),
+	)
+	type = models.CharField(max_length=2, choices=TYPE_CHOICES)
+	ORIGIN_CHOICES = (
+		('pr', 'Parts Registry'),
+		('gcd', 'Gibthon Construct Designer'),
+		('gec', 'Genetic Engineering of Cells'),
+		('xxx', 'Unknown'),
+	)
+	origin = models.CharField(max_length=3, choices=ORIGIN_CHOICES)
 	
+	def description(self):
+		return self.get_type_display() + ' from ' + self.get_origin_display()
 	
-class ConstructMessage(Message):
-
 	def __unicode__(self):
 		return "Message from " + self.sender + " to " + self.inbox.user.channel()
-
-class FragmentMessage(Message):
-
-	def __unicode__(self):
-		return "Message from " + self.sender + " to " + self.inbox.user.channel()
-	
