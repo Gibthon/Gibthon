@@ -6,16 +6,13 @@
 td.centre {
 	text-align:center;
 }
-span.origin_icon {
-	float:right;
-	margin:5px;
-}
-span.type_icon {
-	float:right;
-	margin:5px;
+span.icon {
+	margin:5px auto;
+	cursor:pointer;
 }
 td {
 	padding-left:5px;
+	padding-right:5px;
 }
 </style>
 {% endblock %}
@@ -27,7 +24,7 @@ td {
 
 {% block menu %}
 |
-<a href="add">Add Selected</a>
+<a href="add">Add all</a>
 {% endblock %}
 
 {% block content %}
@@ -38,38 +35,7 @@ td {
 <div style="padding:10px;">
 	<table class="inbox_table">
 		<thead>
-			<tr><th></th><th>Received</th><th>From</th><th>Description</th><th>Add</th><th></th><th></th><th>Del</th></tr>
-		</thead>
-		<tbody>
-			 {% for message in user.inbox.message.all %}
-				<tr>
-					<td>
-						<span class="ui-icon ui-icon-circle-plus" style="margin:6px 6px 6px 2px;"></span>
-					</td><td>
-						{{ message.received|date:"j/n/y G:i" }}
-						{% if message.read %}
-						{% else %}
-							<span style="color:red; font-weight:bold; font-size:0.6em; padding-left:5px;">New</span>
-						{% endif %}
-					</td><td>
-						{{ message.sender }}
-					</td><td>
-						{{ message.description }}
-					</td><td>
-						<input class="add_message" type="checkbox"{% if message.added %} checked="true" disabled="true"{% endif %} />
-					</td><td>
-						{{ message.id }}
-					</td><td>
-						{{ message.received|date:"U" }}
-					</td><td>
-						<input class="del_message" type="checkbox" />
-					</td>
-				</tr>
-			{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr> <td></td> <td></td> <td></td> <th>
-				Type <select>
+			<tr><th></th><th>Received</th><th>From</th><th>Type <select>
 					<option value="">---------</option>
 					<option>Construct</option>
 					<option>Fragment</option>
@@ -80,14 +46,35 @@ td {
 					<option>Genetic Engineering of Cells</option>
 					<option>Parts Registry</option>
 					<option>Unknown</option>
-				</select>
-				</th> <th style="text-align:center; padding-left:5px;">
-					<input type="checkbox" id="add_all" />
-				</th> <th></th> <th></th>
-				<th style="text-align:center; padding-left:5px;">
-					<input type="checkbox" id="del_all" />
-				</th> </tr>
-		</tfoot>
+				</select></th><th>Added</th><th></th><th></th><th>Del</th></tr>
+		</thead>
+		<tbody>
+			 {% for message in user.inbox.message.all %}
+				<tr>
+					<td>
+						<span class="ui-icon ui-icon-circle-plus icon"></span>
+					</td><td>
+						{{ message.received|date:"G:i j/n/y" }}
+						{% if message.read %}
+						{% else %}
+							<span style="color:red; font-weight:bold; font-size:0.6em; padding-left:5px;">New</span>
+						{% endif %}
+					</td><td>
+						{{ message.sender }}
+					</td><td>
+						{{ message.description }}
+					</td><td>
+						<span class="ui-icon ui-icon-circle-{% if message.added %}check{% else %}close{% endif %} icon message_add"></span>
+					</td><td>
+						{{ message.id }}
+					</td><td>
+						{{ message.received|date:"U" }}
+					</td><td>
+						<span class="ui-icon ui-icon-trash icon message_delete"></span>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
 	</table>
 </div>
 
@@ -122,14 +109,17 @@ $(document).ready(function() {
 				iDataSort:6
 			},
 			{
-				sWidth:"150px"
+				sWidth:"150px",
+				bVisible:false,
+				bSearchable:false,
 			},
 			{
-				sWidth:"504px",
+				sWidth:"460px",
 				bSortable:false,
 				bSearchable:false
 			},
 			{
+				sWidth:"60px",
 				sClass:"centre",
 				bSortable:false,
 				bSearchable:false
@@ -143,6 +133,7 @@ $(document).ready(function() {
 				bSearchable:false
 			},
 			{
+				sWidth:"30px",
 				sClass:"centre",
 				bSearchable:false,
 				bSortable:false,
@@ -175,25 +166,38 @@ $(document).ready(function() {
 	$('.inbox_table select').change(function () {
 		$('.inbox_table').dataTable().fnFilter( $(this).val(), 3);
 	});
-	$('input#add_all').change(function () {
-		$('input.add_message:enabled').attr('checked', $(this).is(':checked'));	
-	});
-	$('input#del_all').change(function () {
-		$('input.del_message').attr('checked', $(this).is(':checked'));
-	});
 	$('a[href="add"]').button({
 		icons:{primary:'ui-icon-plusthick'}
 	}).click(function(event) {
 		event.preventDefault();
-		var table = $('.inbox_table').dataTable();
-		var toAdd = [];
-		$('input:checkbox:enabled:checked').each(function () {
+		if ($('.inbox_table span.message_add.ui-icon-circle-close').length == 0){
+			alert("No new items to add");
+		} else if (confirm("This will add all un-added messages.")){
+			$.get('add', function(data) {
+				alert(data);
+				window.location.reload();
+			});
+		}
+	});
+	$('span.message_delete').click(function() {
+		if (confirm('Are you sure you wish to delete this message?')) {
 			var nTr = this.parentNode.parentNode;
-			toAdd.push(parseInt(table.fnGetData(nTr)[5]));
-		});
-		$.post('add', {'mids':toAdd}, function(data) {
-			console.log(data);
-		});
+			var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
+			
+			$.get(message_id+'/delete', function(data) {
+				$('.inbox_table').dataTable().fnDeleteRow(nTr);
+			});
+		}
+	});
+	$('span.message_add').click(function() {
+		var nTr = this.parentNode.parentNode;
+		var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
+		if (($(this).hasClass('ui-icon-circle-check'))?confirm('You have already added this, would you like to add it again?'):true){
+			$.get(message_id+'/add', function(data) {
+				alert(data);
+				window.locaiton.reload();
+			});
+		}
 	});
 });
 </script>

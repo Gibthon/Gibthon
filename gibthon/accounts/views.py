@@ -134,6 +134,30 @@ def message_detail(request, mid):
 		m.save()
 	return HttpResponse(json.dumps(json.loads(m.data), indent=4))
 
+def message_delete(request, mid):
+	m = get_message(request.user, mid)
+	m.delete()
+	return HttpResponse("Deleted Message")
+
+def message_add(request, mid):
+	m = get_message(request.user, mid)
+	r = m.add()
+	if r > 0:
+		m.added = True;
+		m.save()
+		return HttpResponse("Added")
+	else:
+		return HttpResponse("Could not add, error %s"%(r))
+		
+def message_add_all(request):
+	c = request.user.inbox.not_added().count()
+	for m in request.user.inbox.not_added():
+		m.add()
+		m.added = True;
+		m.save()
+	return HttpResponse("Added %s messages"%(c))
+	
+
 def fetch(request):
 	old_unread = request.user.inbox.unread().count()
 	request.user.inbox.fetch()

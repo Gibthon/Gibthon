@@ -1,6 +1,7 @@
 var message = function(channel, data) {
 	var ifr = document.createElement('iframe');
 	document.body.appendChild(ifr);
+	ifr.style.display = "none";
 	var frm = document.createElement('form');
 	var target = 'GCD';
 	ifr.contentWindow.name = target;
@@ -15,14 +16,13 @@ var message = function(channel, data) {
 	icl.value = 1;
 	frm.appendChild(idt);
 	frm.appendChild(icl);
-	document.body.appendChild(frm);
+	ifr.appendChild(frm);
 	frm.submit();
 	
 	//xhr = new XMLHttpRequest();
 	//xhr.open("POST", "http://async-message-passer.appspot.com/submit?channel_name="+channel, true);
 	//xhr.send(data);
 }
-
 if (/partsregistry/.test(window.location.host)) {
 	if (/Part\:/.test(window.location.pathname)) {
 		m = /Part\:([\w_]+)/.exec(window.location.pathname);

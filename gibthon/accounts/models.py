@@ -4,6 +4,8 @@ from annoying.fields import AutoOneToOneField
 from django.contrib.contenttypes.models import ContentType
 
 from gibthon.messages import MessagePasser
+from fragment.models import Gene
+from gibson.models import Construct, add_fragment
 
 import json
 
@@ -46,7 +48,7 @@ class Inbox(models.Model):
 				except:
 					_type = 'cn'
 				else:
-					_type = message['type']
+					_type = "cn" if (message['type'] == "Construct") else message['type']
 				m = Message.objects.create(inbox=self, sender=_sender, data=_data, type=_type, origin=_origin)
 			self.messagePasser().clear()
 				
@@ -73,6 +75,38 @@ class Message(models.Model):
 	
 	def description(self):
 		return self.get_type_display() + ' from ' + self.get_origin_display()
+		
+	def add(self):
+		if self.type == 'fr':
+			if self.origin == 'pr':
+				id = json.loads(self.data)['id']
+				Gene.add(id, "BB", self.inbox.user)
+				return 1
+			else:
+				return -1
+		elif self.type == 'cn':
+			if self.origin == 'gec':
+				data = json.loads(self.data)[0]
+				fs = []
+				for f in data:
+					try:
+						x = Gene.objects.get(name__icontains=f['partID'])
+					except:
+						fs.append(Gene.add(f['partID'], "BB", self.inbox.user))
+					else:
+						fs.append(x)
+					print 'yay'
+				name = "New Construct"
+				description = "New Construct from GEC"
+				c = Construct.objects.create(name=name, description=description, shape='c', owner=self.inbox.user)
+				for f in fs:
+					add_fragment(c, f)
+				return 1
+			else:
+				return -4
+		else:
+			return -5
+				
 	
 	def __unicode__(self):
 		return "Message from " + self.sender + " to " + self.inbox.user.channel()

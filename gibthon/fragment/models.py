@@ -67,12 +67,12 @@ class Gene(models.Model):
 			gbf = _data
 		record = SeqIO.read(gbf,'genbank')
 		g = Gene(owner=_user, name=record.name,description=record.description,sequence=record.seq, origin=_origin)
-		if len(record.seq > 100000):
+		if len(record.seq) > 100000:
 			return False
 		g.save()
 		for feature in record.features:
 			f = Feature.add(feature,g,_origin)
-		return True
+		return g
 	add = staticmethod(add)
 	
 	def gb(self):

@@ -112,7 +112,7 @@ $(document).ready(function() {
 			<a id="menu_home" href="/">Home</a>
 			{% if user.is_authenticated %}
 			<a id="menu_profile" href="/user/profile/">Profile</a>
-			<a id="menu_inbox" href="/user/inbox/">Inbox (<span id="not_added" style="color:black;">{{ user.inbox.not_added.count }}</span>/<span id="unread" style="color:red;">{{ user.inbox.unread.count }}</span>)</a>
+			<a id="menu_inbox" href="/user/inbox/">Inbox (<span id="unread" style="color:red;">{{ user.inbox.unread.count }}</span>/<span id="not_added" style="color:black;">{{ user.inbox.not_added.count }}</span>/<span id="count">{{ user.inbox.message.count }})</a>
 			{% endif %}
 			<p><strong>Gibthon</strong></p>
 			<a id="menu_fragment" href="/fragment/">Fragment library</a>
