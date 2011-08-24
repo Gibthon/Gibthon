@@ -19,6 +19,9 @@
 {
 	margin: 0 0.4em;
 	display: inline-block;
+	text-align: center;
+	vertical-align: top;
+	cursor: pointer;
 }
 
 .add img:hover

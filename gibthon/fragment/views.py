@@ -96,54 +96,6 @@ def add(request):
 	else:
 		raise Http404()
 
-entrez_databases = (	('nucleotide', 'All Nucleotide Databases'),
-							('nuccore','Core Nucleotide'),
-							('nucest','Expressed Sequence Tag (EST) Nucleotides'),
-							('nucgss','Genome Survey Sequence (GSS) Nucleotides'),
-							('gene','Gene'),
-							('genome','Genome'),
-						)
-
-class EntrezSearchForm(forms.Form):
-	database = forms.ChoiceField(choices=entrez_databases, label='Entrez Database')
-	query = forms.CharField(label='Search Term')
-
-@login_required
-def entrez_search(request):
-	"""Get search terms"""
-	print "entrez_search(request): method='%s' is_ajax()='%s'" % (request.method, request.is_ajax())
-	if request.method == 'POST' and request.is_ajax():
-		print "entrez Search, post data: %s" % request.POST
-		form = EntrezSearchForm(request.POST)
-		if form.is_valid():
-			#we have a valid search, time to make the search
-			query = form.cleaned_data['query']
-			database = form.cleaned_data['database']
-			print "from form"
-			#fetch a list of Ids which match
-			handle = Entrez.esearch(db=database, term=query)
-			print "done search"
-			record = Entrez.read(handle)
-			print "read handle"
-			ids = record['IdList']
-			print "got ids"
-			#fetch summary information for each id
-			summaries = []
-			for id in ids:
-				handle = Entrez.esummary(db=database, id=id)
-				record = Entrez.read(handle)
-				if record is None or len(record) < 1:
-					continue
-				summaries.append(record[0])
-
-			return render_to_response("fragment/result_form.html",{
-												'action': 'add',
-												'type': 'NT',
-												'summaries': summaries,
-												'database': database,},
-												context_instance=RequestContext(request))
-	raise Http404()
-
 
 @login_required
 def search(request, type):
@@ -157,20 +109,6 @@ def search(request, type):
 			return HttpResponseNotFound()
 		return HttpResponseRedirect('/fragment')
 	return HttpResponseNotFound()
-
-@login_required
-def entrez_import(request):
-	if request.method == 'POST' and 'import' in request.POST and 'database' in request.POST:
-		ids = request.POST.getlist('import')
-		#TODO, check that we were handed back valid IDs
-		database = request.POST['database']
-		for id in ids:
-			handle = Entrez.efetch(db=database, id=id, rettype="gb")
-			records = SeqIO.parse(handle, 'gb')
-			for r in records:
-				if len(Gene.objects.filter(name=r.name, owner=request.user)) == 0:
-					Gene.add(r, 'NT', request.user)
-
 
 @login_required
 def add_submit(request, type):

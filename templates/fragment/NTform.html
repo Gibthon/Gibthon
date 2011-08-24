@@ -1,24 +1,14 @@
 {% extends "fragment/addform.html" %}
 
 {% block form %}
+<style>
+#id_query
+{
+	width:100%;
+}
+</style>
 <h4 class='center'>Entrez Search</h4>
 <table class="center">
 	{{ fragment_form.as_table }}
 </table>
 {% endblock %}
-
-{%block submitjs%}
-$form = $(this);
-var data = {'database': $form.find('#id_database').val(),
-				'query': $form.find('#id_query').val(),
-				'csrfmiddlewaretoken': $form.find('input:first').val(),
-				} 
-$('#fragment_form').load('/fragment/search/NT', data, function(){
-	var winHt = parseFloat($(window).height());
-	var props = {	'height': (0.9 * winHt) + 'px',
-					}
-	$('#fragment_form').css( props );
-	$('.ui-dialog').css('top', (0.02 * winHt) + 'px');
-});
-return false;
-{%endblock%}

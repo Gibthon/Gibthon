@@ -1,6 +1,8 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
 
+from importfragment import entrezpatterns
+
 urlpatterns = patterns('fragment',
 	(r'^$', 'views.fragments'),
 	(r'^(\d+)/.*\.gb$', 'views.download'),
@@ -10,8 +12,9 @@ urlpatterns = patterns('fragment',
 	(r'^(\d+)/$', 'views.fragment'),
 	(r'^add$', 'views.add'),
 	(r'^delete/$', 'views.delete'),
-	(r'^add/([A-Z]{2})$', 'views.add_submit'),
-	(r'^search/([A-Z]{2})$', 'views.search'),
+	(r'^import/$', 'importfragment.fragment_import'),
+	(r'^import/entrez/', include(entrezpatterns)),
+	
 )
 
 	

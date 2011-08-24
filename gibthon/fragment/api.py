@@ -2,6 +2,7 @@
 
 from fragment.models import *
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -158,19 +159,4 @@ def get(request, _id):
 		return get_map[value](g, request)
 	raise Http404
 
-@login_required
-def entrez(request):
-	"""
-	Handle JSON Entrez request
-	type: 
-	  -search: return a list of matching ids
-	  -summary: return a summary of the given id
-	  -import: import the given id
-	"""
-	if 'type' in request.GET:
-		type = request.GET['type']
-		if type not in ['search', 'info', 'import']:
-			raise Http404
-		
-		
-	raise Http404
+

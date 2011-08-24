@@ -1,24 +1,11 @@
-<a href="#" onclick="fragment_form_init(); return false;">Back</a>
 {% if fragment_form.is_multipart %}
-<form id='add_form' action="/fragment/{{action}}/{{type}}" method="post" enctype="multipart/form-data">
+<form id='add_form' method="post" enctype="multipart/form-data">
 {% else %}
-<form id='add_form' action="/fragment/{{action}}/{{type}}" method="post">
+<form id='add_form' method="post">
 {% endif %}
 {% csrf_token %}
 <div class="form-pad">
 	{% block form %}
 	{% endblock %}
 </div>
-<div class="form-pad">
-	<input class='center' type="submit" name="{{action}}" value="{{action|capfirst}}" />
-</div>
 </form>
-<script type="text/javascript">
-
-$('form').submit(function() {
-	$('#fragment_form').html(fragment_form_loader);
-	{%block submitjs%}
-	{%endblock%}
-});
-
-</script>
