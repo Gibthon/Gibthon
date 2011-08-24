@@ -25,3 +25,10 @@ class MessagePasser():
 		conn.request("POST", "/submit?channel_name=%s"%(self.channel), params)
 		res = conn.getresponse()
 		return res.status == 200
+	
+	def get_key(self):
+		conn = self.conn()
+		conn.request("GET", "/?channel_name=%s&response_format=plain_with_push"%(self.channel))
+		res = conn.getresponse()
+		data = res.read()
+		print json.loads(data)

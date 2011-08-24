@@ -38,7 +38,7 @@ td {
 <div style="padding:10px;">
 	<table class="inbox_table">
 		<thead>
-			<tr><th></th><th>Received</th><th>From</th><th>Description</th><th>Add</th><th></th><th></th></tr>
+			<tr><th></th><th>Received</th><th>From</th><th>Description</th><th>Add</th><th></th><th></th><th>Del</th></tr>
 		</thead>
 		<tbody>
 			 {% for message in user.inbox.message.all %}
@@ -61,6 +61,8 @@ td {
 						{{ message.id }}
 					</td><td>
 						{{ message.received|date:"U" }}
+					</td><td>
+						<input class="del_message" type="checkbox" />
 					</td>
 				</tr>
 			{% endfor %}
@@ -81,7 +83,10 @@ td {
 				</select>
 				</th> <th style="text-align:center; padding-left:5px;">
 					<input type="checkbox" id="add_all" />
-				</th> <th></th> <th></th> </tr>
+				</th> <th></th> <th></th>
+				<th style="text-align:center; padding-left:5px;">
+					<input type="checkbox" id="del_all" />
+				</th> </tr>
 		</tfoot>
 	</table>
 </div>
@@ -100,6 +105,7 @@ var messageDetail = function ( nTr ) {
 	sOut = '<p>Message content</p><textarea cols="104" rows="10" readonly="true" style="font-family:monospace;" id="message_detail"></textarea>';
 	return sOut;
 }
+var openRow = '';
 
 $(document).ready(function() {
 	$('.inbox_table').dataTable({
@@ -116,7 +122,7 @@ $(document).ready(function() {
 				iDataSort:6
 			},
 			{
-				sWidth:"200px"
+				sWidth:"150px"
 			},
 			{
 				sWidth:"504px",
@@ -124,7 +130,6 @@ $(document).ready(function() {
 				bSearchable:false
 			},
 			{
-				sWidth:"50px",
 				sClass:"centre",
 				bSortable:false,
 				bSearchable:false
@@ -136,15 +141,27 @@ $(document).ready(function() {
 			{
 				bVisible:false,
 				bSearchable:false
+			},
+			{
+				sClass:"centre",
+				bSearchable:false,
+				bSortable:false,
 			}
 		]
 	});
 	$('.inbox_table tr td:first-child span').live('click', function () {
 		var nTr = this.parentNode.parentNode;
+		if (openRow != '' && openRow != nTr) {
+			$('.inbox_table').dataTable().fnClose(openRow);
+			var icon = $('td:first-child span', openRow);
+			icon.removeClass('ui-icon-circle-minus');
+			icon.addClass('ui-icon-circle-plus');
+		}
 		if ($(this).hasClass('ui-icon-circle-minus')) {
 			$('.inbox_table').dataTable().fnClose(nTr);
 			$(this).removeClass('ui-icon-circle-minus');
 			$(this).addClass('ui-icon-circle-plus');
+			openRow = ''
 		} else {
 			$('.inbox_table').dataTable().fnOpen(nTr, messageDetail(nTr), 'details');
 			var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
@@ -152,23 +169,17 @@ $(document).ready(function() {
 			$(this).removeClass('ui-icon-circle-plus');
 			$(this).addClass('ui-icon-circle-minus');
 			$('+ td span', this.parentNode).remove();
+			openRow = nTr;
 		}
 	});
 	$('.inbox_table select').change(function () {
 		$('.inbox_table').dataTable().fnFilter( $(this).val(), 3);
 	});
 	$('input#add_all').change(function () {
-		var boxes = $('input.add_message:enabled');
-		if(this.checked) {
-			boxes.each(function (i,e) {
-				e.checked = true;
-			});
-		} else {
-			boxes.each(function (i,e) {
-				e.checked = false;
-			});
-		}
-			
+		$('input.add_message:enabled').attr('checked', $(this).is(':checked'));	
+	});
+	$('input#del_all').change(function () {
+		$('input.del_message').attr('checked', $(this).is(':checked'));
 	});
 	$('a[href="add"]').button({
 		icons:{primary:'ui-icon-plusthick'}

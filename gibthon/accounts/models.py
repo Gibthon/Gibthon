@@ -8,7 +8,8 @@ from gibthon.messages import MessagePasser
 import json
 
 class GibthonUser(User):
-	
+
+	channel_key = models.CharField(max_length=120)
 	objects = UserManager()
 	
 	def channel(self):
@@ -35,10 +36,17 @@ class Inbox(models.Model):
 			return True
 		else:
 			for message in messages:
+				if message == '':
+					continue
 				_data = json.dumps(message['data'])
 				_sender = message['source']
 				_origin = message['source'].lower()
-				_type = 'cn'
+				try:
+					message['type']
+				except:
+					_type = 'cn'
+				else:
+					_type = message['type']
 				m = Message.objects.create(inbox=self, sender=_sender, data=_data, type=_type, origin=_origin)
 			self.messagePasser().clear()
 				

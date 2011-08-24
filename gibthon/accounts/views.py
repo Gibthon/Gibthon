@@ -7,9 +7,10 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.core.exceptions import *
-
 from accounts.models import *
 
+from gibthon.emails import RegisterEmail1
+from forms import *
 from gibthon.views import redirect_home
 
 import json
@@ -68,6 +69,9 @@ def create(request, email_hash):
 		f = UserRegisterForm2(request.POST)
 		if f.is_valid(email_hash):
 			user = f.save()
+			# awaiting JSON fix on message server
+			#user.channel_key = user.inbox.messagePasser().get_key()
+			#user.save()
 			auth_login(request, user)
 			return HttpResponseRedirect('/user/profile/')
 		else:

@@ -64,7 +64,7 @@ $(document).ready(function() {
 	
 	$('input[id^="id_captcha"]').addClass('captcha');
 	{% if user.is_authenticated %}
-		channel = new goog.appengine.Channel('AHRlWrp5gU5DmWH2gW1znInTlNZ5NQYAc8PaHpgqTznmV-IgNimISyw2OkTS9uiugvjcTXbZGdGPnA5kDq2oNU07tDQU1qX4lISCITxDmit0yCcU58oMkTU');
+		channel = new goog.appengine.Channel('{{ user.channel_key }}');
 		socket = channel.open();
 		socket.onopen = function() {};
 		socket.onmessage = function(message) {
