@@ -117,6 +117,11 @@ var show_delete_dialog = function(){
 };
 
 $(document).ready(function() {
+	
+	$('#fragment_table').fragmentList({
+		selectChanged: function(event, data) {handle_updated_selection(event, data);},
+	});
+	
 	$('#fragment_table').dataTable({
 		bAutoWidth: false,
 		bJQueryUI: true,
@@ -131,10 +136,6 @@ $(document).ready(function() {
 				sWidth:"40px"
 			},
 		]
-	});
-
-	$('#fragment_table').fragmentList({
-		selectChanged: function() {handle_updated_selection();},
 	});
 	
 	$('#fragment_form_open').button({

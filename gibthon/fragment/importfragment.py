@@ -87,7 +87,8 @@ def entrez_summary(request):
 @login_required
 def entrez_import(request):
 	"""Handle a request to import an ID"""
-	if request.method == 'GET' and 'id' in request.POST:
+	print "entrez_import"
+	if request.method == 'GET' and 'id' in request.GET:
 		id = request.GET['id']
 		db = request.GET.get('database', 'nucleotide') #assume nucleotide by default
 		handle = Entrez.efetch(db=db, id=id, rettype="gb")

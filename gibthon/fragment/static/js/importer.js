@@ -20,7 +20,9 @@ var importer_form_html = '' +
 '</div>';
 
 var busy = '<div style="text-align:center;margin-top:1.5em;">' +
+'	<h2>Please Wait...</h2>' +
 '	<img src="/static/images/spinner.gif" alt="Loading" />' +
+'	<h3 id="title"></h3>' +
 '</div>';
 
 var entrez_results = '' + 
@@ -67,9 +69,9 @@ $.widget("ui.importer", {
 	open: function(){ this.$dlg.dialog('open');},
 	close: function() { this.$dlg.dialog('close');},		
 	_show_main: function() { //show the main window
-	console.log('_show_main');
 		var self = this;
 		this.$content.load('/fragment/import/', {}, function () {
+			self._normal_size();
 			self.$content.find('#parts').click(function() {
 				self._show_parts();
 			});
@@ -81,12 +83,19 @@ $.widget("ui.importer", {
 			});
 		});
 	},
+	_show_busy: function(title)
+	{
+		if(title == undefined)
+			title = "";
+		var $busy = $(document.createElement('div'));
+		$busy.html(busy);
+		$busy.find('#title').text(title);
+		this.$content.html($busy);
+	},
 	_show_parts: function(){
 		//blank for now
-		console.log('_show_parts');
 	},
 	_show_entrez: function(error){
-	console.log('_show_entrez');
 		var self = this;
 		var $new = $(document.createElement('div')).html(importer_form_html);
 		
@@ -123,8 +132,8 @@ $.widget("ui.importer", {
 	},
 	_show_upload: function(){
 		//blank for now
-		console.log('_show_upload');
 	},
+	
 	_enable_back_cancel: function($new){
 		var self = this;
 		$new.find('#back_btn').button({
@@ -136,10 +145,12 @@ $.widget("ui.importer", {
 			icons: {primary: 'ui-icon-cancel'},
 		}).click(function() { self.close(); });
 	},
+
+//######################################################## ENTREZ
 	_entrez_search: function(){
 		var self = this;
 		var data = this.$content.find('#add_form').serialize();
-		this.$content.html(busy);
+		this._show_busy("Searching NCBI Entrez...");
 		$.getJSON('/fragment/import/entrez/search/', data, function(data) {
 			if(data[0] != 0)
 				self._show_entrez(data[1]);
@@ -149,7 +160,6 @@ $.widget("ui.importer", {
 	},
 	_entrez_results: function(ids){
 		var self = this;
-		
 		var cmds = new Array();
 		for( i in ids)
 		{
@@ -171,6 +181,7 @@ $.widget("ui.importer", {
 		this._results.push(summary);
 	},
 	_entrez_show_results: function(errors){//ignore errors and show results
+		var self = this;
 		var $results = $(document.createElement('div'));
 		$results.html(entrez_results);
 		var $results_tbl = $results.find('#results');
@@ -182,8 +193,21 @@ $.widget("ui.importer", {
 		}
 		
 		this._enable_back_cancel($results);
-				
-		$results.find('table')
+		var $ok = $results.find('#ok_btn').button({
+			label: 'Import',
+			icons: {primary: 'ui-icon-transfer-e-w'}, //ui-icon-gear
+			disabled: true,
+		});
+			
+		$fl = $results.find('table')
+			.fragmentList({
+				selectChanged: function(event, d){
+					if(d.selected == 0)
+						$ok.button('disable');
+					else
+						$ok.button('enable');
+				}	
+			})
 			.dataTable({
 				"bAutoWidth": false,
 				"bJQueryUI": true,
@@ -199,12 +223,34 @@ $.widget("ui.importer", {
 						"sWidth":"40px"
 					},
 				]
-			})
-			.fragmentList();
+			});		
+		$ok.click(function() { 
+			//if some fragments have been selected, import them
+			var ids = $fl.fragmentList('getList');
+			var commands = new Array()
+			for( i in ids )
+			{
+				var id = ids[i];
+				commands.push( {'desc': "Importing id '" + id + "'...", 
+								'url':'/fragment/import/entrez/import/',
+								'data': {'id': id,}, });
+			}
+			var s = '';
+			if(ids.length > 1) s = 's';
+			self.$content.loader({
+				'commands': commands, 
+				'autoStart': true,
+				'data': function(val) {},
+				'done': function(val) {location.reload();},
+				'title': 'Importing ' + ids.length + ' fragment' + s + '...',
+			});
+			self._normal_size();
+		});	
 		
 		this._full_size();
 		this.$content.html($results);
 	},
+	
 	
 //DIALOG RESIZING
 	_full_size: function()
@@ -236,7 +282,7 @@ var make_row = function(summary)
 	'	<td>' +
 	'		<p class="table-para">' +
 	'		<input class="selected-check" id="' + summary.Id + '-checkbox" ' +
-	'				type="checkbox" name="selected" value=' + summary.Id + '/>' +
+	'				type="checkbox" name="selected" value="' + summary.Id + '" />' +
 	'		</p>' +
 	'	</td>' +
 	'</tr>';
@@ -260,9 +306,11 @@ var make_row = function(summary)
 
 var loader_html = '' + 
 '<div style="text-align:center;margin-top:1.5em;">' +
-'	<img src="/static/images/spinner.gif" alt="Loading" style="margin-bottom:1em;" />' +
+'	<h2>Please Wait...</h2>' +
+'	<img src="/static/images/spinner.gif" alt="Loading" style="margin-bottom:.5em;" />' +
 '	<h3 id="title"></h3>' +
-'	<h5 id="current"></h3>' +
+'	<h4 id="current"></h4>' +
+'	<h5 id="text_progress" style="margin-bottom:.2em;"></h5>' +
 '	<div id="errors" style="color:red;"></div>' +
 '	<div id="loader_progress" style="height:1.1em;"></div>' +
 '	<div id="buttons" style="display:none;"><button id="close_btn"></button></div>' +
@@ -278,7 +326,7 @@ $.widget("ui.loader", {
 		done: function(errors) {}, //errors is the number of errors
 		title: '',
 	},
-	_create: function()
+	_init: function()
 	{
 		if(this.options.commands == [])
 			this._reload_page();
@@ -286,6 +334,7 @@ $.widget("ui.loader", {
 		var self = this;
 		this.$el = $(this.element[0]).html(loader_html);
 		this.$progress = this.$el.find('#loader_progress').progressbar({value: 0,});
+		this.$text_progress = this.$el.find('#text_progress').text('0 / 0');
 		this._cmd = this.options.commands;
 		this._len = this.options.commands.length;
 		this._next = 0; //the offset of the function to be performed next
@@ -346,6 +395,7 @@ $.widget("ui.loader", {
 	},
 	_update_progressbar: function()
 	{
+		this.$text_progress.text(this._next + ' / ' + this._len);
 		this.$progress.progressbar('value', 100 * (this._next / this._len));
 	},
 });

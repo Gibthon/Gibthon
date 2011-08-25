@@ -3,6 +3,10 @@
 * 
 *  bind to fragmentList.selectChanged to get updated selection info
 *  getList returns a list of all the selected fragments
+* 
+* 
+*  MUST BE APPLIED BEFORE DATATABLES
+* 
 */
 
 (function( $, undefined ) {
@@ -10,7 +14,7 @@
 $.widget("ui.fragmentList", {
 	options: {
 	},
-	_create: function() {
+	_init: function() {
 		var $element = $(this.element[0]);
 		var self = this;
 		//bind to all the onclicks
