@@ -1,7 +1,15 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
 
-from importfragment import entrezpatterns
+importpatterns = patterns('gibthon.fragment.importfragment',
+	(r'^entrez/$', 'entrez'),
+	(r'^entrez/search/$', 'entrez_search'),
+	(r'^entrez/summary/$', 'entrez_summary'),
+	(r'^entrez/import/$', 'entrez_import'),
+	(r'^upload/$', 'upload_form'),
+	(r'^upload/go/$', 'handle_upload'),
+)
+
 
 urlpatterns = patterns('fragment',
 	(r'^$', 'views.fragments'),
@@ -13,8 +21,7 @@ urlpatterns = patterns('fragment',
 	(r'^add$', 'views.add'),
 	(r'^delete/$', 'views.delete'),
 	(r'^import/$', 'importfragment.fragment_import'),
-	(r'^import/entrez/', include(entrezpatterns)),
-	
+	(r'^import/', include(importpatterns)),	
 )
 
 	

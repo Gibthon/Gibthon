@@ -18,6 +18,11 @@ class JsonResponse(HttpResponse):
 	def __init__(self, data, state = OK):
 		HttpResponse.__init__(self, json.dumps([state, data]), mimetype='application/json')
 
+class RawJsonResponse(HttpResponse):
+	def __init__(self, data):
+		print "Return JSON: '%s'" % json.dumps(data)
+		HttpResponse.__init__(self, json.dumps(data), mimetype='application/json')
+
 # functions which get the appropriate data
 def get_meta(g, request):
 	return JsonResponse({	'name': g.name,

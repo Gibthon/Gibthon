@@ -72,22 +72,31 @@
 <div id='fragment_form'>
 </div>
 <div id='confirm_delete'>
-	<div style="text-align:center;margin-top:1.5em;">
-		<p>
-			Are you sure you want to delete the  
-			<span id="num-frags-del"></span>
-			you selected?
-		</p>
-		<div>
-			<button id="cancel-delete"></button>
-			<button id="confirm-delete"></button>
-		</div>
-	</div>
+
 </div>
 {% endblock %}
 
 
 {% block js %}
+
+var delete_html = '<div style="text-align:center;margin-top:1.5em;">' +
+'<p>' +
+'	Are you sure you want to delete the' +
+'	<span id="num-frags-del"></span>' +
+'	you selected?' +
+'</p>' +
+'<div>' +
+'	<button id="cancel-delete"></button>' +
+'	<button id="confirm-delete"></button>' +
+'</div>' +
+'</div>';
+
+var delete_alt_html = '<div style="text-align:center;margin-top:1.5em;">' +
+'<h2>Deleting...</h2>' +
+'	<img src="/static/images/spinner.gif" alt="Loading" />' +
+'</div>';
+
+
 
 var handle_updated_selection = function(event, data){
 	if( data['selected'] != 0 )
@@ -104,15 +113,34 @@ var handle_updated_selection = function(event, data){
 
 var show_delete_dialog = function(){
 	var num = $('#fragment_table').fragmentList('getNumSelected');
-	var text = ''
-	if(num == 1)
-		text = 'fragment'
-	else
-		text = num + ' fragments'
+	var s = ''
+	if(num > 1)
+		s = 's'
+	var text = num + " fragment" + s;
+	$('#confirm_delete').html(delete_html);
 		
 	$('#confirm_delete')
 		.find('#num-frags-del')
 			.text(text);
+	
+	$('#cancel-delete').button({
+		label:"Cancel",
+		icons:{primary:'ui-icon-cancel'}
+	}).click(function() {
+		$('#confirm_delete').dialog('close');
+	});
+	
+	$('#confirm-delete').button({
+		label:"Delete",
+		icons:{primary:'ui-icon-trash'}
+	}).click(function() {
+		$('#confirm_delete').html(delete_alt_html);
+		$.ajax('delete/', {'type': 'POST', 'data': {'selected': $('#fragment_table').fragmentList('getList')},
+			'complete': function() {
+				location.reload();
+			},});
+	});
+	
 	$('#confirm_delete').dialog('open');
 };
 
@@ -176,20 +204,5 @@ $(document).ready(function() {
 		width:"580"
 	});
 	
-	$('#cancel-delete').button({
-		label:"Cancel",
-		icons:{primary:'ui-icon-cancel'}
-	}).click(function() {
-		$('#confirm_delete').dialog('close');
-	});
-	
-	$('#confirm-delete').button({
-		label:"Delete",
-		icons:{primary:'ui-icon-trash'}
-	}).click(function() {
-		$('#select_form')
-			.prop('action', 'delete/')
-			.submit();
-	});
 });
 {% endblock %}

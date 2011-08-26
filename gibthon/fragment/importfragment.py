@@ -2,13 +2,18 @@
 from fragment.models import *
 from django import forms
 from django.contrib.auth.decorators import login_required
-from django.conf.urls.defaults import patterns
+from django.conf.urls.defaults import patterns, include
 from django.template import Context, loader, RequestContext
 from django.core.context_processors import csrf
+from django.core.files.uploadedfile import UploadedFile
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.shortcuts import render_to_response
 
-from api import JsonResponse, ERROR
+import simplejson as json
+from api import JsonResponse, ERROR, RawJsonResponse
+
+from Bio import SeqIO
 
 @login_required
 def fragment_import(request):
@@ -17,6 +22,51 @@ def fragment_import(request):
 	c = RequestContext(request,{})
 	
 	return HttpResponse(t.render(c))
+
+
+@login_required
+def upload_form(request):
+	"""return the import page"""
+	t = loader.get_template('fragment/ULform.html')
+	c = RequestContext(request,{})
+	
+	return HttpResponse(t.render(c))
+
+
+fasta_types = ['fasta', 'fa', 'fsa', 'fna', 'ffn', 'faa', 'frn',]
+
+@login_required
+@csrf_exempt
+def handle_upload(request):
+	"""Handle a file upload"""
+	if request.method == 'POST' and len(request.FILES) != 0:
+		files = request.FILES.getlist('files[]')
+		data = []
+		for file in files:
+			wrapped_file = UploadedFile(file)
+			
+			format = 'genbank' #assume genbank
+			if wrapped_file.name.split('.')[-1] in fasta_types:
+				format = 'fasta' #we were wrong!
+
+			records = SeqIO.parse(wrapped_file, format)
+			ids = []
+			for record in records:
+				g = Gene.add(record, 'UL', request.user)
+				ids.append(g.pk)
+			
+			data.append({	"name":wrapped_file.name, 
+							"size":file.size,
+							"error": None,
+							"url":'/fragment/%s/' % ids[0],
+							"delete_url":'/fragment/delete/', 
+							"delete_type":"POST",
+							"delete_data": json.dumps({'selected':ids,}),
+						})
+		
+		return RawJsonResponse(data)
+	raise Http404
+			
 
 ###################################################################################################
 ########## ENTREZ JSON API ########################################################################
@@ -100,9 +150,3 @@ def entrez_import(request):
 		
 	raise Http404
 
-entrezpatterns = patterns('',
-	(r'^$', entrez),
-	(r'^search/$', entrez_search),
-	(r'^summary/$', entrez_summary),
-	(r'^import/$', entrez_import),
-)

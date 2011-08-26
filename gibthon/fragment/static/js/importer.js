@@ -105,7 +105,7 @@ $.widget("ui.importer", {
 				return false;
 			});
 			//show the whole kaboodle
-			self.$content.html($new);
+			self.$content.html($new).fadeIn(100);
 		});
 		if((error != undefined) && (error != ""))
 		{
@@ -120,18 +120,33 @@ $.widget("ui.importer", {
 		}).click(function() { 
 			self._entrez_search();
 		});
-		$new.find('#back_btn').button({
-			label: 'Back',
-			icons: {primary: 'ui-icon-arrowreturn-1-w'},
-		}).click(function() { self._show_main();});
-		$new.find('#cancel_btn').button({
-			label: 'Cancel',
-			icons: {primary: 'ui-icon-cancel'},
-		}).click(function() { self.close(); });
+		this._enable_back_cancel($new);
 		
 	},
 	_show_upload: function(){
-		//blank for now
+		
+		var self = this;
+		var $new = $(document.createElement('div')).html(importer_form_html);
+		
+		$new.find('#form_holder').load('/fragment/import/upload/', {}, function(){
+			$new.find('#add_form').submit(function() {
+				return false;
+			});
+			//show the whole kaboodle
+			self.$content.html($new);
+			$new.find('#fileupload').fileupload();
+			self._full_size();
+		});
+		
+		//hookup the buttons
+		$new.find('#ok_btn').button({
+			label: 'Done',
+			icons: {primary: 'ui-icon-close'},
+		}).click(function() { 
+			location.reload();
+		});
+		this._enable_back_cancel($new);
+		
 	},
 	
 	_enable_back_cancel: function($new){

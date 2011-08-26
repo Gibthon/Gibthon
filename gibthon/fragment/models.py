@@ -136,7 +136,6 @@ class Reference(models.Model):
 	
 	def add(_gene, _refs):
 		for r in _refs:
-			print "Adding Ref '%s': journal '%s'" % (r.title, r.journal)
 			ref = Reference(	gene = _gene, 
 									title = str(r.title),
 									journal = str(r.journal) )
@@ -183,11 +182,9 @@ class Annotation(models.Model):
 			return
 		if hasattr(_value, '__iter__'):
 			for v in _value:
-				print "Adding multi annotation '%s': '%s'" % (_key, v)
 				a = Annotation(gene= _gene, key=_key, value = str(v))
 				a.save()
 		else:
-			print "Adding annotation '%s': '%s'" % (_key, _value)
 			a = Annotation(gene = _gene, key =str(_key), value = str(_value))
 			a.save()
 	add = staticmethod(add)

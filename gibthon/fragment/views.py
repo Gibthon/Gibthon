@@ -7,6 +7,7 @@ from django.core.exceptions import *
 from django.shortcuts import render_to_response
 
 from Bio import SeqIO
+from api import JsonResponse
 
 genbank_mimetype = 'chemical/seq-na-genbank'
 #genbank_mimetype = 'text/plain'
@@ -134,9 +135,15 @@ def add_submit(request, type):
 	
 @login_required
 def delete(request):
-	if request.method == 'POST' and 'selected' in request.POST:
-		ids = request.POST.getlist('selected')
-		print "deleting %s" % ids
+	if request.method == 'POST':
+		ids = []
+		if 'selected' in request.POST:
+			ids = request.POST.getlist('selected')
+		elif 'selected[]' in request.POST:
+			ids = request.POST.getlist('selected[]')
+		else:
+			raise Http404
+			
 		#remove the selected IDs from the database
 		vids = []
 		for id in ids:
@@ -146,5 +153,10 @@ def delete(request):
 				pass #silently ignore the invalid ID
 		for id in vids:
 			Gene.remove(request.user, id)
-		return HttpResponseRedirect('/fragment')
+
+		print request.is_ajax();
+		if not request.is_ajax():
+			return HttpResponseRedirect('/fragment')
+		return JsonResponse(['ok',])
+
 	return HttpResponseNotFound()
