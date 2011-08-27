@@ -23,6 +23,19 @@ def fragment_import(request):
 	
 	return HttpResponse(t.render(c))
 
+##################################### MANUAL ############################
+
+from forms import MetaForm, SequenceForm
+
+@login_required
+def manual_form(request):
+	t = loader.get_template('fragment/MNform.html')
+	meta = MetaForm()
+	seq = SequenceForm()
+	c = RequestContext(request, {'meta': meta, 'seq': seq})
+	
+	return HttpResponse(t.render(c))
+
 ##################################### UPLOAD ############################
 
 

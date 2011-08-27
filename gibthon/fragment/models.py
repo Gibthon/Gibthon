@@ -50,6 +50,7 @@ class Gene(models.Model):
 		('BB', 'BioBrick'),
 		('UL', 'Upload'),
 		('GC', 'Gibthon Construct'),
+		('MN', 'Manual'),
 	)
 	origin = models.CharField(max_length=2, choices=ORIGIN_CHOICES)
 
@@ -280,16 +281,5 @@ class Qualifier(models.Model):
 	
 	def __unicode__(self):
 		return self.name
-	
-	
 
-
-class BBForm(forms.Form):
-	id = forms.CharField(max_length=30)
-	
-class NTForm(forms.Form):
-	id = forms.CharField(max_length=30)
-	
-class ULForm(forms.Form):
-	file = forms.FileField()
 	

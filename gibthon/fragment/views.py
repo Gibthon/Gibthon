@@ -73,67 +73,6 @@ def download_multi(request):
 	raise Http404()
 
 @login_required
-def add(request):
-	
-	if request.method == 'POST' and request.is_ajax():
-		if request.POST['type'] == "BB":
-			t = loader.get_template('fragment/BBform.html')
-			form = BBForm()
-			action = 'add'
-		elif request.POST['type'] == "NT":
-			t = loader.get_template('fragment/NTform.html')
-			form = EntrezSearchForm()
-			action = 'search'
-		elif request.POST['type'] == "UL":
-			t = loader.get_template('fragment/ULform.html')
-			form = ULForm()
-			action = 'add'
-		c = RequestContext(request,{
-			'fragment_form':form,
-			'type': request.POST['type'],
-			'action': action,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		raise Http404()
-
-
-@login_required
-def search(request, type):
-	if request.method == 'POST':
-		if type == "BB":
-			return HttpResponseNotFound()
-		elif type == "NT":
-			print 'got search type NT'
-			return entrez_search(request)
-		elif type == "UL":
-			return HttpResponseNotFound()
-		return HttpResponseRedirect('/fragment')
-	return HttpResponseNotFound()
-
-@login_required
-def add_submit(request, type):
-	if request.method == 'POST':
-		if type == "BB":
-			form = BBForm(request.POST)
-			if form.is_valid():
-				#if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
-				#	Gene.add(form.cleaned_data['id'], type, request.user)
-				print 'partsregistry import not implemented!'
-		elif type == "NT":
-			entrez_import(request)
-			return HttpResponseRedirect('/fragment')
-		elif type == "UL":
-			form = ULForm(request.POST, request.FILES)
-			if form.is_valid():
-				records = SeqIO.parse(form.cleaned_data['file'])
-				for record in records:
-					if len(Gene.objects.filter(name=record.name, owner=request.user)) == 0:
-						Gene.add(record, type, request.user)
-		return HttpResponseRedirect('/fragment')
-	return HttpResponseNotFound()
-	
-@login_required
 def delete(request):
 	if request.method == 'POST':
 		ids = []

@@ -10,6 +10,7 @@ importpatterns = patterns('gibthon.fragment.importfragment',
 	(r'^upload/go/$', 'handle_upload'),
 	(r'^part/$', 'part_form'),
 	(r'^part/go/$', 'part_import'),
+	(r'^manual/$', 'manual_form'),
 )
 
 

@@ -86,6 +86,9 @@ $.widget("ui.importer", {
 			$new.find('#upload').click(function() {
 				self._show_upload();
 			});
+			$new.find('#manual').click(function() {
+				self._show_manual();
+			});
 			self._show($new);
 		});
 	},
@@ -99,7 +102,6 @@ $.widget("ui.importer", {
 		this.$content.html($busy);
 	},
 	_show_parts: function(){
-		console.log('_show_parts');
 		var self = this;
 		var $new = $(document.createElement('div')).html(importer_form_html);
 		$new.find('#form_holder').load('/fragment/import/part/', {}, function(){
@@ -144,6 +146,47 @@ $.widget("ui.importer", {
 		});
 		this._enable_back_cancel($new);
 		
+	},
+	_show_manual: function(){
+		var self = this;
+		var $new = $(document.createElement('div')).html(importer_form_html);
+		$new.find('#form_holder').load('/fragment/import/manual/', {}, function(){
+			$new.find('#add_form').submit(function() {
+				return false;
+			});
+			self._show($new);
+			self._auto_size('top');
+		});
+		
+		$new.find('#ok_btn').button({
+				label: 'Save',
+			icons: {primary: 'ui-icon-disk'},
+		}).click( function() {
+			var error = false;
+			var $name = $new.find('#id_name');
+			if(($name.val() == ''))
+			{
+				error = true;
+				$new.find('#name_error').text('Name cannot be empty.').slideDown('fast');
+			}
+			else
+				$new.find('#name_error').slideUp('fast');
+			var $desc = $new.find('#id_desc');
+			var $seq = $new.find('#id_seq');
+			if(($seq.val() == ''))
+			{
+				error = true;
+				$new.find('#seq_error').text('Sequence cannot be empty.').slideDown('fast');
+			}
+			else
+				$new.find('#seq_error').slideUp('fast');
+			
+			if(error) return;
+			
+			console.log('submit');
+		});
+		
+		this._enable_back_cancel($new);
 	},
 	_show_entrez: function(error){
 		var self = this;
@@ -341,10 +384,11 @@ $.widget("ui.importer", {
 		this.$dlg.dialog('option', 'height',  260);
 		this.$dlg.dialog('option', 'position','center');
 	},
-	_auto_size: function()
+	_auto_size: function(position)
 	{
+		if(position == undefined) position = 'center';
 		this.$dlg.dialog('option', 'height',  'auto');
-		this.$dlg.dialog('option', 'position','center');
+		this.$dlg.dialog('option', 'position',position);
 	},
 });
 
