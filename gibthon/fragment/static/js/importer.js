@@ -49,6 +49,8 @@ var entrez_results = '' +
 $.widget("ui.importer", {
 	_create: function() {
 		var self = this;
+		this.updated = false; //set to true to reload the page on close		
+		
 		this.$dlg = $(this.element[0])
 			.html(importer_html)
 			.dialog({
@@ -58,6 +60,8 @@ $.widget("ui.importer", {
 				title:"Add new Fragment",
 				close:function () {
 					self._show_main();
+					if(self.updated)
+						location.reload();
 				},
 				height:"260",
 				width:"640"
@@ -70,17 +74,19 @@ $.widget("ui.importer", {
 	close: function() { this.$dlg.dialog('close');},		
 	_show_main: function() { //show the main window
 		var self = this;
-		this.$content.load('/fragment/import/', {}, function () {
+		var $new = $(document.createElement('div'));
+		$new.load('/fragment/import/', {}, function () {
 			self._normal_size();
-			self.$content.find('#parts').click(function() {
+			$new.find('#parts').click(function() {
 				self._show_parts();
 			});
-			self.$content.find('#entrez').click(function() {
+			$new.find('#entrez').click(function() {
 				self._show_entrez();
 			});
-			self.$content.find('#upload').click(function() {
+			$new.find('#upload').click(function() {
 				self._show_upload();
 			});
+			self._show($new);
 		});
 	},
 	_show_busy: function(title)
@@ -93,7 +99,51 @@ $.widget("ui.importer", {
 		this.$content.html($busy);
 	},
 	_show_parts: function(){
-		//blank for now
+		console.log('_show_parts');
+		var self = this;
+		var $new = $(document.createElement('div')).html(importer_form_html);
+		$new.find('#form_holder').load('/fragment/import/part/', {}, function(){
+			$new.find('#add_form').submit(function() {
+				return false;
+			});
+			$new.find('#extender').formExtender();
+			self._show($new);
+			self._auto_size();
+		});
+		
+		$new.find('#ok_btn').button({
+				label: 'Import',
+			icons: {primary: 'ui-icon-gear'},
+		}).click(function() {
+			self.updated = true;
+			$new.find('#extender-copy input').each(function() {
+				var name = $(this).val();
+				var $state = $(this).siblings('.status');
+				if($state.hasClass('status-ok')) //we've already imported this one!
+					return; //let's not do it again!
+				var $error = $(this).siblings('.extender-error').slideUp('fast');
+				
+				$state
+					.removeClass('status-error')
+					.addClass('status-busy');
+				$.getJSON('import/part/go/', {'part': name,}, function(data){
+					console.log("DATA: status:" + data[0] + " value:" + data[1])
+					if(data[0] != 0) //if error
+					{
+						$state.removeClass('status-busy').addClass('status-error');
+						console.log("Error: " + data[1]);
+						$error.text(data[1]).slideDown('slow');
+					}
+					else
+					{
+						$state.removeClass('status-busy').addClass('status-ok');
+					}
+				}); 
+				
+			});
+		});
+		this._enable_back_cancel($new);
+		
 	},
 	_show_entrez: function(error){
 		var self = this;
@@ -105,7 +155,7 @@ $.widget("ui.importer", {
 				return false;
 			});
 			//show the whole kaboodle
-			self.$content.html($new).fadeIn(100);
+			self._show($new);
 		});
 		if((error != undefined) && (error != ""))
 		{
@@ -133,9 +183,13 @@ $.widget("ui.importer", {
 				return false;
 			});
 			//show the whole kaboodle
-			self.$content.html($new);
-			$new.find('#fileupload').fileupload();
-			self._full_size();
+			self.$content.fadeOut('fast', function() {
+				$(this).html($new)
+					.find('#fileupload').fileupload();
+				$(this).fadeIn('fast');
+				self._auto_size();
+			});
+			self.updated = true;
 		});
 		
 		//hookup the buttons
@@ -159,6 +213,13 @@ $.widget("ui.importer", {
 			label: 'Cancel',
 			icons: {primary: 'ui-icon-cancel'},
 		}).click(function() { self.close(); });
+	},
+	_show: function($new){
+		this.$content.fadeOut('fast', function() {
+			$(this)
+				.html($new)
+				.fadeIn('fast');
+		});
 	},
 
 //######################################################## ENTREZ
@@ -280,6 +341,11 @@ $.widget("ui.importer", {
 		this.$dlg.dialog('option', 'height',  260);
 		this.$dlg.dialog('option', 'position','center');
 	},
+	_auto_size: function()
+	{
+		this.$dlg.dialog('option', 'height',  'auto');
+		this.$dlg.dialog('option', 'position','center');
+	},
 });
 
 })(jQuery);
@@ -344,26 +410,33 @@ $.widget("ui.loader", {
 	_init: function()
 	{
 		if(this.options.commands == [])
-			this._reload_page();
+		{
+			console.error('ui.loader: init called without commands!');
+			return;
+		}
 		
 		var self = this;
-		this.$el = $(this.element[0]).html(loader_html);
-		this.$progress = this.$el.find('#loader_progress').progressbar({value: 0,});
-		this.$text_progress = this.$el.find('#text_progress').text('0 / 0');
+		var $new = $(document.createElement('div')).html(loader_html);
+		this.$el = $(this.element[0]).fadeOut('fast', function() {
+			$(this).html($new).fadeIn('fast', function() {
+				if(self.options.autoStart)
+				{
+					self._started = true;
+					self._next_action();
+				}
+			});
+		});
+		this.$progress = $new.find('#loader_progress').progressbar({value: 0,});
+		this.$text_progress = $new.find('#text_progress').text('0 / 0');
 		this._cmd = this.options.commands;
 		this._len = this.options.commands.length;
 		this._next = 0; //the offset of the function to be performed next
 		this._errors = 0;
-		this.$title = this.$el.find('#title').html(this.options.title);
-		this.$current = this.$el.find('#current');
-		this.$errors = this.$el.find('#errros');
+		this.$title = $new.find('#title').html(this.options.title);
+		this.$current = $new.find('#current');
+		this.$errors = $new.find('#errros');
 		
 		this._started = false;
-		if(this.options.autoStart)
-		{
-			this._started = true;
-			this._next_action();
-		}
 	},
 	start: function() //start performing the commands
 	{
@@ -388,20 +461,29 @@ $.widget("ui.loader", {
 		var self = this;
 		var cmd = this._cmd[this._next];
 		this.$current.text(cmd.desc);
-		$.getJSON( cmd.url, cmd.data, function(data){
-			if(data[0] != 0)
-			{
-				self.$errors.append(data[1] + '<br/>');
-				this._errors = this._errors + 1;
-			}
-			
-			//move on to the next command
-			self._next = self._next + 1;
-			self._update_progressbar();
-			self._next_action();
-			
-			if(data[0] == 0)
-				self.options.data(data[1]); //call data callback
+		var type = cmd.type;
+		if(type == undefined)
+			type = 'GET'; //default to GET
+		$.ajax({
+			'url': cmd.url,
+			'data': cmd.data,
+			'type': type,
+			'success': 
+				function(data){
+					if(data[0] != 0)
+					{
+						self.$errors.append(data[1] + '<br/>');
+						this._errors = this._errors + 1;
+					}
+					
+					//move on to the next command
+					self._next = self._next + 1;
+					self._update_progressbar();
+					self._next_action();
+					
+					if(data[0] == 0)
+						self.options.data(data[1]); //call data callback
+				},
 		});
 	},
 	_on_complete: function()

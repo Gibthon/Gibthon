@@ -8,6 +8,8 @@ importpatterns = patterns('gibthon.fragment.importfragment',
 	(r'^entrez/import/$', 'entrez_import'),
 	(r'^upload/$', 'upload_form'),
 	(r'^upload/go/$', 'handle_upload'),
+	(r'^part/$', 'part_form'),
+	(r'^part/go/$', 'part_import'),
 )
 
 

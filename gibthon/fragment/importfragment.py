@@ -23,6 +23,8 @@ def fragment_import(request):
 	
 	return HttpResponse(t.render(c))
 
+##################################### UPLOAD ############################
+
 
 @login_required
 def upload_form(request):
@@ -66,7 +68,32 @@ def handle_upload(request):
 		
 		return RawJsonResponse(data)
 	raise Http404
-			
+	
+############################################################### PARTS #############################
+
+from partsregistry import Part
+
+@login_required
+def part_form(request): #return the form
+	t = loader.get_template('fragment/BBform.html')
+	c = RequestContext(request, {})
+	return HttpResponse(t.render(c))
+
+@login_required
+def part_import(request):
+	"""API to import a part via AJAX"""
+	print "part_import(method: %s, POST: %s)" % (request.method, request.GET,) 
+	if request.method == 'GET' and 'part' in request.GET:
+		name = request.GET.get('part', '')
+		try:
+			part = Part(name)
+			record = part.to_seq_record()
+			Gene.add(record, 'BB', request.user)
+		except Exception, e:
+			return JsonResponse(e.message, ERROR)
+		return JsonResponse('ok')
+	raise Http404	
+		
 
 ###################################################################################################
 ########## ENTREZ JSON API ########################################################################

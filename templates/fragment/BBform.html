@@ -1,5 +1,17 @@
-{% extends "fragment/addform.html" %}
 
-{% block form %}
-{{ fragment_form.as_p }}
-{% endblock %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/part.css" />
+
+<form id='add_form' method="post" enctype="multipart/form-data">
+	{%csrf_token%}
+<div id='extender' style="text-align:center;">	
+	<div id='extender-copy' style='display:none'> 
+		<input type='text' width='15' value='BBa_'></input>
+		<span class='status'></span>
+		<button class='extender-remove'>Remove</button>
+		<div class='extender-error' style='display:none;'></div>
+	</div>
+	<div id='extender-target'></div>
+	<button class='extender-add'>Add</button>
+</div>
+</form>
+
