@@ -151,7 +151,25 @@ $.widget("ui.importer", {
 		var self = this;
 		var $new = $(document.createElement('div')).html(importer_form_html);
 		$new.find('#form_holder').load('/fragment/import/manual/', {}, function(){
-			$new.find('#add_form').submit(function() {
+			var $form = $new.find('#add_form').submit(function() {
+				//submit via AJAX instead
+				$.getJSON($form.attr('action'), $form.serialize(), function(data) {
+					if(data[0] != 0) //error
+					{
+						console.log("Error: " + data[1]);
+						for( key in data[1])
+						{
+							error = data[1][key];
+							console.log(key + ':' + error);
+						console.log("$new.find('#" + key + "_error').length: " + $new.find('#' + key +'_error').length);
+							$new.find('#' + key +'_error').text('ERROR: ' + error).slideDown('fast');
+						}
+					}
+					else//success
+					{
+						location.reload();
+					}
+				});
 				return false;
 			});
 			self._show($new);
@@ -184,6 +202,7 @@ $.widget("ui.importer", {
 			if(error) return;
 			
 			console.log('submit');
+			$new.find('form').submit();
 		});
 		
 		this._enable_back_cancel($new);

@@ -14,6 +14,7 @@ import simplejson as json
 from api import JsonResponse, ERROR, RawJsonResponse
 
 from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
 
 @login_required
 def fragment_import(request):
@@ -32,9 +33,30 @@ def manual_form(request):
 	t = loader.get_template('fragment/MNform.html')
 	meta = MetaForm()
 	seq = SequenceForm()
-	c = RequestContext(request, {'meta': meta, 'seq': seq})
+	c = RequestContext(request, {	'meta': meta, 'seq': seq,
+									'title':'Manually add a Fragment',
+									'action': 'import/manual/add/',})
 	
 	return HttpResponse(t.render(c))
+
+@login_required	
+def manual_add(request):
+	"""Add a fragment manually"""
+	if request.method == 'GET':
+		meta = MetaForm(request.GET)
+		seq = SequenceForm(request.GET)
+		if meta.is_valid() and seq.is_valid():
+			record = SeqRecord(	seq.cleaned_data['seq'],
+								name=meta.cleaned_data['name'], 
+								id=meta.cleaned_data['name'],
+								description=meta.cleaned_data['desc'])
+			Gene.add(record, 'MN', request.user)
+			return JsonResponse('OK');
+		#figure out what the errors where
+		errors = meta.errors
+		errors.update(seq.errors)
+		return JsonResponse(errors, ERROR)
+	raise Http404
 
 ##################################### UPLOAD ############################
 
@@ -95,7 +117,6 @@ def part_form(request): #return the form
 @login_required
 def part_import(request):
 	"""API to import a part via AJAX"""
-	print "part_import(method: %s, POST: %s)" % (request.method, request.GET,) 
 	if request.method == 'GET' and 'part' in request.GET:
 		name = request.GET.get('part', '')
 		try:
