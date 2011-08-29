@@ -414,11 +414,19 @@ $.widget("ui.fragmentSequence", {
 	},
 	_label_features: function()
 	{
-		for(f in this.features)
+		for(var f in this.features)
 		{
-			$('.feat-id-' + f).tipTip({
+			var $feat = $('.feat-id-' + f);
+			$feat.tipTip({
 				maxWidth: '800px',
 				content: make_feat_tooltip(this.features[f]),
+			}).hover(function(event) { //in
+				var fid = $(event.target).attr('id').split('-')[0];
+				$('.feat-id-' + fid).addClass('feat-hover');
+			}, 
+			function(event) {//out
+				var fid = $(event.target).attr('id').split('-')[0];
+				$('.feat-id-' + fid).removeClass('feat-hover');
 			});
 		}
 	},
@@ -665,7 +673,7 @@ var make_feat_html = function(r_s, r_e, feature, f_id)
 		{
 			if((i+j) == left)
 			{
-				r = r + '<span class="feat-hl feat-type-' + feature.type + ' feat-id-' + f_id + '">';
+				r = r + '<span id="' + f_id + '-'+r_s+'-feat" class="feat-hl feat-type-' + feature.type.toLowerCase() + ' feat-id-' + f_id + '">';
 			}
 			if((l - (i+j)) == right)
 			{
@@ -689,15 +697,15 @@ var make_feat_tooltip = function(feature)
 		strand = 'rev';
 		
 	var ret = '' +
-	'<table style="word-wrap:break-word;">' +
-	'	<tr><td style="min-width:7em;">Type :</td><td>' + feature.type + '</td></tr>' +
-	'	<tr><td>Location :</td><td>' + (feature.start) + '-' + (feature.end) + '</td></tr>' +
-	'	<tr><td>Length</td><td>' + (feature.end - feature.start) + '</td></tr>' +
-	'	<tr><td>Strand :</td><td>' + strand + '</td></tr>';
+	'<table style="word-wrap:break-word;width:100%;">' +
+	'	<tr><td style="min-width:7.5em;"><h4>Type:</h4></td><td style="width:70%;"><p>' + feature.type + '</p></td></tr>' +
+	'	<tr><td><h4>Location:</h4></td><td><p>' + (feature.start) + '-' + (feature.end) + '</p></td></tr>' +
+	'	<tr><td><h4>Length:</h4></td><td><p>' + (feature.end - feature.start) + '</p></td></tr>' +
+	'	<tr><td><h4>Strand:</h4></td><td><p>' + strand + '</p></td></tr>';
 	
 	for(i in feature.qualifiers)
 	{
-		ret = ret + '<tr><td>' + feature.qualifiers[i].name + '</td><td>' + feature.qualifiers[i].data + '</td></tr>';
+		ret = ret + '<tr><td><h4>' + feature.qualifiers[i].name + ':</h4></td><td><p class="feat-qual">' + feature.qualifiers[i].data + '</p></td></tr>';
 	}
 	ret = ret + '</table>';
 	return ret;

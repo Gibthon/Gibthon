@@ -250,6 +250,19 @@
 	background-color: grey;
 	margin: .1em 0;
 }
+
+.copy_option
+{
+	margin: .5em 0;
+}
+.copy_label
+{
+	margin-top: .2em;
+	text-align: left;
+	margin-left: 5em;
+	font-weight: bold;
+}
+
 .label-div
 {
 	background-color: lightgrey;
@@ -263,19 +276,25 @@
 	height: .8em;
 	overflow: hidden;
 }
+.feat-hover
+{
+	opacity: 0.65;
+}
+.feat-qual
+{
+	word-wrap: break-word;
+	max-width: 58em;
+}
 .feat-hl
 {
 	background-color: red;
 	border: 1px solid darkred;
 	height: .5em;
 	display: inline-block;
+	vertical-align: top;
+	cursor: pointer;
 }
-.feat-type-cds
-{
-	background-color: red;
-	border: 1px solid darkred;
-}
-.feat-type-gene
+.feat-type-gene, .feat-type-cds
 {
 	background-color: yellow;
 	border: 1px solid orange;
@@ -305,14 +324,14 @@
 	background-color: pink;
 	border: 1px solid red;
 }
-.copy_option
+
+.feat-type-biobrick
 {
-	margin: .5em 0;
+	background-color: pink;
+	border: 1px solid red;
 }
-.copy_label
+.feat-type-stem_loop
 {
-	margin-top: .2em;
-	text-align: left;
-	margin-left: 5em;
-	font-weight: bold;
+	background-color: green;
+	border: 1px solid darkgreen;
 }
