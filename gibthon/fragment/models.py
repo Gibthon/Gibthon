@@ -79,7 +79,7 @@ class Gene(models.Model):
 	
 	def gb(self):
 		g = SeqRecord(Seq(self.sequence,IUPAC.IUPACUnambiguousDNA()),id=self.name, name=self.name, description=self.description)
-		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.feature.all()]
+		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features.all()]
 		return g.format('genbank')
 	
 	def to_seq_record(self):
@@ -259,14 +259,14 @@ class Feature(models.Model):
 	
 	def __unicode__(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'
-		if self.qualifier.all():
+		if self.qualifiers.all():
 			return self.qualifiers.all()[0].data + pos
 		else:
 			return self.type + pos
 	
 	def pretty(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'
-		if self.qualifier.all():
+		if self.qualifiers.all():
 			return self.qualifiers.all()[0].data + pos
 		else:
 			return self.type + pos

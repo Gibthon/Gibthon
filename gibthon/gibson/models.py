@@ -471,7 +471,7 @@ class ConstructFragment(models.Model):
 	
 	def features(self):
 		feat = []
-		for f in self.fragment.feature.all():
+		for f in self.fragment.features.all():
 			if self.direction == 'f':
 				if f.start >= self.start() and f.end <=self.end():
 						feat.append(f)
@@ -503,6 +503,6 @@ class ConstructFragment(models.Model):
 
 def add_fragment(_construct, _fragment):
 	o = len(_construct.fragments.all())
-	cf = ConstructFragment(construct=_construct, fragment=_fragment, order = o, direction='f', start_feature=_fragment.feature.all()[0], end_feature=_fragment.feature.all()[0], start_offset=0, end_offset=0)
+	cf = ConstructFragment(construct=_construct, fragment=_fragment, order = o, direction='f', start_feature=_fragment.features.all()[0], end_feature=_fragment.features.all()[0], start_offset=0, end_offset=0)
 	cf.save()
 	
