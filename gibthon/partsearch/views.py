@@ -8,7 +8,7 @@ from json import JsonpResponse
 
 def apihelp(request):
 	t = loader.get_template('partsearch/apihelp.html')
-	c = RequestContext(request)
+	c = RequestContext(request, {'title': 'PartSearch API',})
 	return HttpResponse(t.render(c))
 
 def get_types(request):
