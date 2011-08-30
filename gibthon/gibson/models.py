@@ -53,9 +53,27 @@ from annoying.fields import AutoOneToOneField
 from fragment.models import Gene
 
 import os, subprocess, shlex, sys, csv
+from subprocess import CalledProcessError
 
 def hybrid_options(t,settings):
 	return ' -n DNA -t %.2f -T %.2f -N %.2f -M %.2f --mfold=5,-1,100 ' %(t + settings.ss_safety, t + settings.ss_safety, settings.na_salt, settings.mg_salt)
+
+def run_subprocess(cline, primer):
+	try:
+		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	except IOError:
+		print 'aspifjoasijfoiaj'
+		return False
+	stdout, stderr = p.communicate()
+	if p.returncode > 0:
+		w = Warning.objects.create(
+			primer = primer,
+			type = 'sy',
+			text = 'Primer calculation failed with error %d\n%s\n%s'%(p.returncode,stderr,stdout),
+		)
+		return False
+	dir(p)
+	return True
 
 class Settings(models.Model):
 	# automatically create a Settings object whne you make a new construct object
@@ -112,12 +130,13 @@ class PCRSettings(models.Model):
 
 class Warning(models.Model):
 	primer = models.ForeignKey('Primer', related_name='warning')
-	# four warning types at the moment
+	# five warning types at the moment
 	WARNING_TYPE = (
 		('mp', 'MISPRIME'),
 		('sp','SELF PRIME'),
 		('ta','ANNEAL TM'),
 		('tp','PRIMER TM'),
+		('sy','SYSTEM ERROR'),
 	)
 	type = models.CharField(max_length=2, choices=WARNING_TYPE)
 	text = models.CharField(max_length=150)
@@ -187,6 +206,7 @@ class Primer(models.Model):
 		self.delete()
 	
 	def self_prime_check(self):
+		self.warning.filter(type='sy').delete()
 		# check for self prime events
 		name = str(self.id)
 		cwd = os.getcwd()
@@ -200,19 +220,31 @@ class Primer(models.Model):
 		devnull = open(os.devnull, 'w')
 		# hyrbidise!
 		cline = settings.HYBRID_SS_MIN_PATH + hybrid_options(self.tm(), self.construct.settings) + wd + name
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
+		if not run_subprocess(cline, self):
+			return False
 		# generate a pretty boxplot
 		cline = settings.BOXPLOT_NG_PATH + ' -t "Energy Dotplot for ' + name + ' " ' + wd + name + '.plot'
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
+		if not run_subprocess(cline, self):
+			return False
 		# go through the boxplot info and check for mispriming
-		ss = csv.DictReader(open(wd + name + '.plot','r'), delimiter='\t')
+		try:
+			csvfile = open(wd + name + '.plot', 'r')
+		except IOError as e:
+			w = Warning.objects.create(
+					primer = self,
+					type = 'sy',
+					text = 'Error making boxplot',
+				)
+			return False
+		ss = csv.DictReader(csvfile, delimiter='\t')
 		warnings = []
 		for r in ss:
 			if int(r['j']) == len(self.seq()):
 				warnings.append((r['length'],float(r['energy'])/10))
 		# conver the boxplot to a png
 		cline = 'convert ' + wd + name + '.ps ' + wd + name + '.png'
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
+		if not run_subprocess(cline, self):
+			return False		
 		# move it to the media directory
 		os.rename(wd+name+'.png',settings.MEDIA_ROOT+'unafold/'+name+'.png')
 		# clean up after yourself

@@ -156,8 +156,12 @@ def primers(request, cid):
 def process(request, cid, reset=True, new=True):
 	con = get_construct(request.user, cid)
 	if con:
-		resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
-		return resp
+		try:
+			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+		except:
+			print 'wok'
+		else:
+			return resp
 	else:
 		return HttpResponseNotFound()
 
