@@ -212,8 +212,8 @@ def construct(request,cid):
 			return HttpResponse('/gibthon/'+str(con.id)+'/'+con.name+'/')
 		construct_form = ConstructForm(instance=con)
 		fragment_list = con.fragments.all().order_by('cf')
-		feature_list = [FeatureListForm(f, con) for f in fragment_list]
 		cf_list = con.cf.all()
+		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
 		list = zip(fragment_list, feature_list, cf_list)
 		c = RequestContext(request,{
 			'title':'Construct Designer('+con.name+')',
@@ -253,8 +253,7 @@ def fragment_viewer(request, cid, fid):
 def fragment_browse(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
-		ex = [e.pk for e in con.fragments.all()]
-		f = Gene.objects.all().exclude(pk__in=ex).filter(owner=request.user)
+		f = Gene.objects.all().filter(owner=request.user)
 		t = loader.get_template('gibson/fragment_browser.html')
 		c = RequestContext(request,{
 			'fragment_list':f,
@@ -278,10 +277,10 @@ def fragment_add(request, cid, fid):
 		return HttpResponseNotFound()
 
 @login_required
-def fragment_delete(request, cid, fid):
+def fragment_delete(request, cid, cfid):
 	con = get_construct(request.user, cid)
 	if con:
-		try: cf = ConstructFragment.objects.get(fragment=fid, construct=cid)
+		try: cf = ConstructFragment.objects.get(id=cfid)
 		except ObjectDoesNotExist: return HttpResponseNotFound()
 		else:
 			cf.delete()
