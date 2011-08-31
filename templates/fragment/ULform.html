@@ -1,5 +1,86 @@
-{% extends "fragment/addform.html" %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/upload.css" />
 
-{% block form %}
-{{ fragment_form.as_p }}
-{% endblock %}
+<div id="fileupload" style="margin-top:.5em;">
+	<h4>To upload a genbank or fasta file, click on Add Files or drag and drop into the box below</h4>
+    <form action="import/upload/go/" method="POST" enctype="multipart/form-data">
+        <div class="fileupload-buttonbar">
+            <label class="fileinput-button">
+                <span>Add files...</span>
+                <input type="file" name="files[]" multiple>
+            </label>
+            <button type="submit" class="start">Start upload</button>
+            <button type="reset" class="cancel">Cancel upload</button>
+            <button type="button" class="delete">Delete files</button>
+        </div>
+    </form>
+    <div class="fileupload-content">
+        <table class="files"></table>
+        <div class="fileupload-progressbar"></div>
+    </div>
+</div>
+<script id="template-upload" type="text/x-jquery-tmpl">
+    <tr class="template-upload{% templatetag openvariable %}if error{% templatetag closevariable %} ui-state-error{% templatetag openvariable %}/if{% templatetag closevariable %}">
+        <td class="preview"></td>
+        <td class="name">${name}</td>
+        <td class="size">${sizef}</td>
+        {% templatetag openvariable %}if error{% templatetag closevariable %}
+            <td class="error" colspan="2">Error:
+                {% templatetag openvariable %}if error === 'maxFileSize'{% templatetag closevariable %}File is too big
+                {% templatetag openvariable %}else error === 'minFileSize'{% templatetag closevariable %}File is too small
+                {% templatetag openvariable %}else error === 'acceptFileTypes'{% templatetag closevariable %}Filetype not allowed
+                {% templatetag openvariable %}else error === 'maxNumberOfFiles'{% templatetag closevariable %}Max number of files exceeded
+                {% templatetag openvariable %}else{% templatetag closevariable %}${error}
+                {% templatetag openvariable %}/if{% templatetag closevariable %}
+            </td>
+        {% templatetag openvariable %}else{% templatetag closevariable %}
+            <td class="progress"><div></div></td>
+            <td class="start"><button>Start</button></td>
+        {% templatetag openvariable %}/if{% templatetag closevariable %}
+        <td class="cancel"><button>Cancel</button></td>
+    </tr>
+</script>
+<script id="template-download" type="text/x-jquery-tmpl">
+    <tr class="template-download{% templatetag openvariable %}if error{% templatetag closevariable %} ui-state-error{% templatetag openvariable %}/if{% templatetag closevariable %}">
+        {% templatetag openvariable %}if error{% templatetag closevariable %}
+            <td></td>
+            <td class="name">${name}</td>
+            <td class="size">${sizef}</td>
+            <td class="error" colspan="2">Error:
+                {% templatetag openvariable %}if error === 1{% templatetag closevariable %}File exceeds upload_max_filesize (php.ini directive)
+                {% templatetag openvariable %}else error === 2{% templatetag closevariable %}File exceeds MAX_FILE_SIZE (HTML form directive)
+                {% templatetag openvariable %}else error === 3{% templatetag closevariable %}File was only partially uploaded
+                {% templatetag openvariable %}else error === 4{% templatetag closevariable %}No File was uploaded
+                {% templatetag openvariable %}else error === 5{% templatetag closevariable %}Missing a temporary folder
+                {% templatetag openvariable %}else error === 6{% templatetag closevariable %}Failed to write file to disk
+                {% templatetag openvariable %}else error === 7{% templatetag closevariable %}File upload stopped by extension
+                {% templatetag openvariable %}else error === 'maxFileSize'{% templatetag closevariable %}File is too big
+                {% templatetag openvariable %}else error === 'minFileSize'{% templatetag closevariable %}File is too small
+                {% templatetag openvariable %}else error === 'acceptFileTypes'{% templatetag closevariable %}Filetype not allowed
+                {% templatetag openvariable %}else error === 'maxNumberOfFiles'{% templatetag closevariable %}Max number of files exceeded
+                {% templatetag openvariable %}else error === 'uploadedBytes'{% templatetag closevariable %}Uploaded bytes exceed file size
+                {% templatetag openvariable %}else error === 'emptyResult'{% templatetag closevariable %}Empty file upload result
+                {% templatetag openvariable %}else{% templatetag closevariable %}${error}
+                {% templatetag openvariable %}/if{% templatetag closevariable %}
+            </td>
+        {% templatetag openvariable %}else{% templatetag closevariable %}
+            <td class="preview">
+                {% templatetag openvariable %}if thumbnail_url{% templatetag closevariable %}
+                    <a href="${url}" target="_blank"><img src="${thumbnail_url}"></a>
+                {% templatetag openvariable %}/if{% templatetag closevariable %}
+            </td>
+            <td class="name">
+                <a href="${url}"{% templatetag openvariable %}if thumbnail_url{% templatetag closevariable %} target="_blank"{% templatetag openvariable %}/if{% templatetag closevariable %}>${name}</a>
+            </td>
+            <td class="size">${sizef}</td>
+            <td colspan="2"></td>
+        {% templatetag openvariable %}/if{% templatetag closevariable %}
+        <td class="delete">
+            <button data-type="${delete_type}" data="${delete_data}" data-url="${delete_url}">Delete</button>
+        </td>
+    </tr>
+</script>
+
+<script src="{{ STATIC_URL }}/js/jquery.tmpl.min.js"></script>
+<script src="{{ STATIC_URL }}/js/jquery.iframe-transport.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.fileupload.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.fileupload-ui.js" type="text/javascript"></script>

@@ -39,8 +39,8 @@ class FeatureListForm(forms.Form):
 		sf = self.base_fields['start_feature']
 		ff = self.base_fields['finish_feature']
 		cf = _fragment.cf.get(fragment=_fragment.pk, construct=_construct.pk)
-		sf.queryset = _fragment.feature.all()
-		ff.queryset = _fragment.feature.all()
+		sf.queryset = _fragment.features.all()
+		ff.queryset = _fragment.features.all()
 		sf.widget.choices = sf.choices
 		ff.widget.choices = ff.choices
 		sf.initial = cf.start_feature

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block css-include %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/api.css" />
+{% endblock %}
+
+{% block content %}
+<div class="ui-state-highlight ui-corner-all content">
+	<h3>Please Note:</h3>
+	<p>
+		The partsearch API is a work in progress; although much deveopment has already been done, it is not yet functional.
+	</p>
+</div>
+<div class="ui-widget-content ui-corner-all content">
+	<h2>Partsearch API</h2>
+	<p>	
+		This page documents the PartSearch JSONP API, and API for querying partsregistry.org which (will) actually be useful!
+	</p>
+	<h3>API</h3>
+	<h4>partsearch/types/:</h4>
+	<div class="fn-info">
+		<p><b>Return:</b> a list of all types in the registry</p>
+		<p>Args:</p>
+		<ul>
+			<li>callback: The function to call - if you use jQuery this will be handled for you</li>
+		</ul>
+		<div class='test ui-widget-content ui-corner-all'>
+			<h5>Example:</h5>
+			<ul id='typelist'>
+			</ul>
+		</div>
+	</div>
+	
+	<h4>partsearch/categories/:</h4>
+	<div class="fn-info">
+		<p>Return: a list of all categories in the registry</p>
+		<p>Args:</p>
+		<ul>
+			<li>callback: The function to call - if you use jQuery this will be handled for you</li>
+			<li>type: the type of data to return, either 'array' (default) or 'map'</li>
+		</ul>
+		<div class='test ui-widget-content ui-corner-all'>
+			<h5>Example:</h5>
+			<ul id='catlist'>
+			</ul>
+		</div>
+	</div>
+	
+</div>
+{% endblock %}
+
+{%block js%}
+var to_li = function(string) {
+	return '<li>' + string + '</li>';
+};
+
+$(window).ready( function() {
+	$.getJSON("/partsearch/types/?callback=?", function(data) {
+		for (i in data)
+		{
+			$('#typelist').append(to_li(data[i]));
+		}
+	});
+	$.getJSON("/partsearch/categories/?callback=?", function(data) {
+		for (i in data)
+		{
+			$('#catlist').append(to_li(data[i]));
+		}
+	});
+});
+
+{%endblock%}

@@ -1,9 +1,16 @@
 from fragment.models import *
 from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import *
+from django.shortcuts import render_to_response
+
+from Bio import SeqIO
+from api import JsonResponse
+
+genbank_mimetype = 'chemical/seq-na-genbank'
+#genbank_mimetype = 'text/plain'
 
 def get_fragment(user, fid):
 	try:
@@ -46,54 +53,57 @@ def fragment(request, fid):
 def download(request, fid):
 	f = get_fragment(request.user, fid)
 	if f:
-		#response = HttpResponse(mimetype='chemical/seq-na-genbank')
-		response = HttpResponse(mimetype='text/plain')
-		response.write(f.gb())
+		response = HttpResponse(mimetype=genbank_mimetype)
+		record = f.to_seq_record()
+		SeqIO.write(record, response, 'genbank')
 		return response
 	else:
-		return HttpResponseNotFound()
+		raise Http404()
 
 @login_required
-def add(request):
-	if request.method == 'POST' and request.is_ajax():
-		if request.POST['type'] == "BB":
-			t = loader.get_template('fragment/BBform.html')
-			form = BBForm()
-		elif request.POST['type'] == "NT":
-			t = loader.get_template('fragment/NTform.html')
-			form = NTForm()
-		elif request.POST['type'] == "UL":
-			t = loader.get_template('fragment/ULform.html')
-			form = ULForm()
-		c = RequestContext(request,{
-			'fragment_form':form,
-			'type':request.POST['type'],
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
+def download_multi(request):
+	"""download all the selected fragments in one file"""
+	if request.method == 'POST' and 'selected' in request.POST:
+		ids = request.POST.getlist('selected')
+		genes = Gene.objects.filter(id__in = ids)
+		records = [g.to_seq_record() for g in genes]
+		response = HttpResponse(mimetype=genbank_mimetype)
+		SeqIO.write(records, response, 'genbank')
+		return response
+	raise Http404()
 
 @login_required
-def add_submit(request, type):
+def delete(request):
 	if request.method == 'POST':
-		ok = False
-		if type == "BB":
-			form = BBForm(request.POST)
-			if form.is_valid():
-				if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
-					ok = Gene.add(form.cleaned_data['id'], type, request.user)
-		elif type == "NT":
-			form = NTForm(request.POST)
-			if form.is_valid():
-				if len(Gene.objects.filter(name=form.cleaned_data['id'], owner=request.user)) == 0:
-					ok = Gene.add(form.cleaned_data['id'], type, request.user)
-		elif type == "UL":
-			form = ULForm(request.POST, request.FILES)
-			if form.is_valid():
-				if len(Gene.objects.filter(name=form.cleaned_data['file'].name.split('.')[0], owner=request.user)) == 0:
-					ok = Gene.add(form.cleaned_data['file'], type, request.user)
-		if ok:
-			return HttpResponseRedirect('/fragment')
+		ids = []
+		if 'selected' in request.POST:
+			ids = request.POST.getlist('selected')
+		elif 'selected[]' in request.POST:
+			ids = request.POST.getlist('selected[]')
 		else:
+			raise Http404
+			
+		#remove the selected IDs from the database
+		vids = []
+		ok = []
+		failed = []
+		for id in ids:
+			try:
+				vids.append(int(id))
+			except ValueError:
+				failed.append(id)
+		for id in vids:
+			if Gene.remove(request.user, id):
+				ok.append(id)
+			else:
+				failed.append(id)
+
+		if not request.is_ajax():
+			if len(failed) == 0:
+				return HttpResponseRedirect('/fragment')
 			return HttpResponseNotFound()
-	return HttpResponseNotFound()
+			
+		return JsonResponse({'ok': ok, 'failed':failed,})
+
+	raise Http404
+
