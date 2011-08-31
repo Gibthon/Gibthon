@@ -1,43 +1,141 @@
-<div style="width:100%; padding:10px; height:25px;" class="ui-widget-header ui-corner-top">
-	<div style="float:right;"><button id="settings">Edit</button></div>
-	Settings
+
+<div class="pad">
+<div id="settings" class="pad-content center">
+	
+	<div style="display:inline-block;" class="ui-content ui-corner-all">
+		{% csrf_token %}
+		<form id='settings_form' action='saveSettings/' method='post' onsubmit='return false;'>
+			<h3 style="display:inline-block;">Reaction Settings</h3>
+			<button id="edit_settings">Edit</button>
+			<table id="settings_table">
+				<tr class='settings'>
+					<td class="setting-title">Mg<sup>2+</sup> concentration</td>
+					<td class="setting-value setting-conc" id="mg_salt">{{ settings.mg_salt }}</td>
+					<td class="setting-error"><span id="mg_salt-error"></span></td>
+				</tr>
+				<tr class='settings settings-alt'>
+					<td class="setting-title">Na<sup>+</sup> concentration</td>
+					<td class="setting-value setting-conc" id="na_salt">{{ settings.na_salt }}</td>
+					<td class="setting-error"><span id="na_salt-error"></span></td>
+				</tr>
+				<tr class='settings'>
+					<td class="setting-title">Secondary structure safety margin</td>
+					<td class="setting-value setting-temp" id="ss_safety">{{ settings.ss_safety }}</td>
+					<td class="setting-error"><span id="ss_safety-error"></span></td>
+				</tr>
+				<tr class='settings settings-alt'>
+					<td class="setting-title">Target annealing temperature</td>
+					<td class="setting-value setting-temp" id="min_anneal_tm">{{ settings.min_anneal_tm }}</td>
+					<td class="setting-error"><span id="min_anneal_tm-error"></span></td>
+				</tr>
+				<tr class='settings'>
+					<td class="setting-title">Target primer annealing temperature</td>
+					<td class="setting-value setting-temp" id="min_primer_tm">{{ settings.min_primer_tm }}</td>
+					<td class="setting-error"><span id="min_primer_tm-error"></span></td>
+				</tr>
+				<tr class='settings settings-alt'>
+					<td class="setting-title">Minimum overlap</td>
+					<td class="setting-value setting-len" id="min_overlap">{{ settings.min_overlap }}</td>
+					<td class="setting-error"><span id="min_overlap-error"></span></td>
+				</tr>
+			</table>
+		</div>
+	</form>
 </div>
-<div id="settings" style="width:100%; padding:10px;" class="ui-widget-content ui-corner-bottom">
-	<table id="settings_table">
-		<tr>
-			<td style="width:170px;">Mg<sup>2+</sup> concentration:</td>
-			<td>{{ settings.mg_salt }} M</td>
-		</tr>
-		<tr>
-			<td>Na<sup>+</sup> concentration:</td>
-			<td>{{ settings.na_salt }} M</td>
-		</tr>
-		<tr>
-			<td>Secondary structure safety margin:</td>
-			<td>{{ settings.ss_safety }}&deg;C</td>
-		</tr>
-		<tr>
-			<td>Target annealing temperature:</td>
-			<td>{{ settings.min_anneal_tm }}&deg;C</td>
-		</tr>
-		<tr>
-			<td>Target primer annealing temperature:</td>
-			<td>{{ settings.min_primer_tm }}&deg;C</td>
-		</tr>
-		<tr>
-			<td>Minimum overlap:</td>
-			<td>{{ settings.min_overlap }} bp</td>
-		</tr>
-	</table>
 </div>
 <script type="text/javascript">
-$(document).ready(function() {
-	$('button#settings')
-		.button({
-			icons:{primary:'ui-icon-wrench'}
-		})
-		.click(function(event) {
-			$('div#settings-wrapper').load('settings/edit');
+
+var show_error = function(name, error)
+{
+	$('#' + name + '-error').fadeIn('slow').text(error);
+}
+var hide_errors = function()
+{
+	$('.setting-error span').fadeOut('slow', function() {$(this).text('');});
+}
+
+var view_settings = function(data)
+{
+	if(data != undefined) //if this is the result of an ajax request
+	{
+		if(data[0] != 0)
+		{ //show errors
+			for(name in data[1])
+			{
+				show_error(name, data[1][name]);
+			}
+			return false;
+		}
+		else
+		{
+			console.log("$('#status').text(" + data[1].modified + ");");
+			$('#status').text(data[1].modified);
+			hide_errors();
+			$('.setting-value').each(function() { //return to text only view
+				$(this).text( $(this).children('input').val());
+			});
+		}
+	}
+	
+	$('button#edit_settings').button('option', {
+		'label': 'Edit', 
+		'icons': {'primary':'ui-icon-pencil',},})
+	.unbind('click')
+	.click(function(event) {
+		edit_settings();
+	});
+}
+
+var npat = new RegExp('[^0-9.]');
+
+var edit_settings = function(){
+	$('td.setting-value').each(function() { //add in the inputs
+			var name = $(this).prop('id');
+			var val = $(this).text();
+			$(this).html(
+				$('<input type="text" name="' + name + '" id="' + name + '" value="' + val + '" size=6 maxlength=6 />')
+			);
+	});
+		
+	$('button#edit_settings').button('option', {
+		'label': 'Save', 
+		'icons': {'primary':'ui-icon-disk',},})
+	.unbind('click')
+	.click( function() {
+		var errors = new Object();
+		var error = false;
+		$('.setting-value input').each( function() {
+			var name = $(this).attr('name');
+			var val = parseFloat($(this).val());
+			if(isNaN(val) || npat.test($(this).val()))
+			{
+				errors[name] = 'Error: Not a Number';
+				error = true;
+			}
+			else
+			{
+				
+			}
 		});
+		if(error)
+		{
+			view_settings([-1, errors]);
+		}
+		else
+		{ //submit AJAX request
+			var $form = $('#settings_form');
+			$.getJSON($form.attr('action'), $form.serialize(), function(data){
+				view_settings(data);
+			});
+		}
+	})
+};
+
+$(document).ready(function() {
+	$('button#edit_settings').button({
+		label: 'Edit',
+		icons:{primary:'ui-icon-pencil'}
+	})
+	view_settings();
 });
 </script>

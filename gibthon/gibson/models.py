@@ -19,7 +19,7 @@
 # 1) PrimerHalf
 #	Each primer is stored as two primerhalfs, one for the sticky end, one for the flappy end
 #
-# 2) Setings
+# 2) Settings
 # 	A class separate from the Construct class for storing settings for each 
 #	construct. No huge benefit to it being separate from Construct, other than
 #	separating fairly different aspects. Also makes forms a bit easier.

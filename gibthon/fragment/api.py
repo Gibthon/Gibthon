@@ -23,6 +23,21 @@ class RawJsonResponse(HttpResponse):
 		print "Return JSON: '%s'" % json.dumps(data)
 		HttpResponse.__init__(self, json.dumps(data), mimetype='application/json')
 
+@login_required
+def get_fragments(request):
+	"""Return all fragments owned by a user"""
+	try:
+		frags = Gene.objects.filter(owner=request.user)
+	except ObjectDoesNotExist:
+		frags = []
+	ret = []
+	for f in frags:
+		ret.append( {	'id': f.id,
+						'name': f.name,
+						'desc': f.description,
+					})
+	return JsonResponse({'fragments': ret})
+
 # functions which get the appropriate data
 def get_meta(g, request):
 	return JsonResponse({	'name': g.name,

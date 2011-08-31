@@ -218,6 +218,75 @@ def construct(request,cid):
 		return HttpResponseNotFound()
 
 @login_required
+def designer(request,cid):
+	con = get_construct(request.user, cid)
+	if con:
+		t = loader.get_template('gibson/designer.html')
+		c = RequestContext(request,{
+			'title':'Construct Designer: '+con.name+'',
+			'id': cid,
+			'construct':con,
+		})
+		return HttpResponse(t.render(c))
+	else:
+		return HttpResponseNotFound()
+
+############### JSON API for designer
+
+import time
+import simplejson as json
+
+OK = 0
+ERROR = -1
+
+class JsonResponse(HttpResponse):
+	def __init__(self, data, state = OK):
+		HttpResponse.__init__(self, json.dumps([state, data]), mimetype='application/json')
+
+class RawJsonResponse(HttpResponse):
+	def __init__(self, data):
+		print "Return JSON: '%s'" % json.dumps(data)
+		HttpResponse.__init__(self, json.dumps(data), mimetype='application/json')
+
+def format_date(date): #given a datetime object, return a stringified version
+	return date.isoformat(' ')
+
+@login_required
+def update_meta(request, cid): # 'saveMeta/'
+	if request.method == 'GET': #and request.is_ajax():
+		con = get_construct(request.user, cid)
+		if not con:
+			return JsonResponse("Construct with id '%s' not found" % cid, ERROR)
+		name = request.GET.get('name', con.name)
+		desc = request.GET.get('desc', con.description)
+		print "saving as name %s(%s)" % (name, desc)
+		print "saving over name %s(%s)" % (con.name, con.description)
+		if (name != con.name) or (desc != con.description):
+			con.name = name
+			con.description = desc
+			con.save()
+		
+		return JsonResponse({'modified': format_date(con.modified),});
+		
+	raise Http404
+	
+@login_required
+def update_settings(request, cid):
+	if request.method == 'GET': #and request.is_ajax():
+		con = get_construct(request.user, cid)
+		if not con:
+			return JsonResponse("Construct with id '%s' not found" % cid, ERROR)
+		form = SettingsForm(request.GET, instance=con.settings)
+		if form.is_valid():
+			form.save()
+			return JsonResponse({'modified': format_date(con.modified),})
+		return JsonReponse({'errors': form.errors,}, ERROR)
+	raise Http404
+	
+
+######################################### end JSON
+
+@login_required
 def construct_delete(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
