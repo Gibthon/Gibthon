@@ -17,6 +17,7 @@ from localsettings import localsettings
 #	static_root (static file collection location) 
 #	media_root (media file location)
 #	media_url (media url)
+#	static_url (static url)
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -52,6 +53,7 @@ TIME_ZONE = 'Europe/London'
 LANGUAGE_CODE = 'en-gb'
 
 SITE_ID = 1
+DEFAULT_CHARSET = 'utf-8'
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -72,7 +74,7 @@ MEDIA_URL = localsettings.media_url
 
 STATIC_ROOT = localsettings.static_root
 
-STATIC_URL = '/static'
+STATIC_URL = localsettings.static_url
 
 STATICFILES_DIRS = localsettings.static_dirs
 
@@ -109,7 +111,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+    #'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
@@ -118,6 +120,7 @@ INSTALLED_APPS = (
     'gibson',
     'molcal',
     'captcha',
+    'partsearch',
     'ligcalc',
 )
 

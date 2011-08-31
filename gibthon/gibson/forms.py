@@ -38,6 +38,7 @@ class FeatureListForm(forms.Form):
 	def __init__(self, _constructFragment, _construct, *args, **kwargs):
 		sf = self.base_fields['start_feature']
 		ff = self.base_fields['finish_feature']
+<<<<<<< HEAD
 		sf.queryset = _constructFragment.fragment.feature.all()
 		ff.queryset = _constructFragment.fragment.feature.all()
 		sf.widget.choices = sf.choices
@@ -46,3 +47,14 @@ class FeatureListForm(forms.Form):
 		ff.initial = _constructFragment.end_feature
 		self.base_fields['direction'].initial = _constructFragment.direction
 		super(FeatureListForm, self).__init__(*args, **kwargs)
+=======
+		cf = _fragment.cf.get(fragment=_fragment.pk, construct=_construct.pk)
+		sf.queryset = _fragment.features.all()
+		ff.queryset = _fragment.features.all()
+		sf.widget.choices = sf.choices
+		ff.widget.choices = ff.choices
+		sf.initial = cf.start_feature
+		ff.initial = cf.end_feature
+		self.base_fields['direction'].initial = cf.direction
+		super(FeatureListForm, self).__init__(*args, **kwargs)
+>>>>>>> 5b4603cc6af55b2b014c6491e0054374e842ca6a

@@ -2,32 +2,68 @@
 
 {% block css-include %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/datatable.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/fragment.css" />
 {% endblock %}
 
 
 {% block js-include %}
 <script src="{{ STATIC_URL }}/js/jquery.dataTables.min.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/fragmentlist.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/importer.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/formExtender.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block menu %}
-|
-<button id="fragment_form_open"></button>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
 <h3>Fragment Library</h3>
+	<div class="fragment-toolbar ui-widget-content ui-corner-all">
+		<span class="fragment-left-buttons">
+			<button id="fragment_form_open"></button>
+		</span>
+		<span class="fragment-right-buttons">
+			<button id="download_btn"></button>
+			<button id="delete_btn"></button>
+		</span>
+		<div style="clear:both;"></div>
+	</div>
 <div style="padding:10px;">
+<form id='select_form' method="post" enctype="multipart/form-data">
+{% csrf_token %}
 	<table id="fragment_table">
 		<thead>
-			<tr><th>Name</th><th>Description</th></tr>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>
+						<input class="all-selected" type="checkbox" name="select-all" value="select-all"/>
+				</th>
+			</tr>
 		</thead>
 		<tbody>
 			{% for fragment in fragment_list %}
-				<tr><td><a href="{{ fragment.id }}/{{ fragment.name }}">{{ fragment.name }}</a></td><td>{{ fragment.description }}</td></tr>
+			<tr>
+				<td>
+					<a href="{{ fragment.id }}/{{ fragment.name }}">{{ fragment.name }}</a>
+				</td>
+				<td>
+					<p class="table-para" >
+					{{ fragment.description }}
+					</p>
+				</td>
+				<td>
+					<p class="table-para">
+					<input class="selected-check" id="{{fragment.id}}-checkbox" 
+							type="checkbox" name="selected" value="{{fragment.id}}"/>
+					</p>
+				</td>
+			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
+</form>
 </div>
 
 </div>
@@ -36,29 +72,94 @@
 {% block dialog %}
 <div id='fragment_form'>
 </div>
+<div id='confirm_delete'>
+	<div id='delete_contents'>
+	</div>
+</div>
 {% endblock %}
 
 
 {% block js %}
 <script type="text/javascript">
-var fragment_form_default =
-'<p class="woo">Select Source:</p>' +
-'<div style="text-align:center">' +
-'	<a class="add" href="add/BB" title="Parts Registry"><img src="{{ STATIC_URL }}/images/fragment/BioBrick.png" alt="Parts Registry"/></a>' +
-'	<a class="add" href="add/NT" title="Nucleotide Database"><img src="{{ STATIC_URL }}/images/fragment/Nucleotide.png" alt="Nucleotide Database" /></a>' +
-'	<a class="add" href="add/UL" title="Upload"><img src="{{ STATIC_URL }}/images/fragment/Upload.jpg" alt="Upload" /></a>' +
+var delete_html = '<div style="text-align:center;margin-top:1.5em;">' +
+'<p>' +
+'	Are you sure you want to delete the' +
+'	<span id="num-frags-del"></span>' +
+'	you selected?' +
+'</p>' +
+'<div>' +
+'	<form id="delete-form">' +
+'		<button id="cancel-delete"></button>' +
+'		<button id="confirm-delete"></button>' +
+'	</form>' +
+'</div>' +
 '</div>';
-var fragment_form_loader =
-'<div style="text-align:center"><img src="{{ STATIC_URL }}/images/spinner.gif" alt="Loading" /></div>';
-var fragment_form_init = function() {
-	$('#fragment_form').html(fragment_form_default);
-	$('.add').click(function(event) {
-		event.preventDefault();
-		$('#fragment_form').load('add',{'type':this.href.split('/').pop()});
+
+var handle_updated_selection = function(event, data){
+	if( data['selected'] != 0 )
+	{
+		$('#delete_btn').button('enable');
+		$('#download_btn').button('enable');
+	}
+	else
+	{
+		$('#delete_btn').button('disable');
+		$('#download_btn').button('disable');
+	}
+}
+
+var show_delete_dialog = function(){
+	var num = $('#fragment_table').fragmentList('getNumSelected');
+	var s = ''
+	if(num > 1)
+		s = 's'
+	var text = num + " fragment" + s;
+	$('#delete_contents').html(delete_html)
+		.find('#num-frags-del')
+			.text(text);
+	
+	$('#cancel-delete').button({
+		label:"Cancel",
+		icons:{primary:'ui-icon-cancel'}
+	}).click(function() {
+		$('#confirm_delete').dialog('close');
 	});
+	
+	$('#delete-form').submit(function() {
+		return false;
+	});
+	
+	$('#confirm-delete').button({
+		label:"Delete",
+		icons:{primary:'ui-icon-trash'}
+	}).click(function() {
+		var commands = new Array();
+		var ids = $('#fragment_table').fragmentList('getList');
+		for(i in ids)
+		{
+			var id = ids[i];
+			commands.push( {'desc': "Deleting id '" + id + "'",
+							'url': "delete/",
+							'data': {'selected': id},
+							'type': 'POST',});
+		}
+
+		$('#confirm_delete').loader({	'commands': commands,
+										'autoStart': true,
+										'done': function(errors) {location.reload();},
+										'title': 'Deleting Fragments...',});
+
+	});
+	
+	$('#confirm_delete').dialog('open');
 };
+
 $(document).ready(function() {
-	fragment_form_init();
+	
+	$('#fragment_table').fragmentList({
+		selectChanged: function(event, data) {handle_updated_selection(event, data);},
+	});
+	
 	$('#fragment_table').dataTable({
 		bAutoWidth: false,
 		bJQueryUI: true,
@@ -67,27 +168,53 @@ $(document).ready(function() {
 				sWidth:"200px"
 			},
 			{
-				sWidth:"574px"
-			}
+				sWidth:"574px",
+			},
+			{
+				sWidth:"40px"
+			},
 		]
 	});
-	$('#fragment_form').dialog({
-		autoOpen:false,
-		resizable:false,
-		modal:true,
-		title:"Add new Fragment",
-		close:function () {
-			fragment_form_init();
-		},
-		height:"200",
-		width:"400"
-	});
+	
 	$('#fragment_form_open').button({
 		label:"Add new fragment",
 		icons:{primary:'ui-icon-plusthick'}
 	}).click(function () {
-		$('#fragment_form').dialog('open');
+		$('#fragment_form')
+			.importer()
+			.importer('open');
 	});
+	
+	$('#download_btn').button({
+		label:"Download",
+		icons:{primary:'ui-icon-link'},
+		disabled: true,
+	}).click(function () {
+		$('#select_form')
+			.prop('action', 'download/')
+			.submit();
+	});	
+	
+	$('#delete_btn').button({
+		label:"Delete Selection",
+		icons:{primary:'ui-icon-trash'},
+		disabled: true,
+	}).click(function() {
+		show_delete_dialog();
+	});
+	
+	$('#confirm_delete').dialog({
+		autoOpen:false,
+		resizable:false,
+		modal:true,
+		title:"Confirm Deletion",
+		close:function () {
+		},
+		height:"auto",
+		width:"580"
+	});
+	
 });
+
 </script>
 {% endblock %}

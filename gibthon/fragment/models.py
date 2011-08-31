@@ -1,8 +1,10 @@
 from django.db import models
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
+
 
 from Bio import SeqIO, Entrez
-from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
+from Bio import SeqFeature
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
@@ -42,43 +44,61 @@ class Gene(models.Model):
 	owner = models.ForeignKey('auth.User')
 	name = models.CharField(max_length=100)
 	description = models.CharField(max_length=500)
-	sequence = models.TextField()
+	sequence = models.TextField(max_length=500000)
+
 	ORIGIN_CHOICES = (
 		('NT', 'Nucleotide Database'),
 		('BB', 'BioBrick'),
 		('UL', 'Upload'),
 		('GC', 'Gibthon Construct'),
+		('MN', 'Manual'),
 	)
 	origin = models.CharField(max_length=2, choices=ORIGIN_CHOICES)
 
 	def __unicode__(self):
 		return self.name
 	
-	def add(_data, _origin, _user):
-		if _origin == "BB":
-			gbf = urllib.urlretrieve('http://www.cambridgeigem.org/gbdownload/'+_data+'.gb')[0]
-		elif _origin == "NT":
-			handle = Entrez.esearch(db='nucleotide', term=_data)
-			record = Entrez.read(handle)
-			gbid = record['IdList'][0]
-			handle = Entrez.efetch(db="nucleotide", id=gbid, rettype="gb")
-			gbf = handle.fp
-		elif _origin == "UL":
-			gbf = _data
-		record = SeqIO.read(gbf,'genbank')
-		g = Gene(owner=_user, name=record.name,description=record.description,sequence=record.seq, origin=_origin)
-		if len(record.seq > 100000):
-			return False
+	def add(_record, _origin, _user):
+		g = Gene(owner=_user, name=_record.name,description=_record.description,sequence=_record.seq, origin=_origin)
 		g.save()
-		for feature in record.features:
+		for key,value in _record.annotations.items():
+			Annotation.add(g, key, value)
+		for feature in _record.features:
 			f = Feature.add(feature,g,_origin)
-		return True
+		return g
 	add = staticmethod(add)
+	
+	def remove(_owner, _id):
+		try:
+			g = Gene.objects.get(owner=_owner, pk=_id)
+			Annotation.remove(g)
+			Feature.remove(g)
+			g.delete()
+			return True
+		except ObjectDoesNotExist:
+			return False
+	remove = staticmethod(remove)
 	
 	def gb(self):
 		g = SeqRecord(Seq(self.sequence,IUPAC.IUPACUnambiguousDNA()),id=self.name, name=self.name, description=self.description)
-		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.feature.all()]
+		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features.all()]
 		return g.format('genbank')
+	
+	def to_seq_record(self):
+		"""Convert the Gene to a SeqRecord"""
+		#build a list of features
+		feats = [_f.to_seq_feature() for _f in self.features.all()]
+		#build a dictionary of annotations & refs
+		annot = {}
+		for a in self.annotations.all():
+			a.to_ann(annot)
+		annot['references'] = [r.to_ref() for r in self.references.all()]
+		
+		return SeqRecord(	seq = Seq(self.sequence, IUPAC.IUPACAmbiguousDNA()),
+								name = self.name,
+								description = self.description,
+								features = feats,
+								annotations = annot)		
 		
 	def pretty(self):
 		seg = 8
@@ -86,14 +106,14 @@ class Gene(models.Model):
 		s = [self.sequence[j:j+(segline*seg)] for j in range(0, len(self.sequence), segline*seg)]
 		i = range(1, len(self.sequence), segline*seg)
 		s = [SeqLine(ii,ss) for ss,ii in zip(s,i)]
-		for f in self.feature.all():
+		for f in self.features.all():
 			i = 0
 			while s[i].number < f.start - (seg*segline):
 				i += 1
 			j=i
 			while s[j].number < f.end - (seg*segline):
 				j += 1
-			q = f.qualifier.all()[0].data if f.qualifier.all() else ''
+			q = f.qualifiers.all()[0].data if f.qualifiers.all() else ''
 			if i==j:
 				s[i].features.append(LineFeature((f.start if f.start > 0 else 'start'),f.end,f.type,q))
 			else:
@@ -107,8 +127,85 @@ class Gene(models.Model):
 	
 	def length(self):
 		return len(self.sequence)
-		
+
+class Reference(models.Model):
+	"""Store a reference"""
+	gene = models.ForeignKey('Gene', related_name='references')
+	title = models.CharField(max_length=1024)
+	authors = models.CharField(max_length=1024)
+	journal = models.CharField(max_length=512)
+	medline_id = models.CharField(max_length=24, blank=True)
+	pubmed_id = models.CharField(max_length=24, blank=True)
 	
+	def add(_gene, _refs):
+		for r in _refs:
+			ref = Reference(	gene = _gene, 
+									title = str(r.title),
+									journal = str(r.journal) )
+			if isinstance(r.authors, list):
+				ref.authors = [str(author) for author in r.authors]
+			else:
+				ref.authors = r.authors
+			
+			if hasattr(r, 'medline_id'):
+				ref.medline_id = r.medline_id
+			
+			if hasattr(r, 'pubmed_id'):
+				ref.pubmed_id = r.pubmed_id
+			
+			ref.save()
+	add = staticmethod(add)
+	
+	def to_ref(self):
+		r = SeqFeature.Reference()
+		r.title = self.title
+		r.authors = self.authors
+		r.journal = self.journal
+		r.medline_id = self.medline_id
+		r.pubmed_id = self.pubmed_id
+		return r
+	
+	def remove(_gene):
+		"""remove all refs concerning _gene"""
+		try:
+			Reference.objects.filter(gene=_gene).delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
+
+class Annotation(models.Model):
+	gene = models.ForeignKey('Gene', related_name='annotations')
+	key = models.CharField(max_length=30)
+	value = models.CharField(max_length=5120, blank=True)
+
+	def add(_gene, _key, _value):
+		"""add an annotation. Does not accept references"""
+		if _key.lower() == 'references':
+			Reference.add(_gene, _value)
+			return
+		if hasattr(_value, '__iter__'):
+			for v in _value:
+				a = Annotation(gene= _gene, key=_key, value = str(v))
+				a.save()
+		else:
+			a = Annotation(gene = _gene, key =str(_key), value = str(_value))
+			a.save()
+	add = staticmethod(add)
+	
+	def to_ann(self, d):
+		"""add the annotation to d"""
+		d[self.key] = self.value
+	
+	def remove(_gene):
+		"""remove all annotations relating to gene"""
+		Reference.remove(_gene)
+		try:
+			obj = Annotation.objects.filter(gene=_gene)
+			obj.delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
+		
 class Feature(models.Model):
 	type = models.CharField(max_length=30)
 	start = models.PositiveIntegerField()
@@ -118,7 +215,7 @@ class Feature(models.Model):
 		('r', 'Reverse'),
 	)
 	direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-	gene = models.ForeignKey('Gene', related_name="feature")
+	gene = models.ForeignKey('Gene', related_name="features")
 	
 	def add(feature, g, origin):
 		if (origin == "BB"):
@@ -134,37 +231,57 @@ class Feature(models.Model):
 		return f
 	add = staticmethod(add)
 	
+	def remove(_gene):
+		"""remove all features of _gene"""
+		try:
+			feats = Feature.objects.filter(gene=_gene)
+			for f in feats:
+				try:
+					Qualifier.objects.filter(feature=f).delete()
+				except ObjectDoesNotExist:
+					pass
+			feats.delete()
+		except ObjectDoesNotExist:
+			pass
+	remove = staticmethod(remove)
+	
+	def to_seq_feature(self):
+		quals = {}
+		for q in self.qualifiers.all():
+			quals[q.name] = q.data
+		s = None
+		if self.direction == 'f':
+			s = 1
+		elif self.direction == 'r':
+			s = -1
+		return SeqFeature.SeqFeature(	location = SeqFeature.FeatureLocation(self.start, self.end),
+												type = self.type,
+												strand = s,
+												qualifiers = quals) 
+	
 	def __unicode__(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'
-		if self.qualifier.all():
-			return self.qualifier.all()[0].data + pos
+		if self.qualifiers.all():
+			return self.qualifiers.all()[0].data + pos
 		else:
 			return self.type + pos
 	
 	def pretty(self):
 		pos = ' (' + str(self.start) + '..' + str(self.end) + ')'
-		if self.qualifier.all():
-			return self.qualifier.all()[0].data + pos
+		if self.qualifiers.all():
+			return self.qualifiers.all()[0].data + pos
 		else:
 			return self.type + pos
 		
 	def first(self):
-		return self.qualifier.all()[0]
+		return self.qualifiers.all()[0]
 	
 class Qualifier(models.Model):
 	name = models.CharField(max_length=30)
-	data = models.CharField(max_length=150)
-	feature = models.ForeignKey('Feature', related_name="qualifier")
+	data = models.CharField(max_length=512)
+	feature = models.ForeignKey('Feature', related_name="qualifiers")
 	
 	def __unicode__(self):
 		return self.name
 
-class BBForm(forms.Form):
-	id = forms.CharField(max_length=30)
-	
-class NTForm(forms.Form):
-	id = forms.CharField(max_length=30)
-	
-class ULForm(forms.Form):
-	file = forms.FileField()
 	

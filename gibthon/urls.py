@@ -34,6 +34,7 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^captcha/', include('captcha.urls')),
+    (r'^partsearch/', include('partsearch.urls')),
     (r'^robots.txt$', direct_to_template, {'template': 'robots.txt', 'mimetype':'text/plain'}),
     (r'^sitemap.xml$', direct_to_template, {'template': 'sitemap.xml', 'mimetype':'text/xml'}),
 )
