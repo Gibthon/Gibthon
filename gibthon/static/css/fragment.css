@@ -1,0 +1,130 @@
+.fragment-toolbar
+{
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	padding: .3em;
+}
+
+.fragment-left-buttons
+{
+	float: left;
+}
+.fragment-right-buttons
+{
+	float:right;
+}
+
+.add 
+{
+	margin: 0 0.4em;
+	display: inline-block;
+	text-align: center;
+	vertical-align: top;
+	cursor: pointer;
+}
+
+.add img:hover
+{
+	opacity:0.6;
+	filter:alpha(opacity=60);
+}
+
+.add-link
+{
+	width: 10em;
+}
+
+.center-pad
+{
+	margin-right: auto;
+	margin-left: auto;
+	margin-top: 1em;
+}
+
+.form-pad
+{
+	position: relative;
+	margin: 0.2em;
+}
+
+.center
+{
+	display: table;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.results-list
+{
+	position: absolute;
+	left: 0; right:0; top:0; bottom:0;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.entrez-results
+{
+	overflow-y:auto;
+}
+
+.entrez-summary
+{
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+.entrez-summary-alt
+{
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+	background-color:#EAF2D3;
+}
+
+.entrez-summary-selected
+{
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+	background-color: lightblue;
+}
+
+.entrez-summary-info-pad
+{
+	width: 90%;
+	float: left;
+}
+
+.entrez-summary-select-pad
+{
+	float: right;
+	width: 10%;
+	margin: 1em 0;
+}
+
+.entrez-summary-info
+{
+	margin: .2em;
+	overflow: breakword;
+}
+
+.entrez-summary-select
+{
+	margin: 0 .2em;
+}
+
+.es-title
+{
+	font-size: 1.1em;
+	font-weight: bold;
+	font-style: italic;
+}
+.es-comment
+{
+	font-size: 1em;
+}
+.es-dates
+{
+	font-size: .8em;
+}
+.es-info
+{
+	font-size: .8em;
+	font-style: italic;
+}

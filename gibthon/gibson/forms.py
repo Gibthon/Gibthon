@@ -35,15 +35,14 @@ class FeatureListForm(forms.Form):
 	start_feature = forms.ModelChoiceField('fragment.Feature', None, label='')
 	finish_feature = forms.ModelChoiceField('fragment.Feature', None, label='')
 	direction = forms.ChoiceField(widget=forms.RadioSelect(renderer = formfields.BetterRadioFieldRenderer), choices=DIRECTION_CHOICES)
-	def __init__(self, _fragment, _construct, *args, **kwargs):
+	def __init__(self, _constructFragment, _construct, *args, **kwargs):
 		sf = self.base_fields['start_feature']
 		ff = self.base_fields['finish_feature']
-		cf = _fragment.cf.get(fragment=_fragment.pk, construct=_construct.pk)
-		sf.queryset = _fragment.feature.all()
-		ff.queryset = _fragment.feature.all()
+		sf.queryset = _constructFragment.fragment.features.all()
+		ff.queryset = _constructFragment.fragment.features.all()
 		sf.widget.choices = sf.choices
 		ff.widget.choices = ff.choices
-		sf.initial = cf.start_feature
-		ff.initial = cf.end_feature
-		self.base_fields['direction'].initial = cf.direction
+		sf.initial = _constructFragment.start_feature
+		ff.initial = _constructFragment.end_feature
+		self.base_fields['direction'].initial = _constructFragment.direction
 		super(FeatureListForm, self).__init__(*args, **kwargs)

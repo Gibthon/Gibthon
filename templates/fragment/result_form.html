@@ -1,0 +1,38 @@
+{% extends "fragment/addform.html" %}
+
+{% block form %}
+{%if summaries%}
+		<p>Select which hits you would like to import</p>
+				{% csrf_token %}
+				<div id='form' class="entrez-results">
+			{%for summary in summaries%}
+				<div class="entrez-summary {%cycle '' 'entrez-summary-alt'%}">
+					<div class="entrez-summary-info-pad">
+						<div class="entrez-summary-info">
+							<div class='es-title'>{{summary.Title}}</div>
+							<div class='es-comment'>{{summary.Comment}}</div>
+							<div class='es-dates'>Created: {{summary.CreateDate}}
+							 			{% if summary.UpdateDate %}
+							 				Updated: {{summary.UpdateDate}}
+							 			{% endif %}
+							</div>
+							<div class='es-info'>
+								Length: {{summary.Length}}
+								ID: {{summary.Id}}
+							</div>
+						</div>
+					</div>
+					<div class='entrez-summary-select-pad'>
+						<div class='entrez-summary-select'>
+							<input class='es-cb' type="checkbox" name="import" value="{{summary.Id}}"></input>
+						</div>
+					</div>
+					<div style="clear:both;"></div>
+				</div>
+			{%endfor%}
+				</div>
+		<input type="hidden" name="database" value="{{database}}" />
+{%else%}
+	<p class="errorlist">Sorry, there were no results to display.</p>
+{%endif%}	
+{% endblock %}

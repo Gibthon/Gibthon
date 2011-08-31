@@ -1,66 +1,130 @@
 {% extends "base.html" %}
 
+{% block js-include %}
+<script src="{{ STATIC_URL }}/js/fragmentview.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.tipTip.minified.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block css-include%}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/fragmentview.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/tipTip.css" />
+{% endblock %}
+
 {% block menu %}
 |
 <button id="download">Download</button>
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
-<div id="construct-wrapper" style="float:right; margin:10px; width:300px;">
-	<div class="ui-widget-header ui-corner-top">
-	<h4>Found in {{ fragment.construct_slave.count }} construct{{ fragment.construct_slave.count|pluralize }}</h4>
+
+		<div class="ui-widget-content ui-corner-top top-box content">
+			<div id="fragment_head_wrap">	
+				<div id="fragment_info_wrap">
+					<div id="fragment_info"></div>
+				</div>
+			
+				<div id="fragment_construct_wrap">
+					<div id="construct_wrap">
+						<div class="ui-widget-header ui-corner-top">
+						<h4>Found in {{ fragment.construct_slave.count }} construct{{ fragment.construct_slave.count|pluralize }}</h4>
+						</div>
+						<div class="ui-widget-content ui-corner-bottom">
+							{% if fragment.construct_slave.all %}
+							<ul>
+								{% for construct in fragment.construct_slave.all %}
+									<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
+								{% endfor %}
+							</ul>
+							{% else %}
+							<p>Not found in any constructs yet</p>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<div style="clear:both;"></div>
+			</div>
+		</div>
+	<div id="sequence">
+		
 	</div>
-	<div class="ui-widget-content ui-corner-bottom">
-		{% if fragment.construct_slave.all %}
-		<ul>
-			{% for construct in fragment.construct_slave.all %}
-				<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
-			{% endfor %}
-		</ul>
-		{% else %}
-		<p>Not found in any constructs yet</p>
-		{% endif %}
-	</div>
-</div>
-<div class="ui-widget-content ui-corner-top" style="margin:10px 10px 0px 10px; width:450px; padding-top:5px;">
-<h3>{{ fragment.description }}</h3>
-<h5>{{ fragment.origin }}</h5>
-</div>
-<div class="ui-widget-content ui-corner-bottom" style="border-top:none; margin:0px 10px; width:440px; padding:5px;">
-<p>Placeholder for notes</p>
-</div>
-<hr />
-<div style="font-family:monospace; font-size:1.2em; margin-left:30px;">
-{% for line in fragment.pretty %}
-	<div style="float:left; width:50px;">
-	{{ line.number }}
-	</div>
-	<div style="float:left;">
-	<span class="top_strand">{{ line.seq }}</span><br />
-	<span style="color:#aaaaaa; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ line.rseq }}</span>
-	{% for feature in line.features %}
-		<br /><span style="color:red; user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.block|safe }}</span>
-		<br /><span style="user-select:none; -moz-user-select: none; -khtml-user-select: none;">{{ feature.type|safe }}</span>
-	{% endfor %}
-	<div style="height:10px;"></div>
-	</div>
-	<div style="clear:both;"></div>
-{% endfor %}
-</div>
-</div>
 {% endblock %}
+
+{% block dialog%}
+<div id='copy_dialog'>
+	<div style="text-align:center;margin-top:1.5em;">
+		<p>
+			<div class="copy_option">
+				<div class="copy_label">Forward Strand (5'->3')</div>
+				<input class="copy_ip" id="fwd_53" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Forward Strand Reversed (3'->5')</div>
+				<input class="copy_ip" id="fwd_35" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Compliment</div>
+				<input class="copy_ip" id="rev_35" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Reverse Compliment</div>
+				<input class="copy_ip" id="rev_53" type="text" readonly="readonly" size=50/>
+			</div>
+		</p>
+		<div>
+			<button id="copy_close"></button>
+		</div>
+	</div>
+</div>
+{%endblock%}
 
 {% block js %}
 <script type="text/javascript">
+	
+var show_copy_dialog = function(){
+	$('#fwd_53').val( $('#sequence').fragmentSequence('get_sel'));
+	$('#fwd_35').val( $('#sequence').fragmentSequence('get_rev'));
+	$('#rev_35').val( $('#sequence').fragmentSequence('get_cmp'));
+	$('#rev_53').val( $('#sequence').fragmentSequence('get_rev_cmp'));
+	$('#copy_dialog').dialog('open');
+}
+
 $(document).ready(function() {
-	$('button#download')
-		.button({
+	$('button#download').button({
 			icons:{primary:'ui-icon-link'}
 		})
 		.click(function() {
 			window.location.href = '{{ fragment.name }}.gb';
 		});
+	$('#fragment_info').fragmentMeta({id: {{ fragment.id }}});
+	
+	$('#sequence').fragmentSequence({id: {{fragment.id}},});
+	
+	$('#copy_dialog').dialog({
+		autoOpen:false,
+		resizable:false,
+		modal:true,
+		title:"Copy",
+		height:"auto",
+		width:"640",
+		open: function() {$('.copy_option:first input').select();}, //open callback
+	});
+	
+	$('.copy_option').children('input')
+		.focus( function() {
+			$('.copy_ip').blur();
+			this.select();
+		})
+		.blur( function() {
+			this.selectionStart = this.selectionEnd = -1;
+		});
+	
+	$('#copy_close').button({
+			label: 'Close',
+			icons:{primary:'ui-icon-close'}
+	}).click(function() {
+		$('#copy_dialog').dialog('close');
+	});
 });
+
 </script>
 {% endblock %}

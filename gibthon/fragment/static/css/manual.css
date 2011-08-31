@@ -1,0 +1,9 @@
+.label
+{
+	margin-bottom: .1em;
+}
+.error
+{
+	color: red;
+	font-weight: bold;
+}

@@ -1,0 +1,22 @@
+.status{
+	width: 24px;
+	height: 24px;
+	margin: .2em;
+	display: inline-block;
+	vertical-align: middle;
+}
+.status-busy{
+	background-image: url(images/spinner.gif);
+}
+.status-ok{
+	background-image: url(images/ok_fail_icons.png);
+	background-position: 0 0;
+}
+.status-error{
+	background-image: url(images/ok_fail_icons.png);
+	background-position: 24px 0;
+}
+.extender-error{
+	color: red;
+	font-weight: bold;
+}

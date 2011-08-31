@@ -1,0 +1,24 @@
+#command_list
+{
+	list-style: none; // Will add ticks and crosses
+}
+#command_list_div
+{
+	max-height: 10em;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+//FIXME: angry fruit salad for now.
+.currentCommand
+{
+	border: 1px solid orange;
+}
+.okCommand
+{
+	color: green;
+}
+.errorCommand
+{
+	color: red;
+	font-weight: bold;
+}

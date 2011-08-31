@@ -1,0 +1,337 @@
+.top-box
+{
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.middle-box
+{
+	border-top: none;
+	margin-top: 0; 
+	padding-top: 0;
+	margin-bottom: 0;
+	padding-bottom: 0;
+	border-left: 1px solid rgb(166, 201, 226);
+	border-right: 1px solid rgb(166, 201, 226);
+}
+
+.bottom-box
+{
+	margin-top: 0; 
+	padding-top: 0;
+	border-top: none;
+}
+
+.unselectable 
+{
+   -moz-user-select: -moz-none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
+}
+
+.selectable 
+{
+   -moz-user-select: text;
+   -khtml-user-select: text;
+   -webkit-user-select: text;
+   user-select: text;
+}
+
+#seq_toolbar
+{
+	position: relative;
+	background-color: lightblue;
+	z-index:4;
+}
+
+.fixed
+{
+	position:fixed !important;
+	top:0;
+	margin-left:180px;
+}
+
+#load_span
+{
+	margin-left: 1.5em;
+	font-size: 1.2em; 
+	width: 30%;
+}
+
+#loader
+{
+	display: none;
+}
+
+#progress_span
+{
+	width: 65%;
+	float: right;
+	margin-top: .2em;
+	margin-bottom: .2em;
+}	
+
+#progressbar
+{
+	margin: .2em;
+	height: 1em;
+	border: 1px solid rgb(250, 212, 46);
+	background-color: rgb(238, 238, 255) !important;
+}
+
+#progressbar .ui-progressbar-value
+{
+	background-image: none;
+	border: 1px solid rgb(250, 212, 46);
+	background-color: rgb(241, 226, 116);
+}
+
+
+#fragment_info_wrap
+{
+	float: left;
+	width: 60%;
+}
+
+#fragment_info
+{
+	margin: 10px;
+}
+
+#fragment_construct_wrap
+{
+	float: left;
+	width: 40%;
+}
+
+#construct_wrap
+{
+	margin: 10px;
+}
+
+#annot_div
+{
+	padding-right: 1.2em;
+}
+
+.info
+{
+	margin-left: 2em;
+}
+
+.tr
+{
+	background-color: ghostwhite;
+}
+
+.tr-alt
+{
+	background-color: rgb(208, 229, 245);
+}
+
+#drop_down
+{
+	display: none;
+}
+
+#desc
+{
+	margin-bottom: .5em;
+}
+
+#origin
+{
+	font-style: italic;
+	margin-bottom: .2em;
+}
+
+#more_details
+{
+	cursor: pointer;
+	margin-left: 15px;
+}
+
+.ref
+{
+	margin-bottom: 1em;
+}
+
+.ref-title-div
+{
+	width: 80%;
+	float: left;
+}
+
+.ref-title
+{
+	margin: 0.2em 0.5em 0.2em 0em;
+	font-style: italic;
+}
+
+.ref-search-btn
+{
+	margin: .2em;
+}
+
+.ref-search-div
+{
+	width: 20%;
+	float:left;
+}
+
+.ref-detail
+{
+	margin-left: 1.2em;
+	padding-right: 6.4em;
+}
+
+.ref-title, .ref-authors, .ref-link, .ref-journal
+{
+	padding: .1em 0;
+	margin-bottom: 0.25em;
+}
+
+/* *** Fragment view
+*/
+
+#seq_wrap
+{
+	margin: .5em;
+	word-break: break-word;
+}
+
+#seq_inner
+{
+	margin-right: auto;
+	margin-left: auto;
+}
+.selected
+{
+	background-color: lightblue;
+}
+.seq-label
+{
+	font: 0.8em 'Arial',sans-serif;
+	display: inline-block;
+	width: 3.7em;
+	margin-right: 0.64em;
+}
+.row
+{	
+	font: 1.1em 'Courier New',monospace;
+	display: inline-block;
+	margin-right: auto;
+	margin-left: auto;
+	position: relative;
+	margin: 1em 0;
+}
+.seq
+{
+	white-space: pre;
+	height: 1em;
+	margin: .2em 0;
+}
+.seq-hid
+{
+	display: none;
+}
+.seq-fwd
+{
+	margin-bottom: .1em;
+}
+.seq-rev
+{
+	margin-top: 0;
+}
+.ladder
+{
+	height: 1px;
+	background-color: grey;
+	margin: .1em 0;
+}
+
+.copy_option
+{
+	margin: .5em 0;
+}
+.copy_label
+{
+	margin-top: .2em;
+	text-align: left;
+	margin-left: 5em;
+	font-weight: bold;
+}
+
+.label-div
+{
+	background-color: lightgrey;
+}
+.feat
+{
+	white-space: pre;
+}
+.feat-div
+{
+	height: .8em;
+	overflow: hidden;
+}
+.feat-hover
+{
+	opacity: 0.65;
+}
+.feat-qual
+{
+	word-wrap: break-word;
+	max-width: 58em;
+}
+.feat-hl
+{
+	background-color: red;
+	border: 1px solid darkred;
+	height: .5em;
+	display: inline-block;
+	vertical-align: top;
+	cursor: pointer;
+}
+.feat-type-gene, .feat-type-cds
+{
+	background-color: yellow;
+	border: 1px solid orange;
+}
+.feat-type-misc_feature
+{
+	background-color: brown;
+	border: 1px solid black;
+}
+.feat-type-mrna
+{
+	background-color: blue;
+	border: 1px solid darkblue;
+}
+.feat-type-source
+{
+	background-color: green;
+	border: 1px solid darkgreen;
+}
+.feat-type-exxon
+{
+	background-color: grey;
+	border: 1px solid black;
+}
+.feat-type-sts
+{
+	background-color: pink;
+	border: 1px solid red;
+}
+
+.feat-type-biobrick
+{
+	background-color: pink;
+	border: 1px solid red;
+}
+.feat-type-stem_loop
+{
+	background-color: green;
+	border: 1px solid darkgreen;
+}
