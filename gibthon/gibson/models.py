@@ -457,7 +457,7 @@ class Construct(models.Model):
 			name=self.name,
 			description=self.description
 		)
-		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.features()]
+		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features()]
 		return g.format('genbank')
 		
 	def process(self, reset=True, new=True):
