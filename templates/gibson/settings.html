@@ -6,136 +6,94 @@
 		{% csrf_token %}
 		<form id='settings_form' action='saveSettings/' method='post' onsubmit='return false;'>
 			<h3 style="display:inline-block;">Reaction Settings</h3>
-			<button id="edit_settings">Edit</button>
+			<button id="edit_settings" class="magic-button" >Edit</button>
 			<table id="settings_table">
 				<tr class='settings'>
 					<td class="setting-title">Mg<sup>2+</sup> concentration</td>
-					<td class="setting-value setting-conc" id="mg_salt">{{ settings.mg_salt }}</td>
-					<td class="setting-error"><span id="mg_salt-error"></span></td>
+					<td class="setting-value" id="mg_salt">
+						<span class='magic-item'>
+							<span class="setting-conc">
+								<span class='magic-text'>{{ settings.mg_salt }}</span>
+								<input name='mg_salt' class='magic-input' size=4 maxlength=8 />
+							</span>
+							<p class='magic-error'></p>
+						</span>
+					</td>
 				</tr>
+				
 				<tr class='settings settings-alt'>
 					<td class="setting-title">Na<sup>+</sup> concentration</td>
-					<td class="setting-value setting-conc" id="na_salt">{{ settings.na_salt }}</td>
-					<td class="setting-error"><span id="na_salt-error"></span></td>
+					<td class="setting-value" id="na_salt">
+						<span class='magic-item'>
+							<span class="setting-conc">
+								<span class='magic-text'>{{ settings.na_salt }}</span>
+								<input name='na_salt' class='magic-input' size=4 maxlength=8 />
+							</span>
+							<p class='magic-error'></p>
+						</span>
+					</td>
 				</tr>
+				
 				<tr class='settings'>
 					<td class="setting-title">Secondary structure safety margin</td>
-					<td class="setting-value setting-temp" id="ss_safety">{{ settings.ss_safety }}</td>
-					<td class="setting-error"><span id="ss_safety-error"></span></td>
+					<td class="setting-value" id="ss_safety">
+						<span class='magic-item'>
+							<span class="setting-temp">
+								<span class='magic-text'>{{ settings.ss_safety }}</span>
+								<input name='ss_safety' class='magic-input' size=4 maxlength=8 />
+							</span>
+							<p class='magic-error'></p>
+						</span>
+					</td>
 				</tr>
+				
 				<tr class='settings settings-alt'>
 					<td class="setting-title">Target annealing temperature</td>
-					<td class="setting-value setting-temp" id="min_anneal_tm">{{ settings.min_anneal_tm }}</td>
-					<td class="setting-error"><span id="min_anneal_tm-error"></span></td>
+					<td class="setting-value" id="min_anneal_tm">
+						<span class='magic-item'>
+							<span class="setting-temp">
+								<span class='magic-text'>{{ settings.min_anneal_tm }}</span>
+								<input name='min_anneal_tm' class='magic-input' size=4 maxlength=8 />
+							</span>
+							<p class='magic-error'></p>
+						</span>
+					</td>
 				</tr>
+				
 				<tr class='settings'>
 					<td class="setting-title">Target primer annealing temperature</td>
-					<td class="setting-value setting-temp" id="min_primer_tm">{{ settings.min_primer_tm }}</td>
-					<td class="setting-error"><span id="min_primer_tm-error"></span></td>
+					<td class="setting-value" id="min_primer_tm">
+						<span class='magic-item'>
+							<span class="setting-temp">
+								<span class='magic-text'>{{ settings.min_primer_tm }}</span>
+								<input name='min_primer_tm' class='magic-input' size=4 maxlength=8 />
+							</span>
+							<p class='magic-error'></p>
+						</span>
+					</td>
 				</tr>
+				
 				<tr class='settings settings-alt'>
 					<td class="setting-title">Minimum overlap</td>
-					<td class="setting-value setting-len" id="min_overlap">{{ settings.min_overlap }}</td>
-					<td class="setting-error"><span id="min_overlap-error"></span></td>
+					<td class="setting-value" id="min_overlap">
+						<span class='magic-item'>
+							<span class="setting-len">
+								<span class='magic-text'>{{ settings.min_overlap }}</span>
+								<input name='min_overlap' class='magic-input' size=4 maxlength=8 />
+							</span>
+							<p class='magic-error'></p>
+						</span>
+					</td>
 				</tr>
+				
 			</table>
 		</div>
 	</form>
 </div>
 </div>
+
 <script type="text/javascript">
-
-var show_error = function(name, error)
-{
-	$('#' + name + '-error').fadeIn('slow').text(error);
-}
-var hide_errors = function()
-{
-	$('.setting-error span').fadeOut('slow', function() {$(this).text('');});
-}
-
-var view_settings = function(data)
-{
-	if(data != undefined) //if this is the result of an ajax request
-	{
-		if(data[0] != 0)
-		{ //show errors
-			for(name in data[1])
-			{
-				show_error(name, data[1][name]);
-			}
-			return false;
-		}
-		else
-		{
-			console.log("$('#status').text(" + data[1].modified + ");");
-			$('#status').text(data[1].modified);
-			hide_errors();
-			$('.setting-value').each(function() { //return to text only view
-				$(this).text( $(this).children('input').val());
-			});
-		}
-	}
-	
-	$('button#edit_settings').button('option', {
-		'label': 'Edit', 
-		'icons': {'primary':'ui-icon-pencil',},})
-	.unbind('click')
-	.click(function(event) {
-		edit_settings();
+	$(document).ready(function() {
+		$('form#settings_form').magicForm();
 	});
-}
-
-var npat = new RegExp('[^0-9.]');
-
-var edit_settings = function(){
-	$('td.setting-value').each(function() { //add in the inputs
-			var name = $(this).prop('id');
-			var val = $(this).text();
-			$(this).html(
-				$('<input type="text" name="' + name + '" id="' + name + '" value="' + val + '" size=6 maxlength=6 />')
-			);
-	});
-		
-	$('button#edit_settings').button('option', {
-		'label': 'Save', 
-		'icons': {'primary':'ui-icon-disk',},})
-	.unbind('click')
-	.click( function() {
-		var errors = new Object();
-		var error = false;
-		$('.setting-value input').each( function() {
-			var name = $(this).attr('name');
-			var val = parseFloat($(this).val());
-			if(isNaN(val) || npat.test($(this).val()))
-			{
-				errors[name] = 'Error: Not a Number';
-				error = true;
-			}
-			else
-			{
-				
-			}
-		});
-		if(error)
-		{
-			view_settings([-1, errors]);
-		}
-		else
-		{ //submit AJAX request
-			var $form = $('#settings_form');
-			$.getJSON($form.attr('action'), $form.serialize(), function(data){
-				view_settings(data);
-			});
-		}
-	})
-};
-
-$(document).ready(function() {
-	$('button#edit_settings').button({
-		label: 'Edit',
-		icons:{primary:'ui-icon-pencil'}
-	})
-	view_settings();
-});
 </script>

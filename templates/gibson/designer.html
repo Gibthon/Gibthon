@@ -2,9 +2,11 @@
 
 {% block css-include %}
 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/designer.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/formtools.css" />
 {% endblock %}
 
 {% block js-include %}
+<script src="{{ STATIC_URL }}/js/formtools.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/designer.js" type="text/javascript"></script>
 {% endblock %}
 

@@ -4,7 +4,7 @@ from fragment.models import Gene, Feature
 from fragment.views import get_fragment
 
 from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import condition
@@ -253,14 +253,12 @@ def format_date(date): #given a datetime object, return a stringified version
 
 @login_required
 def update_meta(request, cid): # 'saveMeta/'
-	if request.method == 'GET': #and request.is_ajax():
+	if request.method == 'POST': #and request.is_ajax():
 		con = get_construct(request.user, cid)
 		if not con:
 			return JsonResponse("Construct with id '%s' not found" % cid, ERROR)
-		name = request.GET.get('name', con.name)
-		desc = request.GET.get('desc', con.description)
-		print "saving as name %s(%s)" % (name, desc)
-		print "saving over name %s(%s)" % (con.name, con.description)
+		name = request.POST.get('name', con.name)
+		desc = request.POST.get('desc', con.description)
 		if (name != con.name) or (desc != con.description):
 			con.name = name
 			con.description = desc
@@ -272,15 +270,18 @@ def update_meta(request, cid): # 'saveMeta/'
 	
 @login_required
 def update_settings(request, cid):
-	if request.method == 'GET': #and request.is_ajax():
+	if request.method == 'POST': #and request.is_ajax():
 		con = get_construct(request.user, cid)
 		if not con:
-			return JsonResponse("Construct with id '%s' not found" % cid, ERROR)
-		form = SettingsForm(request.GET, instance=con.settings)
+			return JsonResponse({'errors': {'all':"Construct with id '%s' not found",},} % cid, ERROR)
+		form = SettingsForm(request.POST, instance=con.settings)
 		if form.is_valid():
 			form.save()
-			return JsonResponse({'modified': format_date(con.modified),})
-		return JsonReponse({'errors': form.errors,}, ERROR)
+			data = {}
+			for key,value in form.cleaned_data.items():
+				data[key] = str(value);
+			return JsonResponse({'modified': format_date(con.modified), 'fields': data})
+		return JsonResponse({'errors': form.errors,}, ERROR)
 	raise Http404
 	
 

@@ -44,17 +44,11 @@
 }
 .setting-value
 {
-	width:8em;
+	width:20em;
 	text-align:left;
 	padding-left: 0.5em;
 }
-.setting-error
-{
-	width: 15em;
-	text-align: left;
-	color: red;
-	font-weight: bold;
-}
+
 .setting-conc:after {content:' M';}
 .setting-temp:after {content:' ᴼC';}
 .setting-len:after {content:' bp';}
