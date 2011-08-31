@@ -28,7 +28,7 @@ if (/partsregistry/.test(window.location.host)) {
 		m = /Part\:([\w_]+)/.exec(window.location.pathname);
 		if (m.length == 2) {
 			part = m[1];
-			channel = prompt("Adding part " + part + " to Gibthon\n\nPlease enter your channel name:", "GCD-bill");
+			channel = prompt("Adding part " + part + " to Gibthon\n\nPlease enter your channel name:", "GCD-<your gibthon username here>");
 			if (channel!=null && channel!=""){
 				message(channel, '{"source":"pr","type":"fr","data":{"id":"'+part+'"}}');
 			}

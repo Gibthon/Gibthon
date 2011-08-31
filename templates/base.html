@@ -148,6 +148,9 @@ $(document).ready(function() {
 	</div>
 	{% endif %}
 	{% endblock %}
+	<div class="ui-state-highlight ui-corner-all content">
+	<p>Import parts directly from the <a href="http://partsregistry.org/Main_Page">Parts Registry</a> by dragging <a href="javascript:(function%20()%20{var%20scr%20=%20document.createElement(%27script%27);scr.type%20=%20%27text/javascript%27;scr.src%20=%20%27http://django.gibthon.org/static/js/gibthon-import.js%27;document.documentElement.appendChild(scr)})();">this bookmarklet</a> to your favourites</p>
+	</div>
 		{% block content %}{% endblock %}
 	<div class="ui-widget-content ui-corner-all footer">
 		Copyright 2011 Bill Collins and Contributors
