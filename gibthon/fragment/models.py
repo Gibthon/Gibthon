@@ -58,6 +58,7 @@ class Gene(models.Model):
 	def __unicode__(self):
 		return self.name
 	
+
 	def add(_record, _origin, _user):
 		g = Gene(owner=_user, name=_record.name,description=_record.description,sequence=_record.seq, origin=_origin)
 		g.save()
