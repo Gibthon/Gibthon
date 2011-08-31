@@ -13,20 +13,9 @@ from gibthon.forms import *
 import hashlib
 import datetime
 
-
 def redirect_home(request):
 	return HttpResponseRedirect('/')
 
-def home(request):
-	t = loader.get_template('home.html')
-	c = RequestContext(request)
-	return HttpResponse(t.render(c))
-	
-def ligate(request):
-	t = loader.get_template('tools/ligate.html')
-	c = RequestContext(request)
-	return HttpResponse(t.render(c))
-	
 def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 	if request.user.is_authenticated():
 		return HttpResponseRedirect('/')

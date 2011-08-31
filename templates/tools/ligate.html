@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block css-include %}
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/ligate.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/ligate.css" />
 {% endblock %}
 
 {% block js-include %}
-<script type="text/javascript" src="{{ MEDIA_URL }}/js/ligate.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/ligate.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -19,7 +19,7 @@
 	</div>
 	<div class="ui-widget-content ui-corner-all" style="float:left; margin:10px; padding:10px; width:355px; height:180px;">
 		<h3>Ligation ratio calculator</h3>
-		<img src="{{ MEDIA_URL }}/images/lcnice2.jpg" style="height:150px; float:left;" />
+		<img src="{{ STATIC_URL }}/images/lcnice2.jpg" style="height:150px; float:left;" />
 		<p></p>
 		<p>To use, set the volumes in the right hand box, and add components as necessary below.</p>
 		<p>Then, just read off from the "Ligation Mix" box for your final volumes</p>
@@ -44,6 +44,12 @@
 	<div style="float:left; margin:10px; width:595px;">
 		<div class="ui-widget-header ui-corner-top"><button id="button-addrow" name="button-addrow" onmouseup="addTableRow($('#input'));" style="margin:2px; float:right; font-size:0.8em;"></button><h4>Components</h4></div>
 		<div class="ui-widget-content ui-corner-bottom">
+		{% if user.is_authenticated %}
+		<p>Start typing in the name field to bring up a list of your fragments</p>
+		{% endif %}
+		{% if not user.is_authenticated %}
+		<p>Log in to access your library of fragments.</p>
+		{% endif %}
             <table id="input">
                 <tr>
                     <th>Name</th>

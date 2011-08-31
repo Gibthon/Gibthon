@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    >
+
+<url>
+  <loc>http://django.gibthon.org/</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/user/profile/</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/fragment/</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/gibthon/</loc>
+  <changefreq>weekly</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/tools/ligcalc/</loc>
+  <changefreq>daily</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/tools/molcalc/</loc>
+  <changefreq>daily</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/help/gibson/</loc>
+  <changefreq>daily</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/help/primer/</loc>
+  <changefreq>daily</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/help/gibthon/</loc>
+  <changefreq>daily</changefreq>
+</url>
+<url>
+  <loc>http://django.gibthon.org/user/login/</loc>
+  <changefreq>weekly</changefreq>
+</url>
+</urlset>

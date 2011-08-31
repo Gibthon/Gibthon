@@ -44,7 +44,8 @@ class Gene(models.Model):
 	owner = models.ForeignKey('auth.User')
 	name = models.CharField(max_length=100)
 	description = models.CharField(max_length=500)
-	sequence = models.TextField(max_length=10000000)
+	sequence = models.TextField(max_length=500000)
+
 	ORIGIN_CHOICES = (
 		('NT', 'Nucleotide Database'),
 		('BB', 'BioBrick'),
@@ -73,8 +74,9 @@ class Gene(models.Model):
 			Annotation.remove(g)
 			Feature.remove(g)
 			g.delete()
+			return True
 		except ObjectDoesNotExist:
-			pass
+			return False
 	remove = staticmethod(remove)
 	
 	def gb(self):

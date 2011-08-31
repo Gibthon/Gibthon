@@ -35,7 +35,6 @@ $(document).ready(function() {
 	/* general initialisations */
 	$('#feature_help_close').hide();
 	$('#feature_help').hide();
-	$('button.button_progress').button('disable');
 	$('#process_progress').progressbar({ value: 0 });
 	
 	/* load the settings */
@@ -123,7 +122,7 @@ $(document).ready(function() {
 			$('#fragment_browser').dialog('open');
 		});
 		
-		
+	$('button.button_progress').button('disable');
 		
 		
 		
@@ -182,6 +181,7 @@ $(document).ready(function() {
 		closeOnEscape:false,
 		draggable:false,
 		open: function(event, ui) {
+			$('button.button_progress').button('disable');
 			$(".ui-dialog-titlebar-close").hide();
 		},
 		close: function(event, ui) {

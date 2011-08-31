@@ -10,8 +10,8 @@
 <script src="{{ STATIC_URL }}/js/jquery-ui.min.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/ajax.js" type="text/javascript"></script>
 {% block js-include %}{% endblock %}
-<script type="text/javascript">
 {% block js %}{% endblock %}
+<script type="text/javascript">
 $(document).ready(function() {
 	$('button#login')
 		.button({
@@ -48,24 +48,16 @@ $(document).ready(function() {
 		.click(function() {
 			history.go(1);
 		});
-	$('button#up')
+	var re = /(\/(\d+\/)?[\w_ ]+)+/;
+	var m = re.exec(window.location.pathname);
+	if(m){
+		$('a#up').attr('href', (m[0] == m[1]) ? '/' : m[0].replace(m[1],'') + '/');
+	}
+	$('a#up')
 		.button({
 			icons:{primary:'ui-icon-arrowreturnthick-1-n'}
-		})
-		.click(function() {
-			var re = /(\/(\d+\/)?[\w_ ]+)+/;
-			var m = re.exec(window.location.pathname);
-			if(m){
-				window.location.href = (m[0] == m[1]) ? '/' : m[0].replace(m[1],'');
-			} else {
-				return false;
-			}
 		});
-	$('button[id^="menu"]')
-		.button()
-		.click(function() {
-			window.location.href = this.value;
-		});
+	$('a[id^="menu"]').button();
 	
 	$('input[id^="id_captcha"]').addClass('captcha');
 	
@@ -99,24 +91,24 @@ $(document).ready(function() {
 	<div id="menu_wrap" style="width:170px; float:left;">
 		<div class="ui-widget-content ui-corner-all menu">
 			<p><strong>Navigation</strong></p>
-			<button id="menu_home" value="/">Home</button>
-			<button id="menu_profile" value="/user/profile/">Profile</button>
+			<a id="menu_home" href="/">Home</a>
+			<a id="menu_profile" href="/user/profile/">Profile</a>
 			<p><strong>Gibthon</strong></p>
-			<button id="menu_fragment" value="/fragment/">Fragment library</button>
-			<button id="menu_gibthon" value="/gibthon/">Construct Designer</button>
+			<a id="menu_fragment" href="/fragment/">Fragment library</a>
+			<a id="menu_gibthon" href="/gibthon/">Construct Designer</a>
 			<p><strong>Other Tools</strong></p>
-			<button value="/tools/ligcalc/" id="menu_tools_ligate">LigCalc</button>
-			<button value="/tools/molcalc/" id="menu_tools_molcal">MolCalc</button>
+			<a href="/tools/ligcalc/" id="menu_tools_ligate">LigCalc</a>
+			<a href="/tools/molcalc/" id="menu_tools_molcal">MolCalc</a>
 			<p><strong>Help</strong></p>
-			<button value="/help/gibson/" id="menu_help_gibson">Gibson Assembly</button>
-			<button value="/help/primer/" id="menu_help_primer">Primer Design</button>
-			<button value="/help/gibthon/" id="menu_help_gibthon">Construct Designer</button>
-			<button value="/partsearch/" id="menu_help_api">PartSearch API</button>
+			<a href="/help/gibson/" id="menu_help_gibson">Gibson Assembly</a>
+			<a href="/help/primer/" id="menu_help_primer">Primer Design</a>
+			<a href="/help/gibthon/" id="menu_help_gibthon">Construct Designer</a>
+			<a href="/partsearch/" id="menu_help_api">PartSearch API</a>
 		</div>
 	</div>
-	<div class="ui-widget-content ui-corner-all content">
+	<div class="ui-widget-content ui-corner-all content" style="margin-top:-6px;">
 		<button id="back">Back</button>
-		<button id="up">Up</button>
+		<a href="#" id="up">Up</a>
 		<button id="forward">Forward</button>
 		{% block menu %}
 		{% endblock %}

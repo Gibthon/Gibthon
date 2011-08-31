@@ -90,7 +90,7 @@ def handle_upload(request):
 			ids = []
 			for record in records:
 				g = Gene.add(record, 'UL', request.user)
-				ids.append(g.pk)
+				ids.append(g.id)
 			
 			data.append({	"name":wrapped_file.name, 
 							"size":file.size,
@@ -103,6 +103,7 @@ def handle_upload(request):
 		
 		return RawJsonResponse(data)
 	raise Http404
+	
 	
 ############################################################### PARTS #############################
 

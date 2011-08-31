@@ -78,6 +78,8 @@
 {%endblock%}
 
 {% block js %}
+<script type="text/javascript">
+	
 var show_copy_dialog = function(){
 	$('#fwd_53').val( $('#sequence').fragmentSequence('get_sel'));
 	$('#fwd_35').val( $('#sequence').fragmentSequence('get_rev'));
@@ -123,4 +125,6 @@ $(document).ready(function() {
 		$('#copy_dialog').dialog('close');
 	});
 });
+
+</script>
 {% endblock %}

@@ -85,17 +85,25 @@ def delete(request):
 			
 		#remove the selected IDs from the database
 		vids = []
+		ok = []
+		failed = []
 		for id in ids:
 			try:
 				vids.append(int(id))
 			except ValueError:
-				pass #silently ignore the invalid ID
+				failed.append(id)
 		for id in vids:
-			Gene.remove(request.user, id)
+			if Gene.remove(request.user, id):
+				ok.append(id)
+			else:
+				failed.append(id)
 
-		print request.is_ajax();
 		if not request.is_ajax():
-			return HttpResponseRedirect('/fragment')
-		return JsonResponse(['ok',])
+			if len(failed) == 0:
+				return HttpResponseRedirect('/fragment')
+			return HttpResponseNotFound()
+			
+		return JsonResponse({'ok': ok, 'failed':failed,})
 
-	return HttpResponseNotFound()
+	raise Http404
+

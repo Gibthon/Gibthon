@@ -114,18 +114,18 @@ INSTALLED_APPS = (
     #'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	# Uncomment the next line to enable the admin:
     'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'fragment',
     'gibson',
     'molcal',
     'captcha',
     'partsearch',
+    'ligcalc',
 )
 
 LOGIN_URL = '/user/login'
+LOGIN_REDIRECT_URL = '/user/profile/'
 
 # captcha settings
 

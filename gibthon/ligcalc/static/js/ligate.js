@@ -7,8 +7,23 @@ $(document).ready(function() {
 						label: "Add Row"
 					});
 	$('#button-return').button({ icons:{secondary:'ui-icon-home'}, label:'Home', text:false});
+	handleAutoComplete();
 });
 
+var handleAutoComplete = function () {
+	$('input[name="name"]').autocomplete({
+		source:'get',
+		minLength:1,
+		focus: function( event, ui ) {
+			$(this).val( ui.item.label );
+			return false;
+		},
+		select: function( event, ui ) {
+			$('~ td > input[name="length"]', this.parentNode)[0].value=ui.item.length;
+			react.go();
+		}
+	});
+}
 
 
 var Reaction = function(){
@@ -142,6 +157,7 @@ function addTableRow(jQtable){
         }
     });
     react = new Reaction();
+    handleAutoComplete();
     $(":input").change(function(){
 		react.go();
 	});
