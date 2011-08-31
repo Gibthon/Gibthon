@@ -589,9 +589,11 @@ $.widget("ui.fragmentSequence", {
 		
 		var smallnum = Math.floor((event.pageX - $(event.currentTarget).offset().left) / this.char_width);
 		smallnum = toUnPadded(smallnum);
-		//console.log("smallnum = " + smallnum);
-		//if($(event.target).hasClass('selected')) console.log('selected position:' + largenum + ' + ' + smallnum + " event.currentTarget.id=" + event.currentTarget.id);
-		return largenum + smallnum;
+/*		console.log("_get_mouse_pos");
+		console.log("  smallnum = (" + event.pageX + ' - ' + $(event.currentTarget).offset().left + ") / " + this.char_width + " = " + smallnum);
+		console.log("  largenum + smallnum = " + largenum + ' + ' + smallnum + ' = ' + largenum + smallnum);
+		console.log("  event.currentTarget.id=" + event.currentTarget.id);
+*/		return largenum + smallnum;
 	},
 	_on_scroll: function(event)
 	{
@@ -607,7 +609,7 @@ $.widget("ui.fragmentSequence", {
 		if($r.length == 0) this.char_width = char_width;
 		else
 		{
-			this.char_width = $r.width() / $r.text().length;
+			this.char_width = $r.width() / toPadded(this.rowlength);
 		}
 		return this.char_width;
 	},
