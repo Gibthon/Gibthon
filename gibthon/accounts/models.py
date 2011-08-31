@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from gibthon.messages import MessagePasser
 from fragment.models import Gene
 from gibson.models import Construct, add_fragment
+from fragment import partsregistry
 
 import json
 
@@ -80,7 +81,8 @@ class Message(models.Model):
 		if self.type == 'fr':
 			if self.origin == 'pr':
 				id = json.loads(self.data)['id']
-				Gene.add(id, "BB", self.inbox.user)
+				p = partsregistry.Part(id)
+				Gene.add(p.to_seq_record(), "BB", self.inbox.user)
 				return 1
 			else:
 				return -1
@@ -92,7 +94,8 @@ class Message(models.Model):
 					try:
 						x = Gene.objects.get(name__icontains=f['partID'])
 					except:
-						fs.append(Gene.add(f['partID'], "BB", self.inbox.user))
+						p = partsregistry.Part(f['partID'])
+						fs.append(Gene.add(p.to_seq_record(), "BB", self.inbox.user))
 					else:
 						fs.append(x)
 					print 'yay'
