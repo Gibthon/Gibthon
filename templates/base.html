@@ -64,7 +64,7 @@ $(document).ready(function() {
 	
 	$('input[id^="id_captcha"]').addClass('captcha');
 	{% if user.is_authenticated %}
-		channel = new goog.appengine.Channel('{{ user.channel_key }}');
+		channel = new goog.appengine.Channel('{{ user.get_channel_key }}');
 		socket = channel.open();
 		socket.onopen = function() {};
 		socket.onmessage = function(message) {
