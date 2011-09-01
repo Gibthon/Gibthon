@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
 {% block js %}
+<script type="text/javascript">
 $(document).ready(function () {
 	$('a[href^="help"]').button();
 	$('a#ligate').button();
 });
+</script>
 {% endblock %}
 
 {% block content %}

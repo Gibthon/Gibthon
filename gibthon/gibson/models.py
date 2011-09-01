@@ -41,9 +41,6 @@ from Bio.SeqUtils.MeltingTemp import Tm_staluc
 from Bio.Seq import reverse_complement, Seq
 from django.conf import settings
 
-from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
-from django.utils.html import conditional_escape
 
 from Bio import SeqIO, Entrez
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
@@ -56,9 +53,27 @@ from annoying.fields import AutoOneToOneField
 from fragment.models import Gene
 
 import os, subprocess, shlex, sys, csv
+from subprocess import CalledProcessError
 
 def hybrid_options(t,settings):
 	return ' -n DNA -t %.2f -T %.2f -N %.2f -M %.2f --mfold=5,-1,100 ' %(t + settings.ss_safety, t + settings.ss_safety, settings.na_salt, settings.mg_salt)
+
+def run_subprocess(cline, primer):
+	try:
+		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	except IOError:
+		print 'aspifjoasijfoiaj'
+		return False
+	stdout, stderr = p.communicate()
+	if p.returncode > 0:
+		w = Warning.objects.create(
+			primer = primer,
+			type = 'sy',
+			text = 'Primer calculation failed with error %d\n%s\n%s'%(p.returncode,stderr,stdout),
+		)
+		return False
+	dir(p)
+	return True
 
 class Settings(models.Model):
 	# automatically create a Settings object whne you make a new construct object
@@ -74,14 +89,54 @@ class Settings(models.Model):
 	def __unicode__(self):
 		return 'Settings for ' + self.construct.name
 
+class PCRSettings(models.Model):
+	construct = AutoOneToOneField('Construct', related_name='pcrsettings')
+	repeats = models.PositiveSmallIntegerField(default=1)
+	volume_each = models.DecimalField(max_digits=3, decimal_places=1, default=12.5)
+	error_margin = models.PositiveSmallIntegerField(default=10)
+	buffer_s = models.DecimalField(max_digits=3, decimal_places=1, default=10)
+	buffer_d = models.DecimalField(max_digits=3, decimal_places=1, default=1)
+	dntp_s = models.DecimalField(max_digits=3, decimal_places=1, default=10)
+	dntp_d = models.DecimalField(max_digits=3, decimal_places=1, default=0.8)
+	enzyme_s = models.DecimalField(max_digits=3, decimal_places=1, default=2.5)
+	enzyme_d = models.DecimalField(max_digits=3, decimal_places=1, default=2.5)
+	primer_d = models.DecimalField(max_digits=3, decimal_places=1, default=0.4)
+	template_d = models.DecimalField(max_digits=4, decimal_places=1, default=100)
+	
+	def m(self):
+		return self.repeats * (1+(self.error_margin/100))
+	
+	def buffer_v(self):
+		return self.m() * self.volume_each * self.buffer_d/self.buffer_s
+	
+	def dntp_v(self):
+		return self.m() * self.volume_each * self.dntp_d/self.dntp_s
+	
+	def enzyme_v(self):
+		return self.m() * self.enzyme_d/self.enzyme_s
+	
+	def primer_v(self, primer_s):
+		return self.m() * self.volume_each * self.primer_d/primer_s
+	
+	def template_v(self, template_s):
+		return self.m() * self.template_d/template_s
+	
+	def water_v(self, primer_t_s, primer_b_s, template_s):
+		return (self.m()*self.volume_each) - self.buffer_v() - self.dntp_v() - self.enzyme_v() - self.primer_v(primer_t_s) - self.primer_v(primer_b_s) - self.template_v(template_s)
+	
+	def total_v(self):
+		return self.m() * self.volume_each
+	
+
 class Warning(models.Model):
 	primer = models.ForeignKey('Primer', related_name='warning')
-	# four warning types at the moment
+	# five warning types at the moment
 	WARNING_TYPE = (
 		('mp', 'MISPRIME'),
 		('sp','SELF PRIME'),
 		('ta','ANNEAL TM'),
 		('tp','PRIMER TM'),
+		('sy','SYSTEM ERROR'),
 	)
 	type = models.CharField(max_length=2, choices=WARNING_TYPE)
 	text = models.CharField(max_length=150)
@@ -92,6 +147,10 @@ class Primer(models.Model):
 	flap = models.OneToOneField('PrimerHalf', related_name='flap')
 	stick = models.OneToOneField('PrimerHalf', related_name='stick')
 	boxplot = models.ImageField(upload_to='boxplots')
+	concentration = models.DecimalField(default=5, max_digits=4, decimal_places=1)
+	
+	def vol(self):
+		return self.construct.pcrsettings.primer_v(primer_s=self.concentration)
 	
 	class Meta:
 		ordering = ['stick']
@@ -147,8 +206,9 @@ class Primer(models.Model):
 		self.delete()
 	
 	def self_prime_check(self):
+		self.warning.filter(type='sy').delete()
 		# check for self prime events
-		name = str(self.name)
+		name = str(self.id)
 		cwd = os.getcwd()
 		# perform all work here. this should be in settings at some point
 		wd = settings.UNAFOLD_WD
@@ -160,19 +220,31 @@ class Primer(models.Model):
 		devnull = open(os.devnull, 'w')
 		# hyrbidise!
 		cline = settings.HYBRID_SS_MIN_PATH + hybrid_options(self.tm(), self.construct.settings) + wd + name
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
+		if not run_subprocess(cline, self):
+			return False
 		# generate a pretty boxplot
 		cline = settings.BOXPLOT_NG_PATH + ' -t "Energy Dotplot for ' + name + ' " ' + wd + name + '.plot'
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
+		if not run_subprocess(cline, self):
+			return False
 		# go through the boxplot info and check for mispriming
-		ss = csv.DictReader(open(wd + name + '.plot','r'), delimiter='\t')
+		try:
+			csvfile = open(wd + name + '.plot', 'r')
+		except IOError as e:
+			w = Warning.objects.create(
+					primer = self,
+					type = 'sy',
+					text = 'Error making boxplot',
+				)
+			return False
+		ss = csv.DictReader(csvfile, delimiter='\t')
 		warnings = []
 		for r in ss:
 			if int(r['j']) == len(self.seq()):
 				warnings.append((r['length'],float(r['energy'])/10))
 		# conver the boxplot to a png
 		cline = 'convert ' + wd + name + '.ps ' + wd + name + '.png'
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
+		if not run_subprocess(cline, self):
+			return False		
 		# move it to the media directory
 		os.rename(wd+name+'.png',settings.MEDIA_ROOT+'unafold/'+name+'.png')
 		# clean up after yourself
@@ -210,8 +282,8 @@ class Primer(models.Model):
 		
 	
 	def misprime_check(self):
-		primer_name = str(self.name)
-		fragment_name = str(self.construct.name) + '-' + str(self.stick.cfragment.fragment.name)
+		primer_name = str(self.id)
+		fragment_name = str(self.construct.id) + '-' + str(self.stick.cfragment.id)
 		cwd = os.getcwd()
 		wd = settings.UNAFOLD_WD
 		os.chdir(wd)
@@ -259,9 +331,6 @@ class PrimerHalf(models.Model):
 	top = models.BooleanField()
 	length = models.PositiveSmallIntegerField()
 	
-	def len(self):
-		return len(str(self.seq()))
-		
 	def start(self):
 		if self.top ^ self.isflap():
 			return self.cfragment.end() - self.length
@@ -281,7 +350,7 @@ class PrimerHalf(models.Model):
 		
 	def extend(self):
 		self.length += 1
-		if self.start() < self.cfragment.start_feature.start or self.end() > self.cfragment.end_feature.end:
+		if self.start() < (self.cfragment.start_feature.start - self.cfragment.start_offset) or self.end() > (self.cfragment.end_feature.end + self.cfragment.end_offset):
 			self.length -= 1
 			return False
 		else:
@@ -305,8 +374,8 @@ class PrimerHalf(models.Model):
 		return s
 	
 	def seq(self):
-		s = Seq(self.cfragment.sequence())
-		s = s[self.start()-1:self.end()]
+		s = Seq(self.cfragment.fragment.sequence)
+		s = s[self.start():self.end()]
 		if self.top: s = reverse_complement(s)
 		return s
 		
@@ -343,6 +412,9 @@ class Construct(models.Model):
 			dna += f.sequence()
 		return dna
 	
+	def length(self):
+		return len(self.sequence())
+	
 	def features(self):
 		acc = 0
 		for fr in self.cf.all():
@@ -358,6 +430,9 @@ class Construct(models.Model):
 				f.end -= fr.start() - acc - 1
 				yield f
 			acc += fr.end() - fr.start() + 1
+	
+	def feature_count(self):
+		return sum(1 for f in self.features())
 	
 	def features_pretty(self):
 		acc = 0
@@ -382,57 +457,69 @@ class Construct(models.Model):
 			name=self.name,
 			description=self.description
 		)
-		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifier.all()])) for f in self.features()]
+		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features()]
 		return g.format('genbank')
 		
-	def process(self):
-		for p in self.primer.all():
-			p.del_all()
+	def process(self, reset=True, new=True):
+		if new:
+			# delete all existing primers
+			for p in self.primer.all():
+				p.del_all()
+		# used for returning progress
 		n = self.cf.count()
-		for i,cf in enumerate(self.cf.all()):
-			cfu = self.cf.all()[(i+1)%n]
-			pt = Primer.objects.create(
-				name = self.name + '-' + cf.fragment.name + '-top',
-				construct = self,
-				stick = PrimerHalf.objects.create(
-					cfragment = cf,
-					top = True,
-					length = self.settings.min_overlap
-				),
-				flap = PrimerHalf.objects.create(
-					cfragment = cfu,
-					top = True,
-					length = self.settings.min_overlap
+		# reset offsets to zero
+		if reset:
+			for cf in self.cf.all():
+				cf.start_offset = 0
+				cf.end_offset = 0
+				cf.save()
+		if new:
+			for i,cf in enumerate(self.cf.all()):
+				cfu = self.cf.all()[(i+1)%n]
+				pt = Primer.objects.create(
+					name = self.name + '-' + cf.fragment.name + '-top',
+					construct = self,
+					stick = PrimerHalf.objects.create(
+						cfragment = cf,
+						top = True,
+						length = self.settings.min_overlap
+					),
+					flap = PrimerHalf.objects.create(
+						cfragment = cfu,
+						top = True,
+						length = self.settings.min_overlap
+					)
 				)
-			)
-			pt.self_prime_check()
-			pt.misprime_check()
-			yield ':%d'%((((2*i)+1)*45.0)/n)
-			yield ' '*1024
-			cfd = self.cf.all()[(i-1)%n]
-			pb = Primer.objects.create(
-				name = self.name + '-' + cf.fragment.name + '-bottom',
-				construct = self,
-				stick = PrimerHalf.objects.create(
-					cfragment = cf,
-					top = False,
-					length = self.settings.min_overlap
-				),
-				flap = PrimerHalf.objects.create(
-					cfragment = cfd,
-					top = False,
-					length = self.settings.min_overlap
+				cfd = self.cf.all()[(i-1)%n]
+				pb = Primer.objects.create(
+					name = self.name + '-' + cf.fragment.name + '-bottom',
+					construct = self,
+					stick = PrimerHalf.objects.create(
+						cfragment = cf,
+						top = False,
+						length = self.settings.min_overlap
+					),
+					flap = PrimerHalf.objects.create(
+						cfragment = cfd,
+						top = False,
+						length = self.settings.min_overlap
+					)
 				)
-			)
+		else:
+			for p in self.primer.all():
+				p.stick.length = self.settings.min_overlap
+				p.flap.length = self.settings.min_overlap
+				p.save()
+		for i,p in enumerate(self.primer.all()):
 			if self.settings.min_anneal_tm > 0:
-				pt.tm_len_anneal(self.settings.min_anneal_tm)
-				pb.tm_len_anneal(self.settings.min_anneal_tm)
+				p.tm_len_anneal(self.settings.min_anneal_tm)
 			if self.settings.min_primer_tm > 0:
-				pt.tm_len_primer(self.settings.min_primer_tm)
-				pb.tm_len_primer(self.settings.min_primer_tm)
-			pb.self_prime_check()
-			pb.misprime_check()
-			yield ':%d'%((((2*i)+2)*45.0)/n)
+				p.tm_len_primer(self.settings.min_primer_tm)
+			p.self_prime_check()
+			yield ':%d'%(((2*i)+1)*(90.0/(4.0*n)))
+			yield ' '*1024
+			p.misprime_check()
+			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
 		yield ':100'		
 
@@ -449,6 +536,7 @@ class ConstructFragment(models.Model):
 	start_offset = models.IntegerField()
 	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature')
 	end_offset = models.IntegerField()
+	concentration = models.DecimalField(default=100, max_digits=4, decimal_places=1)
 
 	class Meta:
 		ordering = ['order']
@@ -497,6 +585,18 @@ class ConstructFragment(models.Model):
 		if self.direction == 'r':
 			seq = str(reverse_complement(Seq(seq)))
 		return seq[self.start()-1:self.end()]
+	
+	def tm(self):
+		return ((self.primer_top().stick.tm() + self.primer_bottom().stick.tm())/2)-4
+	
+	def time(self):
+		return (self.end()-self.start()+1)*45.0/1000
+	
+	def vol(self):
+		return self.construct.pcrsettings.template_v(self.concentration)
+	
+	def water_v(self):
+		return self.construct.pcrsettings.water_v(self.primer_top().concentration, self.primer_bottom().concentration, self.concentration)
 	
 	def __unicode__(self):
 		return self.construct.name + ' : ' + self.fragment.name + ' (' + str(self.order) + ')'

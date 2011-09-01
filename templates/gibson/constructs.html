@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block css-include %}
-<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/datatable.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/datatable.css" />
 {% endblock %}
 
 
@@ -42,7 +42,7 @@
 
 
 {% block js %}
-
+<script type="text/javascript">
 $(document).ready(function() {
 	$('button[id="add"]')
 		.click(function(event){
@@ -53,6 +53,21 @@ $(document).ready(function() {
 		.button({
 			icons:{primary:'ui-icon-plusthick'}
 		});
+	$('#construct_table').dataTable({
+		bAutoWidth: false,
+		bJQueryUI: true,
+		aoColumns: [
+			{
+				sWidth:"200px"
+			},
+			{
+				sWidth:"574px"
+			}
+		],
+		oLanguage:{
+			sEmptyTable: '<button id="addc">Add new Construct</button>'
+		}
+	});
 	$('button[id="addc"]')
 		.click(function(event){
 			$('#construct_add').dialog('open');
@@ -67,17 +82,7 @@ $(document).ready(function() {
 		title:'Add new Construct',
 		width:400
 	});
-	$('#construct_table').dataTable({
-		bAutoWidth: false,
-		bJQueryUI: true,
-		aoColumns: [
-			{
-				sWidth:"200px"
-			},
-			{
-				sWidth:"574px"
-			}
-		]
-	});
+
 });
+</script>
 {% endblock %}

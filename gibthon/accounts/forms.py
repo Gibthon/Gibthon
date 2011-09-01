@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from gibthon.accounts.models import GibthonUser
 from captcha.fields import CaptchaField
 from django.core.mail import EmailMessage
 from django.conf import settings
@@ -31,7 +32,7 @@ class UserRegisterForm2(forms.ModelForm):
 		help_text = ("Enter the same password as above, for verification."))
 
 	class Meta:
-		model = User
+		model = GibthonUser
 		fields = ("username","email","first_name", "last_name")
 
 	def is_valid(self, hash, *args, **kwargs):

@@ -9,10 +9,11 @@
 	border-bottom:2px solid blue;
 	background-color:PaleTurquoise;
 }
-td {
+table.primert td {
 	padding:2px;
 }
-table {
+
+table.primert {
 	border-spacing:0;
 }
 
@@ -30,29 +31,45 @@ div.fragment_name {
 	font-size:0.9em;
 }
 
+input.mix {
+	width:40px;
+}
+
+td.errorcell {
+	background-color:#f99 !important;
+}
+
+td.warningcell {
+	background-color:orange !important;
+}
+
+
 </style>
 {% endblock %}
 
 
 {% block js-include %}
+<script src="{{ STATIC_URL }}/js/primers.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.cookie-modified.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block menu %}
 |
-<button id="download_primers">Download Primers (.csv)</button>
+<button id="download">Download Primers and Protocols</button>
 |
 <button id="reset_offset">Reset Offsets</button>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-	<h3>Primers for {{ construct.name }}</h3>
+	<h3>Primers</h3>
+	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
 	<div>
 	{% for cf in construct.cf.all %}
 		<div style="float:left;">
 			<div style="width:150px;">
 				{% with cf.primer_top as primer %}
-				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</a>
+				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</button>
 				{% endwith %}
 			</div>
 			<div style="clear:both"></div>
@@ -61,15 +78,68 @@ div.fragment_name {
 			</div>
 			<div style="width:150px;">
 				{% with cf.primer_bottom as primer %}
-				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</a>
+				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</button>
 				{% endwith %}
 			</div>
 		</div>
 	{% endfor %}
 	</div>
-	<div style="height:10px; clear:both;"></div>
 </div>
-<div id="primer_info"></div>
+<div id="primer_info">
+	<div class="ui-widget-content ui-corner-all content">
+		<h3>Summary</h3>
+		<p><table style="margin-left:30px;" class="protocol">
+		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
+		{% for primer in construct.primer.all %}
+		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:0 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:0 }}</td></tr>
+		{% endfor %}
+		</table></p>
+	</div>
+	<div class="ui-widget-content ui-corner-all content">
+		<h3>PCR Particulars</h3>
+		<p>Fill in the details for all of your primers to download protocol information</p>
+		<p>Don't forget to save your changes!</p>
+		<div id="warning" class="ui-state-highlight ui-corner-all" style="padding:5px; margin-left:auto; margin-right:auto; width:500px; margin-bottom:5px;">Warning! Some of your components have a volume of less than 1&mu;l. Consider diluting them before adding to the mix.</div>
+		<div style="width:310px; float:left;">
+			<table class="protocol"><tr><th>Stock</th></tr></table>
+			{% for cf in construct.cf.all %}
+			<form class="mixform">
+				<table class="protocol">
+					<tr><th colspan="2" style="width:150px;">{{ cf.fragment.name }}</th><td>Top</td><td><input class="mix" value="{{ cf.primer_top.concentration }}" name="p_t_c" /> &mu;M</td></tr>
+					<tr><td>Template</td><td><input class="mix" value="{{ cf.concentration }}" name="temp_c" /> ng/&mu;l</td><td>Bottom</td><td><input class="mix" value="{{ cf.primer_bottom.concentration }}" name="p_b_c" /> &mu;M</td></tr>
+					<tr><th colspan="4">&nbsp;</th></tr>
+					<input type="hidden" value="{{ cf.id }}" name="id" />
+				</table>
+			</form>
+			{% endfor %}
+		</div>
+		<form id="pcrform">
+		<div style="width:200px; float:left;">
+			<table class="protocol">
+				<tr><th colspan="2">&nbsp;</th></tr>
+				<tr><th>Repeats</th><td><input class="mix" name="repeats" value="{{ construct.pcrsettings.repeats }}" /></td></tr>
+				<tr><th>Volume each</th><td><input class="mix" name="volume_each" value="{{ construct.pcrsettings.volume_each }}" /> &mu;l</td></th></tr>
+				<tr><th>Error margin</th><td><input class="mix" name="error_margin" value="{{ construct.pcrsettings.error_margin }}" /> %</td></tr>
+			</table>
+		</div>
+		<div style="width:270px; float:left;">
+			<table class="protocol">
+				<tr><th>Reagent</th><th>Stock</th><th>Desired</th></tr>
+				<tr><td>Buffer</td><td><input class="mix" name="buffer_s" value="{{ construct.pcrsettings.buffer_s }}" /> X</td><td><input class="mix" name="buffer_d" value="{{ construct.pcrsettings.buffer_d }}" /> X</td></tr>
+				<tr><td>dNTPs</td><td><input class="mix" name="dntp_s" value="{{ construct.pcrsettings.dntp_s }}" /> mM</td><td><input class="mix" name="dntp_d" value="{{ construct.pcrsettings.dntp_d }}" /> mM</td></tr>
+				<tr><td>Enzyme</td><td><input class="mix" name="enzyme_s" value="{{ construct.pcrsettings.enzyme_s }}" /> U/&mu;l</td><td><input class="mix" name="enzyme_d" value="{{ construct.pcrsettings.enzyme_d }}" /> U</td></tr>
+				<tr><td>Primer</td><th></th><td><input class="mix" name="primer_d" value="{{ construct.pcrsettings.primer_d }}" /> &mu;M</td></tr>
+				<tr><td>Template</td><th></th><td><input class="mix" name="template_d" value="{{ construct.pcrsettings.template_d }}" /> ng</td></tr>
+			</table>
+		</div>
+		</form>
+		<div style="width:400px; float:right; margin:10px; padding:5px;" class="ui-widget-content ui-corner-all">
+			<button id="save">Save</button> <span id="save_status"></span><br />
+			If you see an orange box, it means that you will need to pipette less than 1&mu;l of something. You are advised to dilute before adding to the mix.
+		</div>
+		<div style="clear:both;"></div>
+	</div>
+</div>
 
 {% endblock %}
 
@@ -90,101 +160,32 @@ div.fragment_name {
 
 {% endblock %}
 
-
 {% block js %}
-function makeHttpObject() {
-  try {return new XMLHttpRequest();}
-  catch (error) {}
-  try {return new ActiveXObject("Msxml2.XMLHTTP");}
-  catch (error) {}
-  try {return new ActiveXObject("Microsoft.XMLHTTP");}
-  catch (error) {}
-
-  throw new Error("Could not create HTTP request object.");
-}
-$('document').ready(function () {
-	$('button#download_primers').button({
-		icons:{primary:'ui-icon-transferthick-e-w'}
-	}).click(function(event){
-		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/csv';
-	});
-	$('button#reset_offset').button({
-		icons:{primary:'ui-icon-refresh'}
-	}).click(function () {
-		$('#primer_offset_confirm').html('You are about to reset all of the primers to 0 offset.');
-		$('#primer_offset_confirm').dialog( "option", "buttons", { 
-			"Ok": function() {
-				$(this).dialog("close"); 
-				$('#process').dialog('open');
-				var h = makeHttpObject();
-				h.open('GET', 'reset', true)
-				h.onreadystatechange = function (){
-					p = parseInt(this.responseText.split(':').pop());
-					$('#process_progress').progressbar('value', p);
-					if (p==100){
-						window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'
-					}
-				}
-				h.send(null);
-			},
-			"Cancel": function() { 
-				$(this).dialog("close"); 
-			} 
+<script type="text/javascript">
+$(document).ready(function() {
+	$('button#save')
+		.button({
+			icons:{primary:'ui-icon-disk'}
+		})
+		.click(function() {
+			forms = [];
+			$('.mixform').each(function(){
+				forms.push('{"id":"' + this.elements['id'].value + '","t_c":'+this.elements['temp_c'].value+',"p_t_c":'+this.elements['p_t_c'].value+',"p_b_c":'+this.elements['p_b_c'].value+'}');
+			});
+			settings = [];
+			$.each($('#pcrform')[0].elements, function (i,e) {
+				settings.push('"' + e.name + '":"' + e.value + '"');
+			});
+			$.post('save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
 		});
-		$('#primer_offset_confirm').dialog('open');
-	});
-	$('.primer_info_wrapper').hide();
-	$('#process_progress').progressbar({ value: 0 });
-	$('#process').dialog({
-		autoOpen:false,
-		modal:true,
-		resizable:false,
-		title:'Please wait',
-		closeOnEscape:false,
-		draggable:false,
-		open: function(event, ui) {
-			$(".ui-dialog-titlebar-close").hide();
-		},
-		close: function(event, ui) {
-			$('#process_progress').progressbar('value', 0);
-		}
-	});
-	$('#primer_offset_confirm').dialog({
-		autoOpen:false,
-		width:"500",
-		modal:true,
-		resizable:false,
-		title:'Confirm offset',
-		closeOnEscape:false,
-		draggable:false,
-	});
-	$('#wait').dialog({
-		autoOpen:false,
-		modal:true,
-		resizable:false,
-		title:'Please wait',
-		closeOnEscape:false,
-		draggable:false,
-		open: function(event, ui) {
-			$(".ui-dialog-titlebar-close").hide();
-		},
-		close: function(event, ui) {
-			$('.ui-dialog-titlebar-close').show();
-		}
-	});
 	$('button.primer_button').click(function() {
 		$('#wait').dialog('open');
 		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
+			$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
 			$('.primer_info_wrapper:hidden').show()
 			$('#wait').dialog('close');
 		});
 		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
-	});
-	$('button.primer_top').button({
-		icons:{primary:'ui-icon-circle-arrow-w'}
-	});
-	$('button.primer_bottom').button({
-		icons:{secondary:'ui-icon-circle-arrow-e'}
 	});
 	if ('{{ primer }}' != ''){
 		$('#wait').dialog('open');
@@ -194,7 +195,25 @@ $('document').ready(function () {
 		});
 		$('.primer_info_wrapper').show();
 	}
-});
-	
+	var downloadTimer;
+	$('button#download').button({
+		icons:{primary:'ui-icon-clipboard'}
+	}).click(function() {
+		$('#wait').dialog('open');
+		var token = new Date().getTime();
+		downloadTimer = window.setInterval(function () {
+			var cookieValue = $.cookie('fileDownloadToken');
+			if (cookieValue == token) {
+				$('#wait').dialog('close');
+				window.clearInterval(downloadTimer);
+				$.cookie('fileDownloadToken', null);
+			}
+		},500);
+		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download?tk='+token;
+		
 
+		//window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download';
+	});
+});
+</script>
 {% endblock %}
