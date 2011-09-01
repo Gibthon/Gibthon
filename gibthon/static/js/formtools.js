@@ -51,7 +51,6 @@ $.widget("ui.formExtender", {
 			text: false,
 			icons: {primary: 'ui-icon-trash',},
 		}).click( function(event) {
-			console.log('remove');
 			self._remove(event);
 		});
 		
@@ -89,6 +88,8 @@ $.widget("ui.formExtender", {
 $.widget("ui.magicForm", {
 	options: {
 		save: function(data) {}, //called on save
+		defaultInput: $("<input class='magic-input' size=4 maxlength=8 />"), //name autoset to id of magic-text
+		defaultError: $("<p class='magic-error'></p>"),
 	},
 	_init: function() {
 		var self = this;
@@ -103,6 +104,26 @@ $.widget("ui.magicForm", {
 		this.$button = this.$form.find('button.magic-button')
 			.button(this.edit_opts)
 			.click( function() {self._edit();});
+		this.$cancel_btn = this.$form.find('button.magic-button-cancel')
+			.button({label: 'Cancel', icons: {primary: 'ui-icon-cancel',}, disabled: true,})
+			.click(function() {self._cancel();});
+		
+		this.$form.find('.magic-item').each( function() {
+			var $item = $(this);
+			//check if there's an error block
+			if($item.find('.magic-error').length == 0)
+			{
+				$item.append(self.options.defaultError.clone());
+			}
+			if($item.find('.magic-input').length == 0)
+			{
+				$item.find('.magic-text').parent().append(
+					self.options.defaultInput
+						.clone()
+						.attr('name', $item.attr('id'))
+				);
+			}
+		});
 	},
 	method: function(method)
 	{
@@ -130,6 +151,7 @@ $.widget("ui.magicForm", {
 		this.$button.button('option', this.save_opts)
 			.unbind('click')
 			.click( function() {self._save();});
+		this.$cancel_btn.button('enable');
 	},
 	_save: function()
 	{
@@ -142,26 +164,40 @@ $.widget("ui.magicForm", {
 			success: function(data) {self._data(data);},
 		});
 	},
+	_cancel: function()
+	{
+		var self = this;
+		//hide the errors
+		this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
+		this.$form.find('.magic-item').each( function() {
+			var $item = $(this);
+			var $input = $item.find('.magic-input');
+			var $text = $item.find('.magic-text');
+			//show the text again
+			$input.fadeOut('fast', function() {$text.fadeIn('fast');});
+		});
+		this.$button.button('option', this.edit_opts)
+			.unbind('click')
+			.click( function() {self._edit();});
+		this.$cancel_btn.button('disable');
+	},
 	_data: function(data)
 	{
 		var self = this;
+		//hide the errors
+		this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
 		if(data[0] != 0) //if error
 		{
-			console.log('Error!');
 			$inputs = this.$form.find('.magic-input');
 			for(i in data[1].errors)
 			{
-				console.log('errors.' + i + ' = ' + data[1].errors[i]);
 				//find the input(s) to which the error relates
 				$inputs.each( function() {
 					var $t = $(this);
 					if($t.attr('name') == i)
 					{
-					console.log('input name: ' + $t.attr('name') + ' i: ' + i);
 						//show the error
 						var $item = $t.closest('.magic-item').find('.magic-error');
-						console.log('  item.html(): ' + $item.html());
-						console.log('  errors[i]: ' + data[1].errors[i]);
 						$item.text('' + data[1].errors[i]);
 						$item.slideDown('slow');
 					}
@@ -169,8 +205,7 @@ $.widget("ui.magicForm", {
 			}
 		}
 		else
-		{	//hide the errors
-			this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
+		{	
 			this.$button.button('option', this.edit_opts)
 				.unbind('click')
 				.click( function() {self._edit();});
@@ -186,6 +221,7 @@ $.widget("ui.magicForm", {
 					$text.text(val).fadeIn('fast');
 				});
 			});
+			this.$button_cancel.button('disable');
 		}
 	},
 });

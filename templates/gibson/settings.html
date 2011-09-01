@@ -3,85 +3,74 @@
 <div id="settings" class="pad-content center">
 	
 	<div style="display:inline-block;" class="ui-content ui-corner-all">
-		{% csrf_token %}
 		<form id='settings_form' action='saveSettings/' method='post' onsubmit='return false;'>
+			{% csrf_token %}
 			<h3 style="display:inline-block;">Reaction Settings</h3>
 			<button id="edit_settings" class="magic-button" >Edit</button>
+			<button id="cancel_settings" class="magic-button-cancel" >Cancel</button>
 			<table id="settings_table">
 				<tr class='settings'>
 					<td class="setting-title">Mg<sup>2+</sup> concentration</td>
-					<td class="setting-value" id="mg_salt">
-						<span class='magic-item'>
+					<td class="setting-value">
+						<span id='mg_salt' class='magic-item'>
 							<span class="setting-conc">
 								<span class='magic-text'>{{ settings.mg_salt }}</span>
-								<input name='mg_salt' class='magic-input' size=4 maxlength=8 />
 							</span>
-							<p class='magic-error'></p>
 						</span>
 					</td>
 				</tr>
 				
 				<tr class='settings settings-alt'>
 					<td class="setting-title">Na<sup>+</sup> concentration</td>
-					<td class="setting-value" id="na_salt">
-						<span class='magic-item'>
+					<td class="setting-value">
+						<span id='na_salt' class='magic-item'>
 							<span class="setting-conc">
 								<span class='magic-text'>{{ settings.na_salt }}</span>
-								<input name='na_salt' class='magic-input' size=4 maxlength=8 />
 							</span>
-							<p class='magic-error'></p>
 						</span>
 					</td>
 				</tr>
 				
 				<tr class='settings'>
 					<td class="setting-title">Secondary structure safety margin</td>
-					<td class="setting-value" id="ss_safety">
-						<span class='magic-item'>
+					<td class="setting-value">
+						<span id="ss_safety" class='magic-item'>
 							<span class="setting-temp">
 								<span class='magic-text'>{{ settings.ss_safety }}</span>
-								<input name='ss_safety' class='magic-input' size=4 maxlength=8 />
 							</span>
-							<p class='magic-error'></p>
 						</span>
 					</td>
 				</tr>
 				
 				<tr class='settings settings-alt'>
 					<td class="setting-title">Target annealing temperature</td>
-					<td class="setting-value" id="min_anneal_tm">
-						<span class='magic-item'>
+					<td class="setting-value">
+						<span id="min_anneal_tm" class='magic-item'>
 							<span class="setting-temp">
 								<span class='magic-text'>{{ settings.min_anneal_tm }}</span>
-								<input name='min_anneal_tm' class='magic-input' size=4 maxlength=8 />
 							</span>
-							<p class='magic-error'></p>
 						</span>
 					</td>
 				</tr>
 				
 				<tr class='settings'>
 					<td class="setting-title">Target primer annealing temperature</td>
-					<td class="setting-value" id="min_primer_tm">
-						<span class='magic-item'>
+					<td class="setting-value">
+						<span  id="min_primer_tm" class='magic-item'>
 							<span class="setting-temp">
 								<span class='magic-text'>{{ settings.min_primer_tm }}</span>
-								<input name='min_primer_tm' class='magic-input' size=4 maxlength=8 />
 							</span>
-							<p class='magic-error'></p>
 						</span>
 					</td>
 				</tr>
 				
 				<tr class='settings settings-alt'>
 					<td class="setting-title">Minimum overlap</td>
-					<td class="setting-value" id="min_overlap">
-						<span class='magic-item'>
+					<td class="setting-value">
+						<span id="min_overlap" class='magic-item'>
 							<span class="setting-len">
 								<span class='magic-text'>{{ settings.min_overlap }}</span>
-								<input name='min_overlap' class='magic-input' size=4 maxlength=8 />
 							</span>
-							<p class='magic-error'></p>
 						</span>
 					</td>
 				</tr>
