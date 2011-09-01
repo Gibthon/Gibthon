@@ -87,8 +87,8 @@ $.widget("ui.formExtender", {
 
 $.widget("ui.magicForm", {
 	options: {
-		save: function(data) {}, //called on save
-		defaultInput: $("<input class='magic-input' size=4 maxlength=8 />"), //name autoset to id of magic-text
+		save: function(e, data) {}, //called on save
+		defaultInput: $("<input class='magic-input'/>"), //name autoset to id of magic-text
 		defaultError: $("<p class='magic-error'></p>"),
 	},
 	_init: function() {
@@ -221,7 +221,8 @@ $.widget("ui.magicForm", {
 					$text.text(val).fadeIn('fast');
 				});
 			});
-			this.$button_cancel.button('disable');
+			this.$cancel_btn.button('disable');
+			this._trigger('save', undefined, data);
 		}
 	},
 });

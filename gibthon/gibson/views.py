@@ -239,9 +239,22 @@ def designer(request,cid):
 	else:
 		return HttpResponseNotFound()
 
+@login_required
+def design_tab(request, cid):
+	con = get_construct(request.user, cid)
+	if con:
+		t = loader.get_template('gibson/designtab.html')
+		c = RequestContext(request,{
+			'id': cid,
+			'construct':con,
+		})
+		return HttpResponse(t.render(c))
+	else:
+		return HttpResponseNotFound()
+
+
 ############### JSON API for designer
 
-import time
 import simplejson as json
 
 OK = 0
@@ -256,15 +269,12 @@ class RawJsonResponse(HttpResponse):
 		print "Return JSON: '%s'" % json.dumps(data)
 		HttpResponse.__init__(self, json.dumps(data), mimetype='application/json')
 
-def format_date(date): #given a datetime object, return a stringified version
-	return date.isoformat(' ')
-
 @login_required
 def update_meta(request, cid): # 'saveMeta/'
 	if request.method == 'POST': #and request.is_ajax():
 		con = get_construct(request.user, cid)
 		if not con:
-			return JsonResponse("Construct with id '%s' not found" % cid, ERROR)
+			return JsonResponse({'errors': {'all': "Construct with id '%s' not found" % cid,}}, ERROR)
 		name = request.POST.get('name', con.name)
 		desc = request.POST.get('desc', con.description)
 		if (name != con.name) or (desc != con.description):
@@ -272,7 +282,7 @@ def update_meta(request, cid): # 'saveMeta/'
 			con.description = desc
 			con.save()
 		
-		return JsonResponse({'modified': format_date(con.modified),});
+		return JsonResponse({'modified': con.last_modified(), 'fields': {'name': name, 'desc': desc}});
 		
 	raise Http404
 	
@@ -288,7 +298,7 @@ def update_settings(request, cid):
 			data = {}
 			for key,value in form.cleaned_data.items():
 				data[key] = str(value);
-			return JsonResponse({'modified': format_date(con.modified), 'fields': data})
+			return JsonResponse({'modified': con.last_modified(), 'fields': data})
 		return JsonResponse({'errors': form.errors,}, ERROR)
 	raise Http404
 	

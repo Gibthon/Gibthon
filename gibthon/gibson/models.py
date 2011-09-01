@@ -388,6 +388,8 @@ class PrimerHalf(models.Model):
 		else:
 			return self.stick.name + ' (stick): ' + str(self.seq()) + ' (' + str(self.tm()) + ')'
 
+import datetime
+
 SHAPE_CHOICES = (
 	('c', 'Circular'),
 	('l', 'Linear'),
@@ -411,6 +413,9 @@ class Construct(models.Model):
 		for f in self.cf.all():
 			dna += f.sequence()
 		return dna
+	
+	def last_modified(self):
+		return self.modified.strftime('%b. %d, %Y, %I:%M %p')
 	
 	def length(self):
 		return len(self.sequence())
