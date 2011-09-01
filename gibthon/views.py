@@ -2,7 +2,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import Context, loader, RequestContext
 from django.contrib.auth.decorators import login_required
 
-from gibthon.forms import *
 
 import hashlib
 import datetime
