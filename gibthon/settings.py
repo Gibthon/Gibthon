@@ -122,10 +122,17 @@ INSTALLED_APPS = (
     'captcha',
     'partsearch',
     'ligcalc',
+    'accounts',
 )
 
 LOGIN_URL = '/user/login'
 LOGIN_REDIRECT_URL = '/user/profile/'
+
+AUTHENTICATION_BACKENDS = (
+	'gibthon.auth_backends.GibthonUserModelBackend',
+)
+
+CUSTOM_USER_MODEL = 'accounts.GibthonUser'
 
 # captcha settings
 

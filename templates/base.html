@@ -11,6 +11,9 @@
 <script src="{{ STATIC_URL }}/js/ajax.js" type="text/javascript"></script>
 {% block js-include %}{% endblock %}
 {% block js %}{% endblock %}
+{% if user.is_authenticated %}
+<script src='http://async-message-passer.appspot.com/_ah/channel/jsapi'></script>
+{% endif %}
 <script type="text/javascript">
 $(document).ready(function() {
 	$('button#login')
@@ -60,7 +63,22 @@ $(document).ready(function() {
 	$('a[id^="menu"]').button();
 	
 	$('input[id^="id_captcha"]').addClass('captcha');
-	
+	{% if user.is_authenticated %}
+		channel = new goog.appengine.Channel('{{ user.channel_key }}');
+		socket = channel.open();
+		socket.onopen = function() {};
+		socket.onmessage = function(message) {
+			$.get('/user/inbox/fetch', function (data) {
+				if(data[0] > 0){
+					$('span#not_added').html(data[2]);
+					$('span#unread').html(data[1]);
+					alert('You have '+data[0]+' new message(s)!');
+				}
+			}, 'json');
+		};
+		socket.onerror = function() {};
+		socket.onclose = function() {};	
+	{% endif %}
 	
 });
   var _gaq = _gaq || [];
@@ -92,7 +110,10 @@ $(document).ready(function() {
 		<div class="ui-widget-content ui-corner-all menu">
 			<p><strong>Navigation</strong></p>
 			<a id="menu_home" href="/">Home</a>
+			{% if user.is_authenticated %}
 			<a id="menu_profile" href="/user/profile/">Profile</a>
+			<a id="menu_inbox" href="/user/inbox/">Inbox (<span id="unread" style="color:red;">{{ user.inbox.unread.count }}</span>/<span id="not_added" style="color:black;">{{ user.inbox.not_added.count }}</span>/<span id="count">{{ user.inbox.message.count }})</a>
+			{% endif %}
 			<p><strong>Gibthon</strong></p>
 			<a id="menu_fragment" href="/fragment/">Fragment library</a>
 			<a id="menu_gibthon" href="/gibthon/">Construct Designer</a>
@@ -127,6 +148,9 @@ $(document).ready(function() {
 	</div>
 	{% endif %}
 	{% endblock %}
+	<div class="ui-state-highlight ui-corner-all content">
+	<p>Import parts directly from the <a href="http://partsregistry.org/Main_Page">Parts Registry</a> by dragging <a href="javascript:(function%20()%20{var%20scr%20=%20document.createElement(%27script%27);scr.type%20=%20%27text/javascript%27;scr.src%20=%20%27http://django.gibthon.org/static/js/gibthon-import.js%27;document.documentElement.appendChild(scr)})();">this bookmarklet</a> to your favourites</p>
+	</div>
 		{% block content %}{% endblock %}
 	<div class="ui-widget-content ui-corner-all footer">
 		Copyright 2011 Bill Collins and Contributors

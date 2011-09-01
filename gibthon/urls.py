@@ -6,16 +6,6 @@ from django.views.generic.simple import direct_to_template
 admin.autodiscover()
 
 
-userpatterns = patterns('gibthon.views',
-	(r'^$', 'redirect_home'),
-	(r'^login/$', 'login'),
-	(r'^logout$', 'logout'),
-	(r'^profile/$', 'profile'),
-#	(r'^reset/$', 'reset'),
-	(r'^register/$', 'register'),
-	(r'^register/(?P<email_hash>\w+)/$', 'create'),
-)
-
 toolpatterns = patterns('gibthon.views',
 	(r'^$', 'redirect_home'),
 	(r'^ligate/$', 'ligcal'),
@@ -29,7 +19,7 @@ urlpatterns = patterns('',
 	(r'^gibthon/', include('gibthon.gibson.urls')),
 	(r'^fragment/', include('gibthon.fragment.urls')),
 	(r'^help/', include('gibthon.help.urls')),
-    (r'^user/', include(userpatterns)),
+    (r'^user/', include('gibthon.accounts.urls')),
     (r'^tools/', include(toolpatterns)),
     (r'^admin/', include(admin.site.urls)),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),

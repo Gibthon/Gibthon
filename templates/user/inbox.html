@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/datatable.css" />
+<style type="text/css">
+td.centre {
+	text-align:center;
+}
+span.icon {
+	margin:5px auto;
+	cursor:pointer;
+}
+td {
+	padding-left:5px;
+	padding-right:5px;
+}
+</style>
+{% endblock %}
+
+
+{% block js-include %}
+<script src="{{ STATIC_URL }}/js/jquery.dataTables.min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block menu %}
+|
+<a href="add">Add all</a>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+<h2>Inbox</h2>
+<h4>{{ user.channel }}</h4>
+<p>You have {{ user.inbox.unread.count }} unread message{{ user.inbox.unread.count|pluralize }} and {{ user.inbox.not_added.count }} not yet added.</p>
+<div style="padding:10px;">
+	<table class="inbox_table">
+		<thead>
+			<tr><th></th><th>Received</th><th>From</th><th>Type <select>
+					<option value="">---------</option>
+					<option>Construct</option>
+					<option>Fragment</option>
+				</select>
+				Origin <select>
+					<option value="">------------------------</option>
+					<option>Gibthon Construct Designer</option>
+					<option>Genetic Engineering of Cells</option>
+					<option>Parts Registry</option>
+					<option>Unknown</option>
+				</select></th><th>Added</th><th></th><th></th><th>Del</th></tr>
+		</thead>
+		<tbody>
+			 {% for message in user.inbox.message.all %}
+				<tr>
+					<td>
+						<span class="ui-icon ui-icon-circle-plus icon"></span>
+					</td><td>
+						{{ message.received|date:"G:i j/n/y" }}
+						{% if message.read %}
+						{% else %}
+							<span style="color:red; font-weight:bold; font-size:0.6em; padding-left:5px;">New</span>
+						{% endif %}
+					</td><td>
+						{{ message.sender }}
+					</td><td>
+						{{ message.description }}
+					</td><td>
+						<span class="ui-icon ui-icon-circle-{% if message.added %}check{% else %}close{% endif %} icon message_add"></span>
+					</td><td>
+						{{ message.id }}
+					</td><td>
+						{{ message.received|date:"U" }}
+					</td><td>
+						<span class="ui-icon ui-icon-trash icon message_delete"></span>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+</div>
+{% endblock %}
+
+{% block dialog %}
+{% endblock %}
+
+
+{% block js %}
+<script type="text/javascript">
+
+var messageDetail = function ( nTr ) {
+	sOut = '<p>Message content</p><textarea cols="104" rows="10" readonly="true" style="font-family:monospace;" id="message_detail"></textarea>';
+	return sOut;
+}
+var openRow = '';
+
+$(document).ready(function() {
+	$('.inbox_table').dataTable({
+		bAutoWidth: false,
+		bJQueryUI: true,
+		aaSorting: [[1,'desc']],
+		aoColumns: [
+			{
+				sWidth:"10px",
+				bSortable:false
+			},
+			{
+				sWidth:"200px",
+				iDataSort:6
+			},
+			{
+				sWidth:"150px",
+				bVisible:false,
+				bSearchable:false,
+			},
+			{
+				sWidth:"460px",
+				bSortable:false,
+				bSearchable:false
+			},
+			{
+				sWidth:"60px",
+				sClass:"centre",
+				bSortable:false,
+				bSearchable:false
+			},
+			{
+				bVisible:false,
+				bSortable:false
+			},
+			{
+				bVisible:false,
+				bSearchable:false
+			},
+			{
+				sWidth:"30px",
+				sClass:"centre",
+				bSearchable:false,
+				bSortable:false,
+			}
+		]
+	});
+	$('.inbox_table tr td:first-child span').live('click', function () {
+		var nTr = this.parentNode.parentNode;
+		if (openRow != '' && openRow != nTr) {
+			$('.inbox_table').dataTable().fnClose(openRow);
+			var icon = $('td:first-child span', openRow);
+			icon.removeClass('ui-icon-circle-minus');
+			icon.addClass('ui-icon-circle-plus');
+		}
+		if ($(this).hasClass('ui-icon-circle-minus')) {
+			$('.inbox_table').dataTable().fnClose(nTr);
+			$(this).removeClass('ui-icon-circle-minus');
+			$(this).addClass('ui-icon-circle-plus');
+			openRow = ''
+		} else {
+			$('.inbox_table').dataTable().fnOpen(nTr, messageDetail(nTr), 'details');
+			var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
+			$('textarea#message_detail').load(message_id+'/detail');
+			$(this).removeClass('ui-icon-circle-plus');
+			$(this).addClass('ui-icon-circle-minus');
+			$('+ td span', this.parentNode).remove();
+			openRow = nTr;
+		}
+	});
+	$('.inbox_table select').change(function () {
+		$('.inbox_table').dataTable().fnFilter( $(this).val(), 3);
+	});
+	$('a[href="add"]').button({
+		icons:{primary:'ui-icon-plusthick'}
+	}).click(function(event) {
+		event.preventDefault();
+		if ($('.inbox_table span.message_add.ui-icon-circle-close').length == 0){
+			alert("No new items to add");
+		} else if (confirm("This will add all un-added messages.")){
+			$.get('add', function(data) {
+				alert(data);
+				window.location.reload();
+			});
+		}
+	});
+	$('span.message_delete').click(function() {
+		if (confirm('Are you sure you wish to delete this message?')) {
+			var nTr = this.parentNode.parentNode;
+			var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
+			
+			$.get(message_id+'/delete', function(data) {
+				$('.inbox_table').dataTable().fnDeleteRow(nTr);
+			});
+		}
+	});
+	$('span.message_add').click(function() {
+		var nTr = this.parentNode.parentNode;
+		var message_id = $('.inbox_table').dataTable().fnGetData(nTr)[5];
+		if (($(this).hasClass('ui-icon-circle-check'))?confirm('You have already added this, would you like to add it again?'):true){
+			$.get(message_id+'/add', function(data) {
+				alert(data);
+				window.locaiton.reload();
+			});
+		}
+	});
+});
+</script>
+{% endblock %}

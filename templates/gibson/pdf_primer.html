@@ -90,7 +90,7 @@ h2.title {
 </div>
 <pdf:nextpage />
 <table>
-	<tr><td style="width:100%;"><h2 class="title">{{ construct.name }}:<em>Gibson Assembly Protocol</em></h2></td><td class="title" style="width:0%; text-align:right;"></td>
+	<tr><td style="width:100%;"><h2 class="title">Gibson Assembly Protocol:<em style="font-size:80%;">{{ construct.name }}</em></h2></td><td class="title" style="width:0%; text-align:right;"></td>
 </table>
 <br />
 <h2>Protocol</h2>
@@ -134,7 +134,7 @@ h2.title {
 {% for cf in construct.cf.all %}
 <pdf:nextpage />
 <table>
-	<tr><td style="width:50%;"><h2 class="title">{{ construct.name }}:<em>{{ cf.fragment.name }}</em></h2></td><td class="title" style="width:50%; text-align:right;">Primer datasheet</td>
+	<tr><td style="width:50%;"><h2 class="title">{{ cf.fragment.name }}:<em style="font-size:80%;">{{ construct.name }}</em></h2></td><td class="title" style="width:50%; text-align:right;">Primer datasheet</td>
 </table>
 <h2>Primers</h2>
 <div style="height:40%; margin-left:20px;">

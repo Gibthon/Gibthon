@@ -1,7 +1,9 @@
 import os, sys
 
-sys.path.append('/home/bill/www')
-sys.path.append('/home/bill/www/gibthon')
+gibthon_path = '/home/bill/www'
+
+sys.path.append(gibthon_path)
+sys.path.append(gibthon_path + '/gibthon')
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'gibthon.settings'
 
