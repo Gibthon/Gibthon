@@ -10,6 +10,7 @@ from fragment import partsregistry
 
 import json
 from datetime import datetime, timedelta
+import time
 
 class GibthonUser(User):
 
@@ -125,3 +126,6 @@ class Message(models.Model):
 	
 	def __unicode__(self):
 		return "Message from " + self.sender + " to " + self.inbox.user.channel()
+
+	def json(self):
+		return [self.read,time.mktime(self.received.timetuple()),self.description(),self.added,self.id]

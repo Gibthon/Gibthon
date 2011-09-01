@@ -15,7 +15,18 @@
 <script src='http://async-message-passer.appspot.com/_ah/channel/jsapi'></script>
 {% endif %}
 <script type="text/javascript">
+var inbox_refresh = function() {
+	$.get('/user/inbox/fetch', function (data) {
+		$('span#inbox_not_added').html(data[2]);
+		$('span#inbox_unread').html(data[1]);
+		$('span#inbox_count').html(data[3]);
+		if (data[0] > 0) {
+			alert('You have '+data[0]+' new message(s)!');
+		}
+	}, 'json');
+};
 $(document).ready(function() {
+	inbox_refresh();
 	$('button#login')
 		.button({
 			icons:{primary:'ui-icon-tag'}
@@ -68,13 +79,7 @@ $(document).ready(function() {
 		socket = channel.open();
 		socket.onopen = function() {};
 		socket.onmessage = function(message) {
-			$.get('/user/inbox/fetch', function (data) {
-				if(data[0] > 0){
-					$('span#not_added').html(data[2]);
-					$('span#unread').html(data[1]);
-					alert('You have '+data[0]+' new message(s)!');
-				}
-			}, 'json');
+			inbox_refresh();
 		};
 		socket.onerror = function() {};
 		socket.onclose = function() {};	
@@ -112,7 +117,7 @@ $(document).ready(function() {
 			<a id="menu_home" href="/">Home</a>
 			{% if user.is_authenticated %}
 			<a id="menu_profile" href="/user/profile/">Profile</a>
-			<a id="menu_inbox" href="/user/inbox/">Inbox (<span id="unread" style="color:red;">{{ user.inbox.unread.count }}</span>/<span id="not_added" style="color:black;">{{ user.inbox.not_added.count }}</span>/<span id="count">{{ user.inbox.message.count }})</a>
+			<a id="menu_inbox" href="/user/inbox/">Inbox (<span id="inbox_unread" style="color:red;"></span>/<span id="inbox_not_added" style="color:black;"></span>/<span id="inbox_count"></span>)</a>
 			{% endif %}
 			<p><strong>Gibthon</strong></p>
 			<a id="menu_fragment" href="/fragment/">Fragment library</a>
