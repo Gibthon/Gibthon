@@ -140,7 +140,7 @@ def load_primer(request, cid, pid):
 @login_required
 def primers(request, cid):
 	con = get_construct(request.user, cid)
-	if con and len(con.primer.all()) == 2*len(con.cf.all()):
+	if con and len(con.primer.all()) == 2*len(con.cf.all()) and len(con.primer.all()) > 0:
 		t = loader.get_template('gibson/primers.html')
 		c = RequestContext(request, {
 			'construct': con,
@@ -226,6 +226,21 @@ def construct(request,cid):
 		return HttpResponseNotFound()
 
 @login_required
+def construct_fragment(request, cid):
+	con = get_construct(request.user, cid)
+	if con:
+		t = loader.get_template('gibson/constructfragment.html')
+		cf_list = con.cf.all()
+		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
+		list = zip(cf_list, feature_list)
+		c = RequestContext(request, {
+			'list':list
+		})
+		return HttpResponse(t.render(c))
+	else:
+		return HttpResponseNotFound()
+
+@login_required
 def construct_delete(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
@@ -234,7 +249,7 @@ def construct_delete(request, cid):
 	else:
 		return HttpResponseNotFound()
 
-@login_required	
+@login_required
 def fragment_viewer(request, cid, fid):
 	if get_construct(request.user, cid):
 		f = get_fragment(request.user, fid)
@@ -269,7 +284,8 @@ def fragment_add(request, cid, fid):
 	if con:
 		f = get_fragment(request.user, fid)
 		if f:
-			add_fragment(con,f)
+			con.add_fragment(f)
+#			return HttpResponse('OK')
 			return HttpResponseRedirect('/gibthon/'+cid+'/'+con.name+'/')
 		else:
 			return HttpResponseNotFound()
@@ -284,7 +300,7 @@ def fragment_delete(request, cid, cfid):
 		except ObjectDoesNotExist: return HttpResponseNotFound()
 		else:
 			cf.delete()
-			return HttpResponseRedirect('/gibthon/'+cid+'/'+cf.construct.name+'/')
+			return HttpResponse("OK")
 	else:
 		return HttpResponseNotFound()
 

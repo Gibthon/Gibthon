@@ -218,6 +218,9 @@ class Feature(models.Model):
 	direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
 	gene = models.ForeignKey('Gene', related_name="features")
 	
+	class Meta:
+		ordering = ['start']
+	
 	def add(feature, g, origin):
 		if (origin == "BB"):
 			feature.location.start.position += 1

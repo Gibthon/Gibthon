@@ -22,4 +22,10 @@
 			}
 		]
 	});
+	$('a[href^="add"]').click(function (event, ui) {
+		event.preventDefault();
+		$.get(this.href);
+		refresh();
+		$('#fragment_browser').dialog('close');
+	});
 </script>

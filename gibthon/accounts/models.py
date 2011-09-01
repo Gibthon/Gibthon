@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from gibthon.messages import MessagePasser
 from fragment.models import Gene
-from gibson.models import Construct, add_fragment
+from gibson.models import Construct
 from fragment import partsregistry
 
 import json
@@ -103,7 +103,7 @@ class Message(models.Model):
 				description = "New Construct from GEC"
 				c = Construct.objects.create(name=name, description=description, shape='c', owner=self.inbox.user)
 				for f in fs:
-					add_fragment(c, f)
+					c.add_fragment(f)
 				return 1
 			else:
 				return -4
