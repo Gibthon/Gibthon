@@ -33,51 +33,7 @@ td {
 <h2>Inbox</h2>
 <h4>{{ user.channel }}</h4>
 <div style="padding:10px;">
-	<table class="inbox_table">
-		<thead>
-			<tr><th></th><th>Received</th><th>From</th><th>Type <select>
-					<option value="">---------</option>
-					<option>Construct</option>
-					<option>Fragment</option>
-				</select>
-				Origin <select>
-					<option value="">------------------------</option>
-					<option>Gibthon Construct Designer</option>
-					<option>Genetic Engineering of Cells</option>
-					<option>Parts Registry</option>
-					<option>Unknown</option>
-				</select></th><th>Add</th><th></th><th></th><th>Del</th></tr>
-		</thead>
-		<tbody>
-			 {% for message in user.inbox.message.all %}
-				<tr>
-					<td>
-						<span class="ui-icon ui-icon-circle-plus icon"></span>
-					</td><td>
-						{{ message.received|date:"G:i j/n/y" }}
-						{% if message.read %}
-						{% else %}
-							<span style="color:red; font-weight:bold; font-size:0.6em; padding-left:5px;">New</span>
-						{% endif %}
-					</td><td>
-						{{ message.sender }}
-					</td><td>
-						{{ message.description }}
-					</td><td>
-						<span class="ui-icon ui-icon-circle-{% if message.added %}check{% else %}close{% endif %} icon message_add"></span>
-					</td><td>
-						{{ message.id }}
-					</td><td>
-						{{ message.received|date:"U" }}
-					</td><td>
-						<span class="ui-icon ui-icon-trash icon message_delete"></span>
-					</td>
-				</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	
-	<table id="inbox_table2">
+	<table id="inbox_table">
 		<thead>
 			<tr><th></th><th>Received</th><th>Type <select>
 					<option value="">---------</option>
@@ -106,7 +62,7 @@ td {
 <script type="text/javascript">
 
 var messageDetail = function ( nTr ) {
-	sOut = '<p>Message content</p><textarea cols="104" rows="10" readonly="true" style="font-family:monospace;" id="message_detail"></textarea>';
+	sOut = '<textarea cols="104" rows="10" readonly="true" style="font-family:monospace;" id="message_detail"></textarea>';
 	return sOut;
 }
 var openRow = '';
@@ -122,11 +78,10 @@ var print_time = function ( dto ) {
 	if (minutes < 10) { minutes = '0' + minutes }
 	
 	return hours + ':' + minutes + ' ' + t.getDate() + '/' + (t.getMonth()+1) + '/' + t.getFullYear();
-}
-	
+}	
 
 $(document).ready(function() {
-	$('#inbox_table2').dataTable({
+	$('#inbox_table').dataTable({
 		bAutoWidth: false,
 		bJQueryUI: true,
 		aaSorting: [[1, 'desc']],
@@ -176,84 +131,41 @@ $(document).ready(function() {
 			}
 		]
 	});
+	var inbox_table = $('#inbox_table').dataTable();
 
-	$('.inbox_table').dataTable({
-		bAutoWidth: false,
-		bJQueryUI: true,
-		aaSorting: [[1,'desc']],
-		aoColumns: [
-			{
-				sWidth:"10px",
-				bSortable:false
-			},
-			{
-				sWidth:"200px",
-				iDataSort:6
-			},
-			{
-				sWidth:"150px",
-				bVisible:false,
-				bSearchable:false,
-			},
-			{
-				sWidth:"460px",
-				bSortable:false,
-				bSearchable:false
-			},
-			{
-				sWidth:"60px",
-				sClass:"centre",
-				bSortable:false,
-				bSearchable:false
-			},
-			{
-				bVisible:false,
-				bSortable:false
-			},
-			{
-				bVisible:false,
-				bSearchable:false
-			},
-			{
-				sWidth:"30px",
-				sClass:"centre",
-				bSearchable:false,
-				bSortable:false,
-			}
-		]
-	});
 	$('span.read').live('click', function () {
 		var nTr = this.parentNode.parentNode;
+		var span = $(this);
 		if (openRow != '' && openRow != nTr) {
-			$('#inbox_table2').dataTable().fnClose(openRow);
+			inbox_table.fnClose(openRow);
 			var icon = $('span.read', openRow);
 			icon.removeClass('ui-icon-circle-minus');
 			icon.addClass('ui-icon-circle-plus');
 		}
-		if ($(this).hasClass('ui-icon-circle-minus')) {
-			$('#inbox_table2').dataTable().fnClose(nTr);
-			$(this).removeClass('ui-icon-circle-minus');
-			$(this).addClass('ui-icon-circle-plus');
+		if (span.hasClass('ui-icon-circle-minus')) {
+			inbox_table.fnClose(nTr);
+			span.removeClass('ui-icon-circle-minus');
+			span.addClass('ui-icon-circle-plus');
 			openRow = ''
 		} else {
-			$('#inbox_table2').dataTable().fnOpen(nTr, messageDetail(nTr), 'details');
-			var message_id = $('#inbox_table2').dataTable().fnGetData(nTr)[4];
+			inbox_table.fnOpen(nTr, messageDetail(nTr), 'details');
+			var message_id = inbox_table.fnGetData(nTr)[4];
 			$('textarea#message_detail').load(message_id+'/detail', function () {inbox_refresh()});
-			$(this).removeClass('ui-icon-circle-plus');
-			$(this).addClass('ui-icon-circle-minus');
+			span.removeClass('ui-icon-circle-plus');
+			span.addClass('ui-icon-circle-minus');
 			$('+ td span', this.parentNode).remove();
 			openRow = nTr;
 		}
 		inbox_refresh();
 	});
-	$('.inbox_table select').change(function () {
-		$('.inbox_table').dataTable().fnFilter( $(this).val(), 3);
+	$('#inbox_table select').change(function () {
+		inbox_table.fnFilter( $(this).val(), 2);
 	});
 	$('a[href="add"]').button({
 		icons:{primary:'ui-icon-plusthick'}
 	}).click(function(event) {
 		event.preventDefault();
-		if ($('.inbox_table span.message_add.ui-icon-circle-close').length == 0){
+		if ($('#inbox_table span.message_add.ui-icon-circle-close').length == 0){
 			alert("No new items to add");
 		} else if (confirm("This will add all un-added messages.")){
 			$.get('add', function(data) {
@@ -265,21 +177,21 @@ $(document).ready(function() {
 	$('span.message_delete').live("click", function() {
 		if (confirm('Are you sure you wish to delete this message?')) {
 			var nTr = this.parentNode.parentNode;
-			var message_id = $('#inbox_table2').dataTable().fnGetData(nTr)[4];
+			var message_id = inbox_table.fnGetData(nTr)[4];
 			
 			$.get(message_id+'/delete', function(data) {
-				$('#inbox_table2').dataTable().fnDeleteRow(nTr);
+				inbox_table.fnDeleteRow(nTr);
 				inbox_refresh();
 			});
 		}
 	});
 	$('span.message_add').live("click", function() {
 		var nTr = this.parentNode.parentNode;
-		var message_id = $('#inbox_table2').dataTable().fnGetData(nTr)[4];
+		var message_id = inbox_table.fnGetData(nTr)[4];
 		if (($(this).hasClass('ui-icon-circle-check'))?confirm('You have already added this, would you like to add it again?'):true){
 			$.get(message_id+'/add', function(data) {
 				inbox_refresh();
-				$('#inbox_table2').dataTable().fnReloadAjax();
+				inbox_table.fnReloadAjax();
 				alert(data);
 			});
 		}
