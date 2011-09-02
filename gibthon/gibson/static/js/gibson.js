@@ -39,17 +39,14 @@ var refresh = function () {
 			.button({ icons:{primary:'ui-icon-trash'} })
 			.click(function(event){
 				var targetUrl = this.id;
-				$('#fragment_delete').dialog({
-					buttons : {
-						"Cancel" : function() {
-							$(this).dialog("close");
-						},
-						"Confirm" : function() {
-							$.get(targetUrl, function () { refresh(); $('#fragment_delete').dialog('close'); });
-						}
+				$('#prompt').prompt({
+					type:'confirm',
+					title:'Confirm Delete',
+					message:'Are you sure you want to remove this fragment?',
+					confirm: function () {
+						$.get(targetUrl, function () { refresh();});
 					}
 				});
-				$('#fragment_delete').dialog('open');
 			});
 		$('.formthing').each(function(i,form) {
 			form.elements[2].parentNode.id = form.elements[2].name;
@@ -165,7 +162,16 @@ $(document).ready(function() {
 			h.send();			
 		});
 	$('button#delete')
-		.click(function(){ $('#construct_delete').dialog('open'); })
+		.click(function(){
+			$('#prompt').prompt({
+				type:'confirm',
+				title:'Confirm Delete',
+				message: 'Are you sure you want to delete this construct?',
+				confirm: function() {
+					window.location.href = 'delete';
+				}
+			});
+		})
 		.button({ icons:{primary:'ui-icon-trash'} });
 	$('button#save')
 		.button({ icons:{primary:'ui-icon-disk'} })
@@ -202,26 +208,6 @@ $(document).ready(function() {
 		close: function(event, ui) {
 			$('#process_progress').progressbar('value', 0);
 			$('button.button_progress').button('disable');
-		}
-	});
-	$('#fragment_delete').dialog({
-		autoOpen:false,
-		modal:true,
-		resizable:false,
-		title:'Confirm Delete'
-	});
-	$('#construct_delete').dialog({
-		autoOpen:false,
-		modal:true,
-		resizable:false,
-		title:'Confirm Delete',
-		buttons : {
-			"Cancel" : function() {
-				$(this).dialog('close');
-			},
-			"Delete" : function() {
-				window.location.href = 'delete';
-			}
 		}
 	});
 	$('#fragment_browser').dialog({
