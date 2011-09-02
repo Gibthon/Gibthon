@@ -19,18 +19,6 @@ var save = function () {
 	$('#summary').load('summary');
 };
 
-/* http factory for process request */
-function makeHttpObject() {
-  try {return new XMLHttpRequest();}
-  catch (error) {}
-  try {return new ActiveXObject("Msxml2.XMLHTTP");}
-  catch (error) {}
-  try {return new ActiveXObject("Microsoft.XMLHTTP");}
-  catch (error) {}
-
-  throw new Error("Could not create HTTP request object.");
-}
-
 var refresh = function () {
 	$('#fragment_list').hide().accordion('destroy');
 	$('#fragment_list').load('fragments', function() {
@@ -116,19 +104,11 @@ $(document).ready(function() {
 	/* load the fragments */
 	refresh();
 	
-	/* general initialisations */
-	$('#process_progress').progressbar({ value: 0 });
 	
 	/* load the settings */
 	$('div#settings-wrapper').load('settings');
 	
 	/* buttons */
-	$('button#close_progress')
-		.button({ icons:{primary:'ui-icon-close'} })
-		.click(function(){ $('#wait').dialog('close'); });
-	$('button#primers_progress')
-		.button({ icons:{primary:'ui-icon-transferthick-e-w'} })
-		.click(function(){ window.location.href='primers'; });
 	$('button#info')
 		.button({ icons:{primary:'ui-icon-pencil'} })
 		.click(function(){ $('#construct_edit').dialog('open'); });
@@ -149,17 +129,23 @@ $(document).ready(function() {
 		.button({ icons:{primary:'ui-icon-check'} })
 		.click( function(event) {
 			save();
-			$('#wait').dialog('open');
-			var h = makeHttpObject();
-			h.open('GET', 'process', true)
-			h.onreadystatechange = function (){
-				p = parseInt(this.responseText.split(':').pop());
-				$('#process_progress').progressbar('value', p);
-				if (p==100){
-					$('button.button_progress').button('enable');
+			$('#prompt').prompt({
+				title:'Please wait',
+				message:'Processing construct.',
+				type:'progress',
+				confirm: {
+					text: "View primers",
+					icon: 'ui-icon-transferthick-e-w',
+					click: function () { window.location.href='primers'; }
+				},
+				cancel: {
+					text: "Close",
+					icon: 'ui-icon-close'
+				},
+				target: {
+					location: 'process'
 				}
-			}
-			h.send();			
+			});
 		});
 	$('button#delete')
 		.click(function(){
@@ -181,10 +167,7 @@ $(document).ready(function() {
 		.click(function(event){
 			$('#fragment_browser_content').load('add');
 			$('#fragment_browser').dialog('open');
-		});
-		
-	$('button.button_progress').button('disable');
-		
+		});		
 	
 	/* dialogs */
 	$('#construct_edit').dialog({
@@ -193,22 +176,6 @@ $(document).ready(function() {
 		modal:true,
 		title:'Add new Construct',
 		width:400
-	});
-	$('#wait').dialog({
-		autoOpen:false,
-		modal:true,
-		resizable:false,
-		title:'Please wait',
-		closeOnEscape:false,
-		draggable:false,
-		open: function(event, ui) {
-			$('button.button_progress').button('disable');
-			$(".ui-dialog-titlebar-close").hide();
-		},
-		close: function(event, ui) {
-			$('#process_progress').progressbar('value', 0);
-			$('button.button_progress').button('disable');
-		}
 	});
 	$('#fragment_browser').dialog({
 		autoOpen:false,
