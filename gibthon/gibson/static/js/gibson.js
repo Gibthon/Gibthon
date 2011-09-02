@@ -31,8 +31,8 @@ var refresh = function () {
 					type:'confirm',
 					title:'Confirm Delete',
 					message:'Are you sure you want to remove this fragment?',
-					confirm: function () {
-						$.get(targetUrl, function () { refresh();});
+					confirm: {
+						click: function () { $.get(targetUrl, function () { refresh();}); }
 					}
 				});
 			});
@@ -153,8 +153,8 @@ $(document).ready(function() {
 				type:'confirm',
 				title:'Confirm Delete',
 				message: 'Are you sure you want to delete this construct?',
-				confirm: function() {
-					window.location.href = 'delete';
+				confirm: {
+					click: function() { window.location.href = 'delete'; }
 				}
 			});
 		})

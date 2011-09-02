@@ -67,7 +67,7 @@ $.widget( "ui.prompt" , {
 		var self = this;
 		var confirmButton = { "text":this.options.confirm.text, "click": function () { self._confirm() } };
 		var cancelButton = { "text":this.options.cancel.text, "click": function () { self._cancel() } };
-		
+		console.log(this.options.confirm);
 		switch(this.options.type) {
 			case 'alert':
 				buttons = [ confirmButton ];
@@ -103,7 +103,9 @@ $.widget( "ui.prompt" , {
 				modal: this.options.modal,
 				buttons: buttons,
 				autoOpen:false,
-				open: function(event, ui) { $(".ui-dialog-titlebar-close").hide() }
+				open: function(event, ui) { $(".ui-dialog-titlebar-close").hide() },
+				show: "fade",
+				hide: "fade"
 			});
 		
 		switch($('~ div button', this.element).size()) {
