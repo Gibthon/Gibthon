@@ -22,9 +22,7 @@ class GibthonUser(User):
 		return 'GCD-' + self.username
 	
 	def get_channel_key(self):
-		if self.channel_key and datetime.now() < self.channel_key_expire:
-			print 'Current channel key'
-		else:
+		if not (self.channel_key and datetime.now() < self.channel_key_expire):
 			m = MessagePasser(self.channel())
 			self.channel_key = m.get_key()
 			self.channel_key_expire = datetime.now() + timedelta(0,(60*60))
@@ -111,7 +109,6 @@ class Message(models.Model):
 						fs.append(Gene.add(p.to_seq_record(), "BB", self.inbox.user))
 					else:
 						fs.append(x)
-					print 'yay'
 				name = "New Construct"
 				description = "New Construct from GEC"
 				c = Construct.objects.create(name=name, description=description, shape='c', owner=self.inbox.user)

@@ -199,7 +199,6 @@ def entrez_summary(request):
 @login_required
 def entrez_import(request):
 	"""Handle a request to import an ID"""
-	print "entrez_import"
 	if request.method == 'GET' and 'id' in request.GET:
 		id = request.GET['id']
 		db = request.GET.get('database', 'nucleotide') #assume nucleotide by default

@@ -34,13 +34,10 @@ class Part:
 			raise ValueError("Invalid part name '%s'" % name)
 		#try and retrieve BioBrick data
 		try:
-			print("Fetching data from:\t %s" % (partsURL % name) )
 			f = urllib2.urlopen(partsURL % name)
 			soup = BeautifulSoup(f)
 			if soup.find("error"):
 				raise ValueError("Part '%s' does not exist" % name)
-			else:
-				print "Successfully fetched part %s!" % name
 		except urllib2.URLError:
 			raise IOError("Could not retrieve data.")
 		def getTag(asoup, tag, default=u""):

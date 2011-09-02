@@ -156,12 +156,8 @@ def primers(request, cid):
 def process(request, cid, reset=True, new=True):
 	con = get_construct(request.user, cid)
 	if con:
-		try:
-			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
-		except:
-			print 'wok'
-		else:
-			return resp
+		resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+		return resp
 	else:
 		return HttpResponseNotFound()
 
@@ -430,7 +426,6 @@ def pcr_instructions(request, cid):
 def primer_download(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
-		print request.GET['tk']
 		#set up response headers
 		response = HttpResponse(mimetype='application/zip')
 		response['Content-Disposition'] = 'attachment; filename='+con.name+'.zip'
