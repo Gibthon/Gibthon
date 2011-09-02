@@ -9,6 +9,7 @@
 <script src="{{ STATIC_URL }}/js/jquery.min.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/jquery-ui.min.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/ajax.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.prompt.js" type="text/javascript"></script>
 {% block js-include %}{% endblock %}
 {% block js %}{% endblock %}
 {% if user.is_authenticated %}
@@ -25,6 +26,7 @@ var inbox_refresh = function() {
 		}
 	}, 'json');
 };
+var STATIC_URL = "{{ STATIC_URL }}";
 $(document).ready(function() {
 	inbox_refresh();
 	$('button#login')
@@ -164,5 +166,7 @@ $(document).ready(function() {
 
 {% block dialog %}
 {% endblock %}
+<div id="prompt"></div>
+<div id="prompt2"></div>
 </body>
 </html>

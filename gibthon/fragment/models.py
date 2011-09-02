@@ -63,7 +63,10 @@ class Gene(models.Model):
 		g = Gene(owner=_user, name=_record.name,description=_record.description,sequence=_record.seq, origin=_origin)
 		g.save()
 		for key,value in _record.annotations.items():
-			Annotation.add(g, key, value)
+			try:
+				Annotation.add(g, key, value)
+			except Exception as e:
+				print e.message
 		for feature in _record.features:
 			f = Feature.add(feature,g,_origin)
 		return g

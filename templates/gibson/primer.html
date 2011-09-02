@@ -60,21 +60,7 @@
 </div>
 
 <script type="text/javascript">
- function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
+
 $(document).ready(function() {
 	$('#flap > td.primer:last')
 		.draggable({ 
@@ -90,30 +76,38 @@ $(document).ready(function() {
 		.each( function( index, base ) {
 			$(base).droppable({
 				drop:function( event, ui ){
-					$('#primer_offset_confirm').html('You are about to change the offset of the flappy end of<br /><br />{{ primer.name }}<br /><br />to ' + index);
-					$('#primer_offset_confirm').dialog( "option", "buttons", { 
-						"Ok": function() {
-							$(this).dialog("close"); 
-							$('#process').dialog('open');
-							var h = makeHttpObject();
-							h.open('POST', 'offset', true)
-							h.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-							h.onreadystatechange = function (){
-								p = parseInt(this.responseText.split(':').pop());
-								$('#process_progress').progressbar('value', p);
-								if (p==100){
-									window.location.reload();
-								}
+					$('#prompt').prompt({
+						type:'confirm',
+						title:'Confirm reset',
+						message: 'You are about to change the offset of the flappy end of<br /><br />{{ primer.name }}<br /><br />to ' + index,
+						confirm: {
+							click: function () {
+								f = new FormData();
+								f.append('flap', index);
+								$('#prompt2').prompt({
+									title:'Please wait',
+									message:'Moving end.',
+									type:'progress',
+									confirm: {
+										text: "View primers",
+										icon: 'ui-icon-transferthick-e-w',
+										click: function () { window.location.href='primers'; }
+									},
+									cancel: {
+										text: "Close",
+										icon: 'ui-icon-close'
+									},
+									target: { 
+										location :'offset',
+										type: 'POST',
+										data: f,
+										callback: function () { window.location.reload() }
+									},
+									buttons:false
+								});
 							}
-							f = new FormData();
-							f.append('flap', index);
-							h.send(f);
-						},
-						"Cancel": function() { 
-							$(this).dialog("close"); 
-						} 
+						}
 					});
-					$('#primer_offset_confirm').dialog('open');
 				}
 			});
 		});
@@ -131,30 +125,38 @@ $(document).ready(function() {
 		.each( function( index, base ) {
 			$(base).droppable({
 				drop:function( event, ui ){
-					$('#primer_offset_confirm').html('You are about to change the offset of the annealing end of<br /><br />{{ primer.name }}<br /><br />to ' + index);
-					$('#primer_offset_confirm').dialog( "option", "buttons", { 
-						"Ok": function() {
-							$(this).dialog("close"); 
-							$('#process').dialog('open');
-							var h = makeHttpObject();
-							h.open('POST', 'offset', true)
-							h.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-							h.onreadystatechange = function (){
-								p = parseInt(this.responseText.split(':').pop());
-								$('#process_progress').progressbar('value', p);
-								if (p==100){
-									window.location.reload();
-								}
+					$('#prompt').prompt({
+						type:'confirm',
+						title:'Confirm reset',
+						message:'You are about to change the offset of the annealing end of<br /><br />{{ primer.name }}<br /><br />to ' + index,
+						confirm: {
+							click: function () {
+								f = new FormData();
+								f.append('stick', index);
+								$('#prompt2').prompt({
+									title:'Please wait',
+									message:'Movind end.',
+									type:'progress',
+									confirm: {
+										text: "View primers",
+										icon: 'ui-icon-transferthick-e-w',
+										click: function () { window.location.href='primers'; }
+									},
+									cancel: {
+										text: "Close",
+										icon: 'ui-icon-close'
+									},
+									target: { 
+										location :'offset',
+										type: 'POST',
+										data: f,
+										callback: function () { window.location.reload() }
+									},
+									buttons:false
+								});
 							}
-							f = new FormData();
-							f.append('stick', index);
-							h.send(f);
-						},
-						"Cancel": function() { 
-							$(this).dialog("close"); 
-						} 
+						}
 					});
-					$('#primer_offset_confirm').dialog('open');
 				}
 			});
 		});

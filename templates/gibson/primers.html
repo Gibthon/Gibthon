@@ -144,20 +144,6 @@ td.warningcell {
 {% endblock %}
 
 {% block dialog %}
-
-<div id="primer_sequence"></div>
-
-<div id="wait">
-	<p>Loading...</p>
-</div>
-
-<div id="primer_offset_confirm"></div>
-
-<div id="process">
-	<p>Processing...</p>
-	<div id="process_progress" style="height:22px;"></div>
-</div>
-
 {% endblock %}
 
 {% block js %}
@@ -179,19 +165,32 @@ $(document).ready(function() {
 			$.post('save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
 		});
 	$('button.primer_button').click(function() {
-		$('#wait').dialog('open');
-		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
-			$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
-			$('.primer_info_wrapper:hidden').show()
-			$('#wait').dialog('close');
+		$('#prompt').prompt({
+			type:'wait',
+			title:'Loading',
+			message:'',
+			target: {
+				location:'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0],
+				target:'#primer_info',
+				callback: function () {
+					$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
+					$('.primer_info_wrapper:hidden').show()
+				}
+			}
 		});
+		
 		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
 	});
 	if ('{{ primer }}' != ''){
-		$('#wait').dialog('open');
-		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}', function() {
-			$('.primer_info_wrapper:hidden').show()
-			$('#wait').dialog('close');
+		$('#prompt').prompt({
+			type:'wait',
+			title:'Loading',
+			message:'',
+			target: {
+				location:'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}',
+				target:'#primer_info',
+				callback: function () { $('.primer_info_wrapper:hidden').show() }
+			}
 		});
 		$('.primer_info_wrapper').show();
 	}
@@ -199,20 +198,21 @@ $(document).ready(function() {
 	$('button#download').button({
 		icons:{primary:'ui-icon-clipboard'}
 	}).click(function() {
-		$('#wait').dialog('open');
+		$('#prompt').prompt({
+			type:'wait',
+			title:'Generating Download',
+			message:''
+		});
 		var token = new Date().getTime();
 		downloadTimer = window.setInterval(function () {
 			var cookieValue = $.cookie('fileDownloadToken');
 			if (cookieValue == token) {
-				$('#wait').dialog('close');
+				$('#prompt').prompt('close');
 				window.clearInterval(downloadTimer);
 				$.cookie('fileDownloadToken', null);
 			}
 		},500);
 		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download?tk='+token;
-		
-
-		//window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download';
 	});
 });
 </script>
