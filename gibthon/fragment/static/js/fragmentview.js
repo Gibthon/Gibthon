@@ -12,10 +12,18 @@ function em2px(input)
 }
 
 
-var meta_initial_html = '' +
+var meta_initial_html = '<form action="saveMeta/" method="post" onsubmit="return false">' +
 '<div class="ui-widget-content ui-corner-top top-box" >' +
-'	<h3 id="desc"></h3>' +
-'	<h5 id="origin"></h5>' +
+'	<div style="float:left;width:80%;">' +
+'		<span id="name" class="magic-item"><h3 class="magic-text"></h3></span>' +
+'		<span id="desc" class="magic-item"><h4  class="magic-text"></h4></span>' +
+'		<h5 id="origin"></h5>' +
+'	</div>'+
+'	<div style="float:left;width=20%" >' +
+'		<button class="magic-button"></button>' +
+'		<button class="magic-button-cancel"></button>' +
+'	</div>' +
+'	<div style="clear:both"></div>' +
 '</div>' +
 '<div class="ui-widget-content ui-corner-bottom bottom-box" >' +
 '	<span id="more_details">' +
@@ -33,7 +41,8 @@ var meta_initial_html = '' +
 '				' +
 '			</div>' +
 '	</div>' +
-'</div>';
+'</div>' +
+'</form>';
 
 (function( $, undefined ) {
 
@@ -49,7 +58,8 @@ $.widget("ui.fragmentMeta", {
 		this.$more_btn = this.$el.find('#more_details')
 			.click(function() {self.show();});
 		this.$more = this.$el.find('#more');
-		this.$desc = this.$el.find('#desc');
+		this.$name = this.$el.find('#name').children('.magic-text');
+		this.$desc = this.$el.find('#desc').children('.magic-text');
 		this.$origin = this.$el.find('#origin');
 		this.$icon = this.$el.find('#icon');
 		
@@ -60,6 +70,7 @@ $.widget("ui.fragmentMeta", {
 		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'meta',}, function(data) {
 			if(data[0] == 0)
 			{
+				self.$name.text(data[1].name);
 				self.$desc.text(data[1].desc);
 				self.$origin.text(data[1].length + "bp, " + data[1].origin);
 			}
@@ -95,18 +106,18 @@ $.widget("ui.fragmentMeta", {
 					self.$ref.append(self._make_reference(data[1][key]));
 				}
 				$('.ref-search-btn').button({
-														icons: {
-															primary: 'ui-icon-search'
-																},
-														label: 'Search',
-													});
+												icons: {
+													primary: 'ui-icon-search'
+														},
+												label: 'Search',
+												});
 			}
 			else
 			{
 				console.log(data[1] + ", while getting references.");
 			}
 		});
-		
+		this.$el.find('form').magicForm();
 	},
 	show: function() {
 		var self = this;

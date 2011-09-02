@@ -6,30 +6,18 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 
-import simplejson as json
-
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 
-OK = 0
-ERROR = -1
-
-class JsonResponse(HttpResponse):
-	def __init__(self, data, state = OK):
-		HttpResponse.__init__(self, json.dumps([state, data]), mimetype='application/json')
-
-class RawJsonResponse(HttpResponse):
-	def __init__(self, data):
-		print "Return JSON: '%s'" % json.dumps(data)
-		HttpResponse.__init__(self, json.dumps(data), mimetype='application/json')
+from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 
 # functions which get the appropriate data
 def get_meta(g, request):
 	return JsonResponse({	'name': g.name,
-									'desc': g.description,
-									'origin': g.get_origin_display(),
-									'length': len(g.sequence)
-								})
+							'desc': g.description,
+							'origin': g.get_origin_display(),
+							'length': len(g.sequence)
+						})
 
 def get_seq_meta(g, request):
 	"""get all the sequence metadata"""		
@@ -39,8 +27,8 @@ def get_seq_meta(g, request):
 		quals = []
 		for q in f.qualifiers.all():
 			quals.append({	'name': q.name,
-								'data': q.data,
-							 })
+							'data': q.data,
+						 })
 		s = None
 		if f.direction == 'f':
 			s = 1

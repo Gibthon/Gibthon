@@ -89,6 +89,7 @@ $.widget("ui.formExtender", {
 $.widget("ui.magicForm", {
 	options: {
 		save: function(data) {}, //called on save
+		edit: function() {},
 	},
 	_init: function() {
 		var self = this;
@@ -130,6 +131,7 @@ $.widget("ui.magicForm", {
 		this.$button.button('option', this.save_opts)
 			.unbind('click')
 			.click( function() {self._save();});
+		this._trigger('edit');
 	},
 	_save: function()
 	{

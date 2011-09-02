@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render_to_response
 
 import simplejson as json
-from api import JsonResponse, ERROR, RawJsonResponse
+from gibthon.jsonresponses import JsonResponse, ERROR, RawJsonResponse
 
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
