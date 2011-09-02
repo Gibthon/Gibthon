@@ -9,14 +9,27 @@ from gibson.models import Construct
 from fragment import partsregistry
 
 import json
+from datetime import datetime, timedelta
+import time
 
 class GibthonUser(User):
 
-	channel_key = models.CharField(max_length=120)
+	channel_key = models.CharField(max_length=120, blank=True, null=True)
+	channel_key_expire = models.DateTimeField(blank=True, null=True)
 	objects = UserManager()
 	
 	def channel(self):
 		return 'GCD-' + self.username
+	
+	def get_channel_key(self):
+		if self.channel_key and datetime.now() < self.channel_key_expire:
+			print 'Current channel key'
+		else:
+			m = MessagePasser(self.channel())
+			self.channel_key = m.get_key()
+			self.channel_key_expire = datetime.now() + timedelta(0,(60*60))
+			self.save()
+		return self.channel_key
 
 class Inbox(models.Model):
 	user = AutoOneToOneField('GibthonUser', related_name='inbox')
@@ -113,3 +126,6 @@ class Message(models.Model):
 	
 	def __unicode__(self):
 		return "Message from " + self.sender + " to " + self.inbox.user.channel()
+
+	def json(self):
+		return [self.read,time.mktime(self.received.timetuple()),self.description(),self.added,self.id]

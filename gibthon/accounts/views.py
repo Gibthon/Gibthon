@@ -69,9 +69,9 @@ def create(request, email_hash):
 		f = UserRegisterForm2(request.POST)
 		if f.is_valid(email_hash):
 			user = f.save()
-			# awaiting JSON fix on message server
-			#user.channel_key = user.inbox.messagePasser().get_key()
-			#user.save()
+			user.channel_key = user.inbox.messagePasser().get_key()
+			user.channel_key_expire = datetime.now() + timedelta(0,(60*60))
+			user.save()
 			auth_login(request, user)
 			return HttpResponseRedirect('/user/profile/')
 		else:
@@ -127,6 +127,14 @@ def inbox(request):
 	})
 	return HttpResponse(t.render(c))
 	
+@login_required
+def messages(request):
+	ms = []
+	for m in request.user.inbox.message.all():
+		ms.append(m.json())
+	return HttpResponse(json.dumps({"aaData":ms}), mimetype="application/json")
+
+@login_required
 def message_detail(request, mid):
 	m = get_message(request.user, mid)
 	if not m.read:
@@ -134,33 +142,38 @@ def message_detail(request, mid):
 		m.save()
 	return HttpResponse(json.dumps(json.loads(m.data), indent=4))
 
+@login_required
 def message_delete(request, mid):
 	m = get_message(request.user, mid)
 	m.delete()
 	return HttpResponse("Deleted Message")
 
+@login_required
 def message_add(request, mid):
 	m = get_message(request.user, mid)
 	r = m.add()
 	if r > 0:
 		m.added = True;
+		m.read = True;
 		m.save()
 		return HttpResponse("Added")
 	else:
 		return HttpResponse("Could not add, error %s"%(r))
-		
+
+@login_required
 def message_add_all(request):
 	c = request.user.inbox.not_added().count()
 	for m in request.user.inbox.not_added():
 		m.add()
 		m.added = True;
+		m.read = True;
 		m.save()
 	return HttpResponse("Added %s messages"%(c))
 	
-
+@login_required
 def fetch(request):
 	old_unread = request.user.inbox.unread().count()
 	request.user.inbox.fetch()
 	new_unread = request.user.inbox.unread().count()
 	not_added = request.user.inbox.not_added().count()
-	return HttpResponse(json.dumps([new_unread-old_unread, new_unread, not_added]))
+	return HttpResponse(json.dumps([new_unread-old_unread, new_unread, not_added, request.user.inbox.message.count()]))
