@@ -11,6 +11,42 @@ from Bio.Seq import Seq
 
 from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 
+def save_meta(request, fid):
+	try:
+		fid = int(fid)
+	except ValueError:
+		raise Http404
+
+	if request.method == 'POST':
+		try:
+			g = Gene.objects.get(id = fid, owner=request.user)
+			g.name = request.POST.get('name', g.name);
+			g.description = request.POST.get('desc', g.description);
+			
+			annotations = {}
+			keys = {}
+			values = {}
+			
+			for kname,key in request.POST.iteritems():
+				if kname.startswith('annot_key'):
+					vname = kname.replace('key', 'value')
+					value = request.POST.get(vname, '')
+					annotations[key] = value
+					values[vname] = value
+					keys[kname] = key
+			
+			fields = {'name': g.name, 'desc': g.description,}
+			fields.update(keys)
+			fields.update(values)
+			
+			#save changes
+			g.save()
+			return JsonResponse({'fields': fields}) 
+			
+		except ObjectDoesNotExist:
+			return JsonResponse({'errors': {'all': "Fragment with ID='%s' does not exist." % id,},}, ERROR)
+	raise Http404
+
 # functions which get the appropriate data
 def get_meta(g, request):
 	return JsonResponse({	'name': g.name,
