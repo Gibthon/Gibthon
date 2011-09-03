@@ -34,6 +34,9 @@ $.widget("ui.fragmentMeta", {
 		this.$form = this.$el.find('form');
 		this.$ref = this.$el.find('#ref_div');
 		
+		this.visible = false;
+		this.was_visible = false;
+		
 		//fetch name and origin
 		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'meta',}, function(data) {
 			if(data[0] == 0)
@@ -58,7 +61,10 @@ $.widget("ui.fragmentMeta", {
 					self.$annotation.append(self._make_annotation(key, data[1][key], odd));
 					odd = !odd;
 				}
-				self.$form.magicForm();
+				self.$form.magicForm({
+					edit: function() {self.was_visible = self.visible; self.show();},
+					cancel: function() {if(!self.was_visible) self.hide();},
+				});
 			}
 			else
 			{
@@ -86,7 +92,6 @@ $.widget("ui.fragmentMeta", {
 				console.log(data[1] + ", while getting references.");
 			}
 		});
-		this.$el.find('form').magicForm();
 	},
 	show: function() {
 		var self = this;
@@ -97,7 +102,7 @@ $.widget("ui.fragmentMeta", {
 		this.$icon
 			.removeClass('ui-icon-triangle-1-s')
 			.addClass('ui-icon-triangle-1-n');
-		this.$dd.slideDown(250);
+		this.$dd.slideDown(250, function(){self.visible=true;});
 	},
 	hide: function() {
 		var self = this;
@@ -108,20 +113,30 @@ $.widget("ui.fragmentMeta", {
 		this.$icon
 			.removeClass('ui-icon-triangle-1-n')
 			.addClass('ui-icon-triangle-1-s');
-		this.$dd.slideUp(250);
+		this.$dd.slideUp(250, function(){self.visible=false;});
 	},
 	_make_annotation: function(key, value_list, alt) {
 		var cls = 'tr';
 		if(alt == true)
 			cls = 'tr-alt';
-		var ret = "<tr class='" + cls + "'><td class='magic-item' ><span class='magic-text'>" + key + "</span> :</td><td class='magic-item'><span class='magic-text'>";
+		var value = '';
 		for (i in value_list)
 		{
-			ret = ret + value_list[i];
+			value = value + value_list[i];
 			if(i != value_list.length -1)
-				ret = ret + ", ";
+				value = value + ", ";
 		}
-		return ret + "</span></td></tr>";
+		
+		var ret = "" +
+		"<tr class='" + cls + "'>" +
+		"	<td id='annot-key' class='magic-item annot-key' >" +
+		"		<span class='magic-text'>" + key + "</span>" +
+		"	</td>" +
+		"	<td id='annot-value' class='magic-item'>" +
+		"		<span class='magic-text'>" + value + "</span>" +
+		"	</td>" +
+		"</tr>";
+		return ret;
 	},
 	_make_reference: function(ref)
 	{

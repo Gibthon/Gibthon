@@ -88,7 +88,8 @@ $.widget("ui.formExtender", {
 
 $.widget("ui.magicForm", {
 	options: {
-		save: function(data) {}, //called on save
+		save: function(ev, data) {}, //called on save
+		cancel: function() {},//called on cancel
 		edit: function() {},
 		defaultInput: "<input class='magic-input' type='text'></input>",
 		defaultError: "<p class='magic-error' type='text'></p>",
@@ -108,14 +109,14 @@ $.widget("ui.magicForm", {
 			.click( function() {self._edit();});
 		this.$button_cancel = this.$form.find('button.magic-button-cancel')
 			.button({label: 'Cancel', icons: {primary: 'ui-icon-cancel'}, disabled: true,})
-			.click( function() {this._cancel();});
+			.click( function() {self._cancel();});
 			
 		this.$form.find('.magic-item').each( function() {
 			var $text = $(this).find('.magic-text');
 			//check whether there's an input
 			if($(this).find('.magic-input').length == 0)
 			{
-				$(self.options.defaultInput).appendAfter($text);
+				$(self.options.defaultInput).attr('name', $(this).attr('id')).insertAfter($text);
 			}
 			//check whether there's an error
 			if($(this).find('.magic-error').length == 0)
@@ -153,6 +154,23 @@ $.widget("ui.magicForm", {
 			.click( function() {self._save();});
 		this.$button_cancel.button('enable');
 		this._trigger('edit');
+	},
+	_cancel: function()
+	{
+		var self = this;
+		this.$button.button('option', this.edit_opts)
+			.unbind('click')
+			.click( function() {self._edit();});
+		this.$button_cancel.button('disable');
+		
+		this.$form.find('.magic-item').each( function() {
+			var $item = $(this);
+			var $input = $item.find('.magic-input');
+			var $text = $item.find('.magic-text');
+			$input.hide();
+			$text.show();
+		});
+		this._trigger('cancel');
 	},
 	_save: function()
 	{
@@ -208,7 +226,7 @@ $.widget("ui.magicForm", {
 				$input.hide();
 				$text.text(val).show();
 			});
-			
+			this._trigger('save', undefined, data);
 		}
 	},
 });

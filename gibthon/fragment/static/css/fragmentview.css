@@ -22,6 +22,8 @@
 	border-top: none;
 }
 
+.annot-key:after{content:":";}
+
 .unselectable 
 {
    -moz-user-select: -moz-none;
