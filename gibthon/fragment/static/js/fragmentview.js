@@ -11,39 +11,6 @@ function em2px(input)
     return (input * emSize);
 }
 
-
-var meta_initial_html = '<form action="saveMeta/" method="post" onsubmit="return false">' +
-'<div class="ui-widget-content ui-corner-top top-box" >' +
-'	<div style="float:left;width:80%;">' +
-'		<span id="name" class="magic-item"><h3 class="magic-text"></h3></span>' +
-'		<span id="desc" class="magic-item"><h4  class="magic-text"></h4></span>' +
-'		<h5 id="origin"></h5>' +
-'	</div>'+
-'	<div style="float:left;width=20%" >' +
-'		<button class="magic-button"></button>' +
-'		<button class="magic-button-cancel"></button>' +
-'	</div>' +
-'	<div style="clear:both"></div>' +
-'</div>' +
-'<div class="ui-widget-content ui-corner-bottom bottom-box" >' +
-'	<span id="more_details">' +
-'		<span id="more">Show</span> Details ' +
-'		<span id="icon" style="display:inline-block;padding-top:.2em;height:0.8em;" class="ui-icon ui-icon-triangle-1-s" />' +
-'	</span>' +
-'	<div id="drop_down">' +
-'		<h4>Annotations</h4>' +
-'			<div class="info" id="annot_div">' +
-'				<table id="annot_table">' +
-'				</table>' +
-'			</div>' +
-'		<h4>References</h4>' +
-'			<div class="info" id="ref_div">' +
-'				' +
-'			</div>' +
-'	</div>' +
-'</div>' +
-'</form>';
-
 (function( $, undefined ) {
 
 $.widget("ui.fragmentMeta", {
@@ -53,7 +20,7 @@ $.widget("ui.fragmentMeta", {
 	_create: function() {
 		//Init the element, and fetch the initial data
 		var self = this;
-		this.$el = $(this.element[0]).html(meta_initial_html);
+		this.$el = $(this.element[0]);
 		this.$dd = this.$el.find('#drop_down');
 		this.$more_btn = this.$el.find('#more_details')
 			.click(function() {self.show();});

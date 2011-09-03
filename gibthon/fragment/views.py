@@ -48,7 +48,13 @@ def fragment(request, fid):
 			'title':'Fragment not found',
 		})
 		return HttpResponse(t.render(c))	
-		
+
+@login_required
+def fragment_meta(request, fid):
+	t = loader.get_template('fragment/fragment_meta.html')
+	c = RequestContext(request,{ 'id': fid,})
+	return HttpResponse(t.render(c))
+
 @login_required
 def download(request, fid):
 	f = get_fragment(request.user, fid)

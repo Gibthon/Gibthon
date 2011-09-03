@@ -96,7 +96,7 @@ $(document).ready(function() {
 		.click(function() {
 			window.location.href = '{{ fragment.name }}.gb';
 		});
-	$('#fragment_info').fragmentMeta({id: {{ fragment.id }}});
+	$('#fragment_info').load('getMeta/');
 	
 	$('#sequence').fragmentSequence({id: {{fragment.id}},});
 	

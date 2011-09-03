@@ -90,6 +90,8 @@ $.widget("ui.magicForm", {
 	options: {
 		save: function(data) {}, //called on save
 		edit: function() {},
+		defaultInput: "<input class='magic-input' type='text'></input>",
+		defaultError: "<p class='magic-error' type='text'></p>",
 	},
 	_init: function() {
 		var self = this;
@@ -104,6 +106,23 @@ $.widget("ui.magicForm", {
 		this.$button = this.$form.find('button.magic-button')
 			.button(this.edit_opts)
 			.click( function() {self._edit();});
+		this.$button_cancel = this.$form.find('button.magic-button-cancel')
+			.button({label: 'Cancel', icons: {primary: 'ui-icon-cancel'}, disabled: true,})
+			.click( function() {this._cancel();});
+			
+		this.$form.find('.magic-item').each( function() {
+			var $text = $(this).find('.magic-text');
+			//check whether there's an input
+			if($(this).find('.magic-input').length == 0)
+			{
+				$(self.options.defaultInput).appendAfter($text);
+			}
+			//check whether there's an error
+			if($(this).find('.magic-error').length == 0)
+			{
+				$(this).append($(self.options.defaultError));
+			}
+		});
 	},
 	method: function(method)
 	{
@@ -126,11 +145,13 @@ $.widget("ui.magicForm", {
 			var $text = $item.find('.magic-text');
 			//set the value
 			$input.val($text.text());
-			$text.fadeOut('fast', function() {$input.fadeIn('fast');});
+			$text.hide();
+			$input.show();
 		});
 		this.$button.button('option', this.save_opts)
 			.unbind('click')
 			.click( function() {self._save();});
+		this.$button_cancel.button('enable');
 		this._trigger('edit');
 	},
 	_save: function()
@@ -153,7 +174,6 @@ $.widget("ui.magicForm", {
 			$inputs = this.$form.find('.magic-input');
 			for(i in data[1].errors)
 			{
-				console.log('errors.' + i + ' = ' + data[1].errors[i]);
 				//find the input(s) to which the error relates
 				$inputs.each( function() {
 					var $t = $(this);
@@ -162,8 +182,6 @@ $.widget("ui.magicForm", {
 					console.log('input name: ' + $t.attr('name') + ' i: ' + i);
 						//show the error
 						var $item = $t.closest('.magic-item').find('.magic-error');
-						console.log('  item.html(): ' + $item.html());
-						console.log('  errors[i]: ' + data[1].errors[i]);
 						$item.text('' + data[1].errors[i]);
 						$item.slideDown('slow');
 					}
