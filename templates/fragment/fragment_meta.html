@@ -1,8 +1,14 @@
+<div id='fragmentmeta'>
 <form id='metaform' action="saveMeta/" method="post" onsubmit="return false">
 	<div class="ui-widget-content ui-corner-top top-box" >
 		<div style="float:left;width:80%;">
-			<span id="name" class="magic-item"><h3 class="magic-text"></h3></span>
-			<span id="desc" class="magic-item"><h4  class="magic-text"></h4></span>
+			<span id="name" class="magic-item">
+				<h3 class="magic-text"></h3>
+			</span>
+			<span id="desc" class="magic-item">
+				<h4  class="magic-text"></h4>
+				<textarea class='magic-input' cols=50 rows=3></textarea>
+			</span>
 			<h5 id="origin"></h5>
 		</div>
 		<div style="float:left;width=20%" >
@@ -29,9 +35,9 @@
 		</div>
 	</div>
 </form>
-
+</div>
 <script type='text/javascript'>
 $(window).ready( function() {
-	$('#metaform').fragmentMeta({ id: {{ id }}, });
+	$('#fragmentmeta').fragmentMeta({ id: {{ id }}, });
 });
 </script>

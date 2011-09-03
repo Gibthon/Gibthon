@@ -194,18 +194,21 @@ $.widget("ui.magicForm", {
 			this.$button.button('option', this.edit_opts)
 				.unbind('click')
 				.click( function() {self._edit();});
+			this.$button_cancel.button('disable');
 			this.$form.find('.magic-item').each( function() {
 				var $item = $(this);
 				var $input = $item.find('.magic-input');
 				var $text = $item.find('.magic-text');
+				//set the text
+				var val = '';
+				if(data[1].fields != undefined)
+					val = data[1].fields[$input.attr('name')];
+				if(val == undefined) val = '';
 				//show the text
-				$input.fadeOut('fast', function() {
-					var val = 'None';
-					if(data[1].fields != undefined)
-						val = data[1].fields[$input.attr('name')];
-					$text.text(val).fadeIn('fast');
-				});
+				$input.hide();
+				$text.text(val).show();
 			});
+			
 		}
 	},
 });

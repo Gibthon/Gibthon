@@ -31,6 +31,7 @@ $.widget("ui.fragmentMeta", {
 		this.$icon = this.$el.find('#icon');
 		
 		this.$annotation = this.$el.find('#annot_table');
+		this.$form = this.$el.find('form');
 		this.$ref = this.$el.find('#ref_div');
 		
 		//fetch name and origin
@@ -57,6 +58,7 @@ $.widget("ui.fragmentMeta", {
 					self.$annotation.append(self._make_annotation(key, data[1][key], odd));
 					odd = !odd;
 				}
+				self.$form.magicForm();
 			}
 			else
 			{
@@ -112,14 +114,14 @@ $.widget("ui.fragmentMeta", {
 		var cls = 'tr';
 		if(alt == true)
 			cls = 'tr-alt';
-		var ret = "<tr class='" + cls + "'><td>" + key + ": </td><td>";
+		var ret = "<tr class='" + cls + "'><td class='magic-item' ><span class='magic-text'>" + key + "</span> :</td><td class='magic-item'><span class='magic-text'>";
 		for (i in value_list)
 		{
 			ret = ret + value_list[i];
 			if(i != value_list.length -1)
 				ret = ret + ", ";
 		}
-		return ret + "</td></tr>";
+		return ret + "</span></td></tr>";
 	},
 	_make_reference: function(ref)
 	{
