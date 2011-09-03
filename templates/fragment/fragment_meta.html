@@ -1,21 +1,24 @@
 <div id='fragmentmeta'>
 <form id='metaform' action="saveMeta/" method="post" onsubmit="return false">
 	<div class="ui-widget-content ui-corner-top top-box" >
-		<div style="float:left;width:80%;">
+		<div style="float:left;max-width:70%;">
 			<span id="name" class="magic-item">
 				<h3 class="magic-text"></h3>
 			</span>
+		</div>
+		<div style="float:right;margin-right:.5em;" >
+			<button class="magic-button"></button>
+			<button class="magic-button-cancel"></button>
+		</div>
+		<div style="clear:both"></div>
+		<div>
 			<span id="desc" class="magic-item">
 				<h4  class="magic-text"></h4>
 				<textarea class='magic-input' cols=50 rows=3></textarea>
 			</span>
 			<h5 id="origin"></h5>
 		</div>
-		<div style="float:left;width=20%" >
-			<button class="magic-button"></button>
-			<button class="magic-button-cancel"></button>
-		</div>
-		<div style="clear:both"></div>
+		
 	</div>
 	<div class="ui-widget-content ui-corner-bottom bottom-box" >
 		<span id="more_details">
