@@ -230,23 +230,24 @@ var initial_sequence_html = '' +
 '		<div id="progressbar" ></div>' +			
 '	</span>' +
 '</div>' +
-'<div id="seq_toolbar" class="content middle-box">' +
-'	<span id="left_btns" style="float:left;margin:.2em;">' +
-'		<button class="select_reqd" id="copy_btn"></button>' +
-'		<button id="select_btn"></button>' +
-'	</span>' +
-'	<span id="right_btns" style="float:right;margin:.2em;">' +
-'		<span id="view">' +
-'			<input type="radio" id="ds" name="view" checked="checked" />' +
-'			<label for="ds" title="Show Double Stranded">DS</label>' +
-'			<input type="radio" id="ss" name="view" />' +
-'			<label for="ss" title="Show Single Stranded">SS</label>' +
-'			<input type="radio" id="ns" name="view" />' +
-'			<label for="ns" title="Only Show Label">NS</label>' +
+'<div id="seq_toolbar_rest" class="middle-box">' +
+'	<div id="seq_toolbar">' +
+'		<span id="left_btns" style="float:left;margin:.2em;">' +
+'			<button class="select_reqd" id="copy_btn"></button>' +
+'			<button id="select_btn"></button>' +
 '		</span>' +
-//'		<button class="select_reqd" id="edit_btn"></button>' +
-'	</span>' +
-'	<div style="clear:both;"></div>' +
+'		<span id="right_btns" style="float:right;margin:.2em;">' +
+'			<span id="view">' +
+'				<input type="radio" id="ds" name="view" checked="checked" />' +
+'				<label for="ds" title="Show Double Stranded">DS</label>' +
+'				<input type="radio" id="ss" name="view" />' +
+'				<label for="ss" title="Show Single Stranded">SS</label>' +
+'				<input type="radio" id="ns" name="view" />' +
+'				<label for="ns" title="Only Show Label">NS</label>' +
+'			</span>' +
+'		</span>' +
+'		<div style="clear:both;"></div>' +
+'	</div>' +
 '</div>' +
 '<div class="ui-widget-content ui-corner-bottom bottom-box content">' +	
 '	<div id="seq_wrap unselectable" unselectable="on">' +
@@ -298,13 +299,9 @@ $.widget("ui.fragmentSequence", {
 			self.$el.find('.seq-fwd').slideUp(100);
 			self.$el.find('.seq-rev').slideUp(100);
 		});
-	/*	
-		this.$el.find('#edit_btn').button({
-			label: "Edit Selection",
-			icons: {primary: 'ui-icon-pencil'}
-		});
-	*/	
-		this._toolbar_height = $('#seq_toolbar').offset().top;
+
+		//this._toolbar_height = $('#seq_toolbar').offset().top;
+		this.toolbar_fixed = false;
 				
 		this.$len = this.$el.find('#length');
 		this.$prog = this.$el.find('#progress');
@@ -634,7 +631,8 @@ $.widget("ui.fragmentSequence", {
 	},
 	_on_scroll: function(event)
 	{
-		if($(window).scrollTop() > this._toolbar_height)
+		
+		if($(window).scrollTop() > $('#seq_toolbar_rest').offset().top)
 			$('#seq_toolbar').addClass('fixed');
 		else
 			$('#seq_toolbar').removeClass('fixed');

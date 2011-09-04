@@ -7,12 +7,13 @@
 .middle-box
 {
 	border-top: none;
-	margin-top: 0; 
-	padding-top: 0;
 	margin-bottom: 0;
-	padding-bottom: 0;
 	border-left: 1px solid rgb(166, 201, 226);
 	border-right: 1px solid rgb(166, 201, 226);
+	width: 800px;
+	padding: 0;
+	float: right;
+	font-size: 0.8em;
 }
 
 .bottom-box
@@ -50,8 +51,8 @@
 .fixed
 {
 	position:fixed !important;
-	top:0;
-	margin-left:180px;
+	top:0; 
+	width: 800px;
 }
 
 #load_span
