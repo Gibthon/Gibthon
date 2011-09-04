@@ -1,0 +1,39 @@
+<div id="the_sequence">
+	<div id="loader" class="ui-state-highlight content middle-box"> 
+		<span id="load_span"><b>Loading:</b> <span id="progress">0</span>/<span id="length">0</span> bp </span> 
+		<span id="progress_span"> 
+			<div id="progressbar" ></div> 			
+		</span> 
+	</div> 
+	<div id="seq_toolbar_rest" class="middle-box"> 
+		<div id="seq_toolbar"> 
+			<span id="left_btns" style="float:left;margin:.2em;"> 
+				<button class="select_reqd" id="copy_btn"></button> 
+				<button id="select_btn"></button> 
+			</span> 
+			<span id="right_btns" style="float:right;margin:.2em;"> 
+				<span id="view"> 
+					<input type="radio" id="ds" name="view" checked="checked" /> 
+					<label for="ds" title="Show Double Stranded">DS</label> 
+					<input type="radio" id="ss" name="view" /> 
+					<label for="ss" title="Show Single Stranded">SS</label> 
+					<input type="radio" id="ns" name="view" /> 
+					<label for="ns" title="Only Show Label">NS</label> 
+				</span> 
+			</span> 
+			<div style="clear:both;"></div> 
+		</div> 
+	</div> 
+	<div class="ui-widget-content ui-corner-bottom bottom-box content"> 	
+		<div id="seq_wrap" class="unselectable" unselectable="on"> 
+			<div id="seq_inner" class="unselectable" unselectable="on"> 
+			</div> 
+		</div> 
+	</div>
+</div>
+
+<script type='text/javascript'>
+	$(window).ready( function() {
+		$('#the_sequence').fragmentSequence({id: {{id}},});
+	});
+</script>

@@ -56,6 +56,12 @@ def fragment_meta(request, fid):
 	return HttpResponse(t.render(c))
 
 @login_required
+def fragment_seq(request, fid):
+	t = loader.get_template('fragment/sequence.html')
+	c = RequestContext(request,{ 'id': fid,})
+	return HttpResponse(t.render(c))
+
+@login_required
 def download(request, fid):
 	f = get_fragment(request.user, fid)
 	if f:
