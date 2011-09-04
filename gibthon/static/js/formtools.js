@@ -186,6 +186,7 @@ $.widget("ui.magicForm", {
 	_data: function(data)
 	{
 		var self = this;
+		this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
 		if(data[0] != 0) //if error
 		{
 			console.log('Error!');
@@ -207,8 +208,7 @@ $.widget("ui.magicForm", {
 			}
 		}
 		else
-		{	//hide the errors
-			this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
+		{	
 			this.$button.button('option', this.edit_opts)
 				.unbind('click')
 				.click( function() {self._edit();});
@@ -218,10 +218,9 @@ $.widget("ui.magicForm", {
 				var $input = $item.find('.magic-input');
 				var $text = $item.find('.magic-text');
 				//set the text
-				var val = '';
-				if(data[1].fields != undefined)
-					val = data[1].fields[$input.attr('name')];
+				var val = data[1].fields[$input.attr('name')];
 				if(val == undefined) val = '';
+			console.log('value for ' + $input.attr('name') + ' = ' + val);
 				//show the text
 				$input.hide();
 				$text.text(val).show();
