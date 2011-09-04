@@ -122,11 +122,11 @@ def get_refs(g, request):
 	data = []
 	for r in g.references.all():
 		data.append({	'title': r.title,
-							'authors':r.authors,
-							'journal':r.journal,
-							'medline_id':r.medline_id,
-							'pubmed_id':r.pubmed_id,
-						})
+						'authors':r.authors,
+						'journal':r.journal,
+						'medline_id':r.medline_id,
+						'pubmed_id':r.pubmed_id,
+					})
 	return JsonResponse(data)
 	
 def get_feats(g, request):
@@ -144,11 +144,12 @@ def get_feats(g, request):
 		elif f.direction == 'r':
 			s = -1
 		data.append({	'start': f.start,
-							'end': f.end,
-							'strand': s,
-							'type': f.type,
-							'qualifiers': quals,
-						})
+						'end': f.end,
+						'strand': s,
+						'type': f.type,
+						'id': f.id,
+						'qualifiers': quals,
+					})
 	return JsonResponse(data)
 	
 def get_len(g,request):

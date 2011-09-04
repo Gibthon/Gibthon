@@ -209,8 +209,8 @@ class Annotation(models.Model):
 		
 class Feature(models.Model):
 	type = models.CharField(max_length=30)
-	start = models.PositiveIntegerField()
-	end = models.PositiveIntegerField()
+	start = models.PositiveIntegerField() #This is stored as 0-offset
+	end = models.PositiveIntegerField() #This is stored as 0-offset
 	DIRECTION_CHOICES = (
 		('f', 'Forward'),
 		('r', 'Reverse'),
@@ -219,15 +219,20 @@ class Feature(models.Model):
 	gene = models.ForeignKey('Gene', related_name="features")
 	
 	def add(feature, g, origin):
-		if (origin == "BB"):
-			feature.location.start.position += 1
+		#if (origin == "BB"): #but parts are 1-offset based!
+		#	feature.location.start.position += 1
 		if (feature.location.end.position == 0):
 			return
 		f = Feature(type=feature.type, start=feature.location.start.position, end=feature.location.end.position,
 			direction='f' if feature.location.start < feature.location.end else 'r', gene = g)
 		f.save()
 		for _name,_data in feature.qualifiers.iteritems():
-			q = Qualifier(name=_name,data=_data[0],feature = f)
+			data = ''
+			if hasattr(_data, '__iter__'):
+				data= ', '.join(_data)
+			else:
+				data=str(_data)
+			q = Qualifier(name=_name,data=data,feature = f)
 			q.save()
 		return f
 	add = staticmethod(add)
