@@ -32,7 +32,7 @@ $.widget("ui.formExtender", {
 		this.$target = this.$el.find('.extender-target');
 		
 		this.$el.find('button.extender-add').button({
-			label: 'More',
+			label: 'Add',
 			icons: {primary: 'ui-icon-plusthick',},
 		}).click( function(event) {
 			self._add(event);
