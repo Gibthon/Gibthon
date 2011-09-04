@@ -385,7 +385,7 @@ $.widget("ui.importer", {
 			self._normal_size();
 		});	
 		
-		this._full_size();
+		this._auto_size();
 		this.$content.html($results);
 	},
 	
