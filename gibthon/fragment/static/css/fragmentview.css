@@ -299,7 +299,7 @@
 	vertical-align: top;
 	cursor: pointer;
 }
-.feat-type-gene, .feat-type-cds
+.feat-type-gene, .feat-type-cds, .feat-type-binding
 {
 	background-color: yellow;
 	border: 1px solid orange;
@@ -309,31 +309,30 @@
 	background-color: brown;
 	border: 1px solid black;
 }
-.feat-type-mrna
+.feat-type-mrna, .feat-type-rbs
 {
 	background-color: blue;
 	border: 1px solid darkblue;
 }
-.feat-type-source
+.feat-type-source, .feat-type-promoter
 {
 	background-color: green;
 	border: 1px solid darkgreen;
 }
-.feat-type-exxon
+.feat-type-exxon, .feat-type-protein
 {
 	background-color: grey;
 	border: 1px solid black;
 }
-.feat-type-sts
+.feat-type-sts, .feat-type-biobrick
 {
 	background-color: pink;
 	border: 1px solid red;
 }
-
-.feat-type-biobrick
+.feat-type-scar
 {
-	background-color: pink;
-	border: 1px solid red;
+	background-color: black;
+	border: 1px solid grey;
 }
 .feat-type-stem_loop
 {
