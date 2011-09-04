@@ -202,12 +202,11 @@
 {
 	margin: .5em;
 	word-break: break-word;
+	text-align: center;
 }
 
 #seq_inner
 {
-	margin-right: auto;
-	margin-left: auto;
 }
 .selected
 {
@@ -226,6 +225,7 @@
 	margin-left: auto;
 	position: relative;
 	margin: 1em 0;
+	text-align: left;
 }
 .seq
 {

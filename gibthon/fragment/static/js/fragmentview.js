@@ -250,7 +250,7 @@ var initial_sequence_html = '' +
 '	</div>' +
 '</div>' +
 '<div class="ui-widget-content ui-corner-bottom bottom-box content">' +	
-'	<div id="seq_wrap unselectable" unselectable="on">' +
+'	<div id="seq_wrap" class="unselectable" unselectable="on">' +
 '		<div id="seq_inner" class="unselectable" unselectable="on">' +
 '		</div>' +
 '	</div>' +

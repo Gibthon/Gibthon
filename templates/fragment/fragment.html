@@ -34,7 +34,7 @@
 							{% if fragment.construct_slave.all %}
 							<ul>
 								{% for construct in fragment.construct_slave.all %}
-									<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
+									<li><a href="/gibthon/{{ construct.id }}/">{{ construct.name }}</a></li>
 								{% endfor %}
 							</ul>
 							{% else %}
