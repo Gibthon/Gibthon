@@ -28,16 +28,22 @@ def save_meta(request, fid):
 			values = {}
 			
 			for kname,key in request.POST.iteritems():
+				print "'%s', '%s' in request.POST.iteritems():" % (kname, key)
+				print "'%s'.startswith('annot_key') = %s" % (kname, kname.startswith('annot_key'))
 				if kname.startswith('annot_key'):
 					vname = kname.replace('key', 'value')
 					value = request.POST.get(vname, '')
 					annotations[key] = value
+					print "  values[%s] = %s" % (vname, value)
+					print "  keys[%s] = %s" % (kname, key)
 					values[vname] = value
 					keys[kname] = key
 			
 			fields = {'name': g.name, 'desc': g.description,}
 			fields.update(keys)
 			fields.update(values)
+			
+			print "Fields: %s" % fields
 			
 			#save changes
 			g.save()

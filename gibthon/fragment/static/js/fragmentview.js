@@ -163,10 +163,10 @@ $.widget("ui.fragmentMeta", {
 		
 		var ret = "" +
 		"<tr class='" + cls + " extender-item'>" +
-		"	<td id='annot-key' class='magic-item annot-key' >" +
+		"	<td id='annot_key' class='magic-item annot-key' >" +
 		"		<span class='magic-text'>" + key + "</span>" +
 		"	</td>" +
-		"	<td id='annot-value' class='magic-item'>" +
+		"	<td id='annot_value' class='magic-item'>" +
 		"		<span class='magic-text'>" + value + "</span>" +
 		"	</td>" +
 		"	<td><button class='extender-remove'>Remove</button></td>"
