@@ -1,4 +1,6 @@
 
+var httppat = /^http:\/\//i
+
 function px2em(input) 
 {
     var emSize = parseFloat($('body').css("font-size"));
@@ -159,6 +161,11 @@ $.widget("ui.fragmentMeta", {
 			value = value + value_list[i];
 			if(i != value_list.length -1)
 				value = value + ", ";
+		}
+		
+		if(httppat.test(value))
+		{
+			value = "<a href='" + value + "'>" + value + "</a>";
 		}
 		
 		var ret = "" +
