@@ -21,6 +21,7 @@ $.widget("ui.formExtender", {
 		unique: false, //whether to give each input an unique name
 		addInitial: true, //whether to add an initial element
 		disabled: false,
+		beforeAdd: function(e, $el) {}, //called before adding an element to the DOM
 	},
 	_init: function() {
 		var self = this;
@@ -28,7 +29,7 @@ $.widget("ui.formExtender", {
 		
 	//intialise the elements	
 		this.$copy = this.$el.find('#extender-copy').detach(); //remove from the dom - it'll only cause trouble
-		this.$target = this.$el.find('#extender-target');
+		this.$target = this.$el.find('.extender-target');
 		
 		this.$el.find('button.extender-add').button({
 			label: 'More',
@@ -36,12 +37,25 @@ $.widget("ui.formExtender", {
 		}).click( function(event) {
 			self._add(event);
 		});
+		
+		this.$el.find('button.extender-remove').each( function() {
+			$(this).button({
+				text: false,
+				icons: {primary: 'ui-icon-trash',},
+			}).click( function(event) {
+				console.log('remove');
+				self._remove(event);
+			});
+		});
+		
 	//intialise the data
 		this.num_elements = 0;
 		if(this.options.unique)
 		{
-			$('.extender-item').find('input').each( function () {
-				$(this).attr('name', $(this).attr('name') + self.num_elements);
+			$('.extender-item').each( function() {
+				$(this).find('input').each( function () {
+					$(this).attr('name', $(this).attr('name') + self.num_elements);
+				});
 				self.num_elements = self.num_elements + 1;
 			});
 		}
@@ -77,8 +91,8 @@ $.widget("ui.formExtender", {
 		{
 			$clone.find('input').each( function() {
 				$(this).attr('name', $(this).attr('name') + self.num_elements);
-				self.num_elements = self.num_elements + 1;
 			});
+			self.num_elements = self.num_elements + 1;
 		}
 		
 		$clone.find('button.extender-remove').button({
@@ -89,17 +103,20 @@ $.widget("ui.formExtender", {
 			self._remove(event);
 		});
 		
+		this._trigger('beforeAdd', event, $clone);
+		
 		$clone.appendTo(this.$target)
 			.slideDown('fast');
-		this.num_elements = this.num_elements + 1;
+		this._trigger('add', event, $clone);
 	},
 	_remove: function(event){
+		var self = this;
 		if(this.num_elements <= 1)
 			return;
 		$(event.target).closest('.extender-item').slideUp('fast', function() {
 			$(this).remove();
+			self._trigger('remove', event, undefined);
 		});
-		this.num_elements = this.num_elements - 1;
 	},
 });
 

@@ -31,6 +31,7 @@ $.widget("ui.fragmentMeta", {
 		this.$icon = this.$el.find('#icon');
 		
 		this.$annotation = this.$el.find('#annot_table');
+		this.$annot_div = this.$el.find('#annot_div');
 		this.$form = this.$el.find('form');
 		this.$ref = this.$el.find('#ref_div');
 		
@@ -62,9 +63,31 @@ $.widget("ui.fragmentMeta", {
 					odd = !odd;
 				}
 				self.$form.magicForm({
-					edit: function() {self.was_visible = self.visible; self.show();},
-					cancel: function() {if(!self.was_visible) self.hide();},
+					edit: function() {
+						self.was_visible = self.visible;
+						self.show();
+						self.$annot_div.formExtender('enable');
+					},
+					cancel: function() {
+						if(!self.was_visible) self.hide();
+						self.$annot_div.formExtender('disable');
+					},
+					save: function() {
+						if(!self.was_visible) self.hide();
+						self.$annot_div.formExtender('disable');
+					},
 				});
+				self.$annot_div.formExtender({
+					unique: true,
+					disabled: true,
+					addInitial: false,
+					add: function(e, $el) {
+						self._remark();
+					},
+					remove: function(e, $el) {
+						self._remark();
+					},
+				})
 			}
 			else
 			{
@@ -115,6 +138,17 @@ $.widget("ui.fragmentMeta", {
 			.addClass('ui-icon-triangle-1-s');
 		this.$dd.slideUp(250, function(){self.visible=false;});
 	},
+	_remark: function()
+	{
+		var self = this;
+		var odd = false;
+		this.$annotation.find('tr').each( function() {
+			$(this).removeClass('tr tr-alt');
+			if(odd) $(this).addClass('tr-alt')
+			else $(this).addClass('tr');
+			odd = !odd;
+		});
+	},
 	_make_annotation: function(key, value_list, alt) {
 		var cls = 'tr';
 		if(alt == true)
@@ -128,13 +162,14 @@ $.widget("ui.fragmentMeta", {
 		}
 		
 		var ret = "" +
-		"<tr class='" + cls + "'>" +
+		"<tr class='" + cls + " extender-item'>" +
 		"	<td id='annot-key' class='magic-item annot-key' >" +
 		"		<span class='magic-text'>" + key + "</span>" +
 		"	</td>" +
 		"	<td id='annot-value' class='magic-item'>" +
 		"		<span class='magic-text'>" + value + "</span>" +
 		"	</td>" +
+		"	<td><button class='extender-remove'>Remove</button></td>"
 		"</tr>";
 		return ret;
 	},
