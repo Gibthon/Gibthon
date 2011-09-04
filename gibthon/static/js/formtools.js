@@ -18,7 +18,9 @@ formExtender:
 
 $.widget("ui.formExtender", {
 	options: {
+		unique: false, //whether to give each input an unique name
 		addInitial: true, //whether to add an initial element
+		disabled: false,
 	},
 	_init: function() {
 		var self = this;
@@ -36,16 +38,47 @@ $.widget("ui.formExtender", {
 		});
 	//intialise the data
 		this.num_elements = 0;
+		if(this.options.unique)
+		{
+			$('.extender-item').find('input').each( function () {
+				$(this).attr('name', $(this).attr('name') + self.num_elements);
+				self.num_elements = self.num_elements + 1;
+			});
+		}
 		
 		if(this.options.addInitial)
 		{
 			this._add();
 		}
+		if(this.options.disabled) this.disable();
+	},
+	enable: function()
+	{
+		this._enable_disable('enable');
+	},
+	disable: function()
+	{
+		this._enable_disable('disable');
 	},
 	numElements: function() {return num_elements},
+	_enable_disable: function(fn)
+	{
+		var self = this;
+		this.$el.find('button.extender-remove').each( function() {
+			$(this).button(fn);
+		this.$el.find('button.extender-add').button(fn);
+	},
 	_add: function(event){
 		var self=this;
-		var $clone = this.$copy.clone();
+		var $clone = this.$copy.clone().addClass('extender-item');
+		
+		if(this.options.unique)
+		{
+			$clone.find('input').each( function() {
+				$(this).attr('name', $(this).attr('name') + self.num_elements);
+				self.num_elements = self.num_elements + 1;
+			});
+		}
 		
 		$clone.find('button.extender-remove').button({
 			text: false,
@@ -62,7 +95,7 @@ $.widget("ui.formExtender", {
 	_remove: function(event){
 		if(this.num_elements <= 1)
 			return;
-		$(event.target).closest('#extender-copy').slideUp('fast', function() {
+		$(event.target).closest('.extender-item').slideUp('fast', function() {
 			$(this).remove();
 		});
 		this.num_elements = this.num_elements - 1;
@@ -92,7 +125,7 @@ $.widget("ui.magicForm", {
 		cancel: function() {},//called on cancel
 		edit: function() {},
 		defaultInput: "<input class='magic-input' type='text'></input>",
-		defaultError: "<p class='magic-error' type='text'></p>",
+		defaultError: "<p class='magic-error'></p>",
 	},
 	_init: function() {
 		var self = this;

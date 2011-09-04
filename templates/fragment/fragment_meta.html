@@ -28,8 +28,21 @@
 		<div id="drop_down">
 			<h4>Annotations</h4>
 				<div class="info" id="annot_div">
-					<table id="annot_table">
+					<table id="annot_table" class='extender-target'>
+						<tr id='extender-copy'> 
+							<td id='annot-key' class='magic-item annot-key' > 
+								<span class='magic-text' style='display:none;'>Key</span> 
+								<input name='annot-key' class='magic-input' type='text'>Key</input>
+								<p class='magic-error' style='display:none;'></p>
+							</td> 
+							<td id='annot-value' class='magic-item'> 
+								<span class='magic-text' style='display:none;'>Value</span>
+								<input name='annot-key' class='magic-input' type='text'>Value</input>
+								<p class='magic-error' style='display:none;'></p>
+							</td> 
+						</tr>
 					</table>
+					<button class='extender-add'>Add</button>
 				</div>
 			<h4>References</h4>
 				<div class="info" id="ref_div">
