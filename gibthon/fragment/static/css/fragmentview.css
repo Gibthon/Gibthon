@@ -215,10 +215,8 @@
 }
 .seq-label
 {
-	font: 0.8em 'Arial',sans-serif;
 	display: inline-block;
-	width: 3.7em;
-	margin-right: 0.64em;
+	position: absolute;
 }
 .row
 {	
@@ -268,7 +266,11 @@
 
 .label-div
 {
+	font: 0.9em 'Arial',sans-serif;
 	background-color: lightgrey;
+	position: relative;
+	height: 1.1em;
+	margin-top: 0.2em;
 }
 .feat
 {

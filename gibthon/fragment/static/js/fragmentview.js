@@ -404,7 +404,8 @@ $.widget("ui.fragmentSequence", {
 		for(var i = 0; i < this.rowlength; i = i + 5)
 		{
 			seq = seq + s.substr(i, 5) + " ";
-			label = label + '<div class="seq-label unselectable" unselectable="on">' + (start + i) + '</div>';
+			var left= (3.95333 * i) / 5.0;
+			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:' + left +'em">' + (start + i) + '</div>';
 		}
 		var cseq = this._complement(seq);
 		
