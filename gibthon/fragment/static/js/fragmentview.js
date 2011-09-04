@@ -526,7 +526,10 @@ $.widget("ui.fragmentSequence", {
 	get_sel: function()
 	{
 		if(!this._selected)
+		{
+			console.log("self.get_sel return: ''");
 			return ""
+		}
 		return this.seq.substring(this._select_start - 1, this._select_end - 1);
 	},
 	get_rev: function() {return this._reverse(this.get_sel());},

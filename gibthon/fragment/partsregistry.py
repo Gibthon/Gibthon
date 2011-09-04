@@ -126,7 +126,7 @@ class Part:
 		features = []
 		for feat in self.features:
 			features.append( SeqFeature( 
-				location = FeatureLocation(feat['startpos'] - 1, feat['endpos'] - 1), #NB partsregistry uses 1-offset, python does not.
+				location = FeatureLocation(feat['startpos'] - 1, feat['endpos']), #NB partsregistry uses 1-offset, and inclusive.
 				type = feat['type'],
 				strand = feat['strand'],
 				qualifiers = {'title': feat['name'],}))
