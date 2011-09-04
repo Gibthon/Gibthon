@@ -66,6 +66,7 @@ $.widget("ui.formExtender", {
 		var self = this;
 		this.$el.find('button.extender-remove').each( function() {
 			$(this).button(fn);
+		});
 		this.$el.find('button.extender-add').button(fn);
 	},
 	_add: function(event){
