@@ -257,7 +257,7 @@ var initial_sequence_html = '' +
 '</div>';
 
 //inital guess at char width
-var char_width = 0.64;
+var char_width = 0.7;
 var click_thresh = 300; //ms
 
 var select_start = '<span class="selected unselectable" unselectable="on">';
@@ -737,7 +737,7 @@ var make_feat_tooltip = function(feature)
 	var ret = '' +
 	'<table style="word-wrap:break-word;width:100%;">' +
 	'	<tr><td style="min-width:7.5em;"><h4>Type:</h4></td><td style="width:70%;"><p>' + feature.type + '</p></td></tr>' +
-	'	<tr><td><h4>Location:</h4></td><td><p>' + (feature.start) + '-' + (feature.end) + '</p></td></tr>' +
+	'	<tr><td><h4>Location:</h4></td><td><p>' + (feature.start + 1) + '-' + (feature.end + 1) + '</p></td></tr>' + //NB. Added one to switcg to biologist-friendly 1-offset
 	'	<tr><td><h4>Length:</h4></td><td><p>' + (feature.end - feature.start) + '</p></td></tr>' +
 	'	<tr><td><h4>Strand:</h4></td><td><p>' + strand + '</p></td></tr>';
 	
