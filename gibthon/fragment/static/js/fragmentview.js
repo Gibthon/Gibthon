@@ -416,19 +416,26 @@ $.widget("ui.fragmentSequence", {
 	},
 	_label_features: function()
 	{
+		var self = this;
 		for(var f in this.features)
 		{
 			var $feat = $('.feat-id-' + f);
 			$feat.tipTip({
 				maxWidth: '800px',
 				content: make_feat_tooltip(this.features[f]),
-			}).hover(function(event) { //in
+			})
+			.hover(function(event) { //in
 				var fid = $(event.target).attr('id').split('-')[0];
 				$('.feat-id-' + fid).addClass('feat-hover');
 			}, 
 			function(event) {//out
 				var fid = $(event.target).attr('id').split('-')[0];
 				$('.feat-id-' + fid).removeClass('feat-hover');
+			})
+			.click(function(event) {
+				var fid = $(event.target).attr('id').split('-')[0];
+				var feat = self.features[fid];
+				self._select(feat.start + 1, feat.end + 1);
 			});
 		}
 	},
@@ -671,24 +678,18 @@ var make_feat_html = function(r_s, r_e, feature, f_id)
 	
 	var l = r_e - r_s;
 	
+	var start = toPadded(left);
+	var end = toPadded(l - right);
+	l = toPadded(l);
+	
 	var r = "";
-	for(var i = 0; i < l; i = i + 5)
+	for(var i = 0; i < l; i = i + 1)
 	{
-		for(var j = 0; j < 5; j = j + 1)
-		{
-			if((i+j) == left)
-			{
-				r = r + '<span id="' + f_id + '-'+r_s+'-feat" class="feat-hl feat-type-' + feature.type.toLowerCase() + ' feat-id-' + f_id + '">';
-			}
-			if((l - (i+j)) == right)
-			{
-				r = r + '</span>';
-			}
-			r = r + ' ';
-		}
-		
-		if((i+j) < l)
-			r = r + ' ';
+		if(i == start)
+			r = r + '<span id="' + f_id + '-'+r_s+'-feat" class="feat-hl feat-type-' + feature.type.toLowerCase() + ' feat-id-' + f_id + '">';
+		else if(i == end)
+			r = r + '</span>';
+		r = r + ' ';
 	}
 	
 	return '<div class="feat-div">' + r + '</div>';	
