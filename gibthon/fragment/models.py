@@ -59,13 +59,25 @@ class Gene(models.Model):
 		return self.name
 	
 
-	def add(_record, _origin, _user):
+	def add(_record, _origin, _user, errors = False):
+		t = 0
 		g = Gene(owner=_user, name=_record.name,description=_record.description,sequence=_record.seq, origin=_origin)
 		g.save()
 		for key,value in _record.annotations.items():
-			Annotation.add(g, key, value)
+			try:
+				Annotation.add(g, key, value)
+			except Exception as ex:
+				if ex.message.lower().startswith('data truncated'):
+					t += 1
+				else:
+					print "Error: %s" % ex.message 
 		for feature in _record.features:
-			f = Feature.add(feature,g,_origin)
+			Feature.add(feature,g,_origin)
+		
+		if(errors):
+			e = {'truncated': t,}
+			return (g, e)
+		
 		return g
 	add = staticmethod(add)
 	
