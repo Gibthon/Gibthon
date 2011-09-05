@@ -89,9 +89,9 @@ def get_seq_meta(g, request):
 		alpha[let[i].upper()] = rlet[i].upper()
 	
 	return JsonResponse({	'len': len(g.sequence),
-									'feats': feats,
-									'alpha': alpha,
-								})
+							'feats': feats,
+							'alpha': alpha,
+						})
 	
 def get_seq(g, request):
 	#return a section of the sequence
