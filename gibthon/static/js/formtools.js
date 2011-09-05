@@ -122,6 +122,8 @@ $.widget("ui.formExtender", {
 
 })(jQuery);
 
+var httppat = /^http:\/\//i;
+
 /*
  * magicForm
  * - forms which appear when needed and submit&update via AJAX.
@@ -271,10 +273,17 @@ $.widget("ui.magicForm", {
 				//set the text
 				var val = data[1].fields[$input.attr('name')];
 				if(val == undefined) val = '';
-			console.log('value for ' + $input.attr('name') + ' = ' + val);
+				if(httppat.test(val))
+				{
+					val = "<a href='" + val + "'>" + val + "</a>";
+					$text.html(val);
+				}
+				else
+					$text.text(val)
+				
 				//show the text
 				$input.hide();
-				$text.text(val).show();
+				$text.show();
 			});
 			this._trigger('save', undefined, data);
 		}

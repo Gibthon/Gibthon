@@ -172,6 +172,7 @@ $.widget("ui.fragmentMeta", {
 		"<tr class='" + cls + " extender-item'>" +
 		"	<td id='annot_key' class='magic-item annot-key' >" +
 		"		<span class='magic-text'>" + key + "</span>" +
+		"		<input name='annot_key' class='magic-input' style='display:none;' type='text' value='Key' size=10 ></input>" +
 		"	</td>" +
 		"	<td id='annot_value' class='magic-item'>" +
 		"		<span class='magic-text'>" + value + "</span>" +
