@@ -372,8 +372,10 @@ $.widget("ui.fragmentSequence", {
 		for(var i = 0; i < this.rowlength; i = i + 5)
 		{
 			seq = seq + s.substr(i, 5) + " ";
-			var left= (3.95333 * i) / 5.0;
-			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:' + left +'em">' + (start + i) + '</div>';
+			var left= '';
+			for(var j = 0; j < toPadded(i); j = j+1)
+				left = left + ' ';
+			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' + left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
 		}
 		var cseq = this._complement(seq);
 		

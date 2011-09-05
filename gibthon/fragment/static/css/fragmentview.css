@@ -216,6 +216,11 @@
 {
 	display: inline-block;
 	position: absolute;
+	white-space: pre;
+}
+.seq-label-text
+{
+	font: 0.9em 'Arial',sans-serif;
 }
 .row
 {	
@@ -266,7 +271,6 @@
 
 .label-div
 {
-	font: 0.9em 'Arial',sans-serif;
 	background-color: lightgrey;
 	position: relative;
 	height: 1.1em;
