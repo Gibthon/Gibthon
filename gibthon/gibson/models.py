@@ -62,7 +62,6 @@ def run_subprocess(cline, primer):
 	try:
 		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	except IOError:
-		print 'aspifjoasijfoiaj'
 		return False
 	stdout, stderr = p.communicate()
 	if p.returncode > 0:
@@ -460,6 +459,14 @@ class Construct(models.Model):
 		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features()]
 		return g.format('genbank')
 		
+	def add_fragment(self, fragment):
+		o = len(self.fragments.all())
+		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction='f', start_feature=fragment.features.all()[0], end_feature=fragment.features.all()[0], start_offset=0, end_offset=0)
+		if cf:
+			return True
+		else:
+			return False
+		
 	def process(self, reset=True, new=True):
 		if new:
 			# delete all existing primers
@@ -600,9 +607,4 @@ class ConstructFragment(models.Model):
 	
 	def __unicode__(self):
 		return self.construct.name + ' : ' + self.fragment.name + ' (' + str(self.order) + ')'
-
-def add_fragment(_construct, _fragment):
-	o = len(_construct.fragments.all())
-	cf = ConstructFragment(construct=_construct, fragment=_fragment, order = o, direction='f', start_feature=_fragment.features.all()[0], end_feature=_fragment.features.all()[0], start_offset=0, end_offset=0)
-	cf.save()
 	

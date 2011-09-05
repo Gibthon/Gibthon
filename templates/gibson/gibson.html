@@ -71,48 +71,9 @@ td ul {
 <div style="width:380px; margin:20px;">
 	<div class="ui-widget-header ui-corner-top" style="width:100%; padding:10px; height:25px;">
 		<div style="float:right;"><button id="add">Add</button></div>
-		<div style="float:right; margin-right:10px;"><button id="feature_help_open">Help</button></div>
-		<div style="float:right; margin-right:10px;"><button id="feature_help_close">Close Help</button></div>
 		<h4>Fragment List</h4>
 	</div>
 	<div id="fragment_list" class="ui-widget-content ui-corner-bottom" style="min-height:50px; padding:10px; width:380px;">
-		<div id="feature_help">
-			<p>Select the start feature and end feature. If they are the same, you will be able to change the 
-			direction. If they are different the extract will be from the lowest start value to the highest end value.</p>
-			<p>This means if you select a feature for the start feature further on in the gene than the end feature, they will
-			be extracted backwards</p>
-			<p>This assumes that you do not select any feature which is a subset of another feature - overlaps are fine though!</p>
-		</div>
-		{% for fragment,feature,cf in list %}
-		<div id="{{ cf.id }}">
-			<h3>{{ fragment.description }}</h3>
-			<div>
-				<form class="formthing">
-				<table>
-					<tr>
-						<td style="width:150px;"><strong>ID:</strong> {{ fragment.name }}</td>
-						<td style="width:150px;"><strong>Length:</strong> {{ fragment.length }}</td>
-					</tr>
-					<tr>
-						<th>Start</th>
-						<th>Finish</th>
-					</tr>
-					<tr>
-						<td>
-							{{ feature.start_feature }}
-						</td>
-						<td>
-							{{ feature.finish_feature }}
-						</td>
-					</tr>
-				</table>
-				<div style="width:200px; margin-left:auto; margin-right:auto; text-align:center;">{{ feature.direction }}</div>
-				</form>
-				<div style="float:left"><button id="view/{{ fragment.id }}">Browse</button></div>
-				<div style="float:right"><button id="delete/{{ cf.id }}">Delete</button></div>
-			</div>
-		</div>
-		{% endfor %}
 	</div>
 </div>
 </div>
@@ -125,22 +86,6 @@ td ul {
 </div>
 <div id="fragment_browser">
 	<div id="fragment_browser_content"></div>
-</div>
-<div id="fragment_delete">
-	<div id="fragment_delete_content">
-		Are you sure you want to remove this fragment?
-	</div>
-</div>
-<div id="construct_delete">
-	Are you sure you want to delete this construct?
-</div>	
-<div id="wait">
-	<p>Processing...</p>
-	<div id="process_progress" style="height:22px;"></div>
-	<div style="font-size:0.8em; margin-top:15px;">
-		<button class="button_progress" style="float:right; margin-left:10px;" id="primers_progress">View Primers</button>
-		<button class="button_progress" style="float:right;" id="close_progress">Close</button>
-	</div>
 </div>
 <div id="construct_edit">
 <form action="info_edit" method="post">

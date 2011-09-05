@@ -16,6 +16,7 @@ primerpatterns = patterns('gibson.views',
 
 constructpatterns = patterns('gibson.views',
 	(r'^$', 'construct'),
+	(r'^fragments$', 'construct_fragment'),
 	(r'^summary$', 'summary'),
 	(r'^settings$', 'construct_settings'),
 	(r'^settings/edit$', 'settings_edit'),

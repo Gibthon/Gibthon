@@ -13,13 +13,11 @@ class SequenceField(forms.CharField):
 	def to_python(self, value):
 		if value:
 			value = value.replace(' ', '')
-			print 'value: "%s"' % value
 			return Seq(value, self.alphabet)
 		return None
 		
 	def clean(self, value):
 		value = value.replace(' ', '')
-		print "clean(value='%s')" % value
 		#clean the chars
 		super(SequenceField, self).clean(value)
 		#check id the sequence makes sense

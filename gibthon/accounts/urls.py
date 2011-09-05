@@ -9,6 +9,7 @@ messagepatterns = patterns('accounts.views',
 
 inboxpatterns = patterns('accounts.views',
 	(r'^$', 'inbox'),
+	(r'^all$', 'messages'),
 	(r'^fetch$', 'fetch'),
 	(r'^add$', 'message_add_all'),
 	(r'^(?P<mid>\d+)/', include(messagepatterns)),
