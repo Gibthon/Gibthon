@@ -31,14 +31,15 @@ td ul {
 {% endblock %}
 
 {% block menu %}
-|
+<div class="ui-state-default ui-corner-all content">
+<a href="/gibthon/" id="library">Library</a>|
 <button id="save">Save</button>
 <button id="delete">Delete</button>
 |
 <button id="process">Process</button>
-<button id="primers">View Primers</button>
+<a href="primers" id="primers">View Primers</a>
+</div>
 {% endblock %}
-
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
 {% csrf_token %}

@@ -24,13 +24,13 @@ td {
 {% endblock %}
 
 {% block menu %}
-|
+<div class="ui-state-default ui-corner-all content">
 <a href="add">Add all</a>
+</div>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-<h2>Inbox</h2>
 <h4>{{ user.channel }}</h4>
 <div style="padding:10px;">
 	<table id="inbox_table">

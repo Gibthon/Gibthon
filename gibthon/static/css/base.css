@@ -114,3 +114,18 @@ input.captcha {
 	width:30px;
 	height:20px;
 }
+
+.user_tab {
+	float:right;
+	margin-right:10px;
+	font-size:0.7em;
+	margin-top:46px;
+}
+
+div.ui-state-default a.ui-button {
+	border:none !important;
+}
+
+div.ui-state-default button.ui-button {
+	border:none !important;
+}

@@ -50,30 +50,31 @@ $(document).ready(function() {
 		.click(function() {
 			window.location.href = '/user/register/';
 		});
-	$('button#back')
-		.button({
-			icons:{primary:'ui-icon-arrowthick-1-w'}
-		})
-		.click(function() {
-			history.go(-1);
-		});
-	$('button#forward')
-		.button({
-			icons:{secondary:'ui-icon-arrowthick-1-e'}
-		})
-		.click(function() {
-			history.go(1);
-		});
-	var re = /(\/(\d+\/)?[\w_ ]+)+/;
-	var m = re.exec(window.location.pathname);
-	if(m){
-		$('a#up').attr('href', (m[0] == m[1]) ? '/' : m[0].replace(m[1],'') + '/');
-	}
-	$('a#up')
-		.button({
-			icons:{primary:'ui-icon-arrowreturnthick-1-n'}
-		});
 	$('a[id^="menu"]').button();
+			
+	{% if user.is_authenticated %}
+	$('#user_tab_profile').button();
+	$('#user_tab_inbox').button({
+		icons:{primary:'ui-icon-mail-closed'}
+	});
+	$('#user_tab_logout').button({
+		icons:{primary:'ui-icon-tag'}
+	});
+	{% else %}
+	$('#user_tab_login').button({
+		icons:{primary:'ui-icon-tag'}
+	})
+	.click(function (event) {
+		event.preventDefault();
+		window.location.href="/user/login?next="+window.location.pathname;
+	});
+	$('#user_tab_register').button({
+		icons:{primary:'ui-icon-key'}
+	});
+	{% endif %}
+
+	$('.user_tab').addClass('ui-corner-top').removeClass('ui-corner-all');
+
 	
 	$('input[id^="id_captcha"]').addClass('captcha');
 	{% if user.is_authenticated %}
@@ -106,9 +107,12 @@ $(document).ready(function() {
 <div class="container">
 	<div class="ui-widget-header ui-corner-all" style="height:70px; margin-bottom:10px;">
 		{% if user.is_authenticated %}
-		<div style="float:right; margin:10px;">
-			<h4 style="line-height:50px; font-size:0.8em;">Logged in as {{ user }}</h4>
-		</div>
+		<a href="/user/logout" id="user_tab_logout" class="user_tab">Log out</a>
+		<a href="/user/inbox/" id="user_tab_inbox" class="user_tab">Inbox (<span id="inbox_unread" style="color:red;">&nbsp;&nbsp;</span>/<span id="inbox_not_added" style="color:black;">&nbsp;&nbsp;</span>/<span id="inbox_count">&nbsp;&nbsp;</span>)</a>
+		<a href="/user/profile/" id="user_tab_profile" class="user_tab">Logged in as {{ user }}</a>
+		{% else %}
+		<a href="/user/login/" id="user_tab_login" class="user_tab">Log in</a>
+		<a href="/user/register/" id="user_tab_register" class="user_tab">Register</a>
 		{% endif %}
 		<a href="/"><img src="{{ STATIC_URL }}/images/gibthon2.0beta.png" style="height:60px; padding:5px 10px; float:left;" alt="Gibthon" /></a>
 		<h2 style="line-height:70px;">Gibthon:<span style="font-size:0.7em">{{ title|default:"Home" }}</span></h2>
@@ -117,10 +121,6 @@ $(document).ready(function() {
 		<div class="ui-widget-content ui-corner-all menu">
 			<p><strong>Navigation</strong></p>
 			<a id="menu_home" href="/">Home</a>
-			{% if user.is_authenticated %}
-			<a id="menu_profile" href="/user/profile/">Profile</a>
-			<a id="menu_inbox" href="/user/inbox/">Inbox (<span id="inbox_unread" style="color:red;"></span>/<span id="inbox_not_added" style="color:black;"></span>/<span id="inbox_count"></span>)</a>
-			{% endif %}
 			<p><strong>Gibthon</strong></p>
 			<a id="menu_fragment" href="/fragment/">Fragment library</a>
 			<a id="menu_gibthon" href="/gibthon/">Construct Designer</a>
@@ -134,19 +134,9 @@ $(document).ready(function() {
 			<a href="/partsearch/" id="menu_help_api">PartSearch API</a>
 		</div>
 	</div>
-	<div class="ui-widget-content ui-corner-all content" style="margin-top:-6px;">
-		<button id="back">Back</button>
-		<a href="#" id="up">Up</a>
-		<button id="forward">Forward</button>
-		{% block menu %}
-		{% endblock %}
-		{% if user.is_authenticated %}
-			<button style="float:right;" id="logout">Log out</button>
-		{% else %}
-			<button style="float:right;" id="login">Log in</button>
-			<button style="float:right; margin-right:5px;" id="register">Register</button>
-		{% endif %}
-	</div>
+	{% block menu %}
+	{% endblock %}
+	
 	{% block login_prompt %}
 	{% if user.is_authenticated %}
 	{% else %}
@@ -155,10 +145,8 @@ $(document).ready(function() {
 	</div>
 	{% endif %}
 	{% endblock %}
-	<div class="ui-state-highlight ui-corner-all content">
-	<p>Import parts directly from the <a href="http://partsregistry.org/Main_Page">Parts Registry</a> by dragging <a href="javascript:(function%20()%20{var%20scr%20=%20document.createElement(%27script%27);scr.type%20=%20%27text/javascript%27;scr.src%20=%20%27http://django.gibthon.org/static/js/gibthon-import.js%27;document.documentElement.appendChild(scr)})();">this bookmarklet</a> to your favourites</p>
-	</div>
-		{% block content %}{% endblock %}
+	
+	{% block content %}{% endblock %}
 	<div class="ui-widget-content ui-corner-all footer">
 		Copyright 2011 Bill Collins and Contributors
 	</div>

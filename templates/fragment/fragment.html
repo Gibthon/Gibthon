@@ -13,8 +13,10 @@
 {% endblock %}
 
 {% block menu %}
-|
-<button id="download">Download</button>
+<div class="ui-state-default ui-corner-all content">
+<a href="/fragment/" id="library">Library</a>|
+<a href="{{ fragment.name }}.gb" id="download">Download</a>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -59,12 +61,12 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
-	$('button#download').button({
+	$('a#download').button({
 			icons:{primary:'ui-icon-link'}
-		})
-		.click(function() {
-			window.location.href = '{{ fragment.name }}.gb';
 		});
+	$('a#library').button({
+		icons:{primary:'ui-icon-note'}
+	});
 	$('#fragment_info').load('getMeta/');
 	
 	$('#sequence').load('getSeq/');

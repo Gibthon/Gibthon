@@ -54,10 +54,12 @@ td.warningcell {
 {% endblock %}
 
 {% block menu %}
-|
+<div class="ui-state-default ui-corner-all content">
+<a href="/gibthon/{{ construct.id }}/{{ construct.name }}/" id="back_to_construct">Back to Construct</a>|
 <button id="download">Download Primers and Protocols</button>
 |
 <button id="reset_offset">Reset Offsets</button>
+</div>
 {% endblock %}
 
 {% block content %}

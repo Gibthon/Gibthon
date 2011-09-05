@@ -122,9 +122,8 @@ $(document).ready(function() {
 				window.location.href = url;
 			});
 		});
-	$('button#primers')
-		.button({ icons:{primary:'ui-icon-transferthick-e-w'} })
-		.click(function(){ window.location.href="primers" });
+	$('a#primers')
+		.button({ icons:{primary:'ui-icon-transferthick-e-w'} });
 	$('button#process')
 		.button({ icons:{primary:'ui-icon-check'} })
 		.click( function(event) {
@@ -168,6 +167,9 @@ $(document).ready(function() {
 			$('#fragment_browser_content').load('add');
 			$('#fragment_browser').dialog('open');
 		});		
+	$('a#library').button({
+		icons:{primary:'ui-icon-note'}
+	});
 	
 	/* dialogs */
 	$('#construct_edit').dialog({

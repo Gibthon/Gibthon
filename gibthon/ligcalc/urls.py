@@ -5,7 +5,7 @@ from django.views.generic.simple import direct_to_template
 
 
 urlpatterns = patterns('ligcalc.views',
-	(r'^$', direct_to_template, {'template':'tools/ligate.html'}),
+	(r'^$', 'ligcalc'),
 	(r'^get$', 'get'),
 )
 

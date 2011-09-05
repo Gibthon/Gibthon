@@ -14,22 +14,16 @@
 {% endblock %}
 
 {% block menu %}
+<div class="ui-state-default ui-corner-all content">
+<button id="fragment_form_open"></button>|
+<button id="download_btn"></button>
+<button id="delete_btn"></button>
+</div>
 {% endblock %}
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-<h3>Fragment Library</h3>
-	<div class="fragment-toolbar ui-widget-content ui-corner-all">
-		<span class="fragment-left-buttons">
-			<button id="fragment_form_open"></button>
-		</span>
-		<span class="fragment-right-buttons">
-			<button id="download_btn"></button>
-			<button id="delete_btn"></button>
-		</span>
-		<div style="clear:both;"></div>
-	</div>
-<div style="padding:10px;">
+
 <form id='select_form' method="post" enctype="multipart/form-data">
 {% csrf_token %}
 	<table id="fragment_table">
@@ -64,8 +58,6 @@
 		</tbody>
 	</table>
 </form>
-</div>
-
 </div>
 {% endblock %}
 
