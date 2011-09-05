@@ -79,8 +79,8 @@
 		});
 		
 		$('.copy_option').children('input')
-			.focus( function() {
-				$('.copy_ip').blur();
+			.click( function() {
+				this.focus();
 				this.select();
 			})
 			.blur( function() {
