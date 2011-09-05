@@ -190,9 +190,7 @@
                 var that = $(this).data('fileupload');
                 if (data.data)
                 {
-					console.log('before data.data: ' + data.data);
 					data.data = $.parseJSON(data.data);
-					console.log('after data.data: ' + data.data);
 				}
                 if (data.url) {
                     $.ajax(data)

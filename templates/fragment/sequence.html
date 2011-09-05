@@ -1,0 +1,99 @@
+<div id="the_sequence">
+	<div id="loader" class="ui-state-highlight content middle-box"> 
+		<span id="load_span"><b>Loading:</b> <span id="progress">0</span>/<span id="length">0</span> bp </span> 
+		<span id="progress_span"> 
+			<div id="progressbar" ></div> 			
+		</span> 
+	</div> 
+	<div id="seq_toolbar_rest" class="middle-box"> 
+		<div id="seq_toolbar"> 
+			<span id="left_btns" style="float:left;margin:.2em;"> 
+				<button class="select_reqd" id="copy_btn"></button> 
+				<button id="select_btn"></button> 
+			</span> 
+			<span id="right_btns" style="float:right;margin:.2em;"> 
+				<span id="view"> 
+					<input type="radio" id="ds" name="view" checked="checked" /> 
+					<label for="ds" title="Show Double Stranded">DS</label> 
+					<input type="radio" id="ss" name="view" /> 
+					<label for="ss" title="Show Single Stranded">SS</label> 
+					<input type="radio" id="ns" name="view" /> 
+					<label for="ns" title="Only Show Label">NS</label> 
+				</span> 
+			</span> 
+			<div style="clear:both;"></div> 
+		</div> 
+	</div> 
+	<div class="ui-widget-content ui-corner-bottom bottom-box content"> 	
+		<div id="seq_wrap" class="unselectable" unselectable="on"> 
+			<div id="seq_inner" class="unselectable" unselectable="on"> 
+			</div> 
+		</div> 
+	</div>
+</div>
+
+<div id='copy_dialog' style='display:none;'>
+	<div style="text-align:center;margin-top:1.5em;">
+		<p>
+			<div class="copy_option">
+				<div class="copy_label">Forward Strand (5'->3')</div>
+				<input class="copy_ip" id="fwd_53" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Forward Strand Reversed (3'->5')</div>
+				<input class="copy_ip" id="fwd_35" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Complement (3'->5')</div>
+				<input class="copy_ip" id="rev_35" type="text" readonly="readonly" size=50/>
+			</div>
+			<div class="copy_option">
+				<div class="copy_label">Reverse Complement (5'->3')</div>
+				<input class="copy_ip" id="rev_53" type="text" readonly="readonly" size=50/>
+			</div>
+		</p>
+		<div>
+			<button id="copy_close"></button>
+		</div>
+	</div>
+</div>
+
+<script type='text/javascript'>
+	var show_copy_dialog = function(){
+		$('#fwd_53').val( $('#the_sequence').fragmentSequence('get_sel'));
+		$('#fwd_35').val( $('#the_sequence').fragmentSequence('get_rev'));
+		$('#rev_35').val( $('#the_sequence').fragmentSequence('get_cmp'));
+		$('#rev_53').val( $('#the_sequence').fragmentSequence('get_rev_cmp'));
+		$('#copy_dialog').dialog('open');
+	}
+	
+	$(window).ready( function() {
+		$('#copy_dialog').dialog({
+			autoOpen:false,
+			resizable:false,
+			modal:true,
+			title:"Copy",
+			height:"auto",
+			width:"640",
+			open: function() {$('.copy_option:first input').select();}, //open callback
+		});
+		
+		$('.copy_option').children('input')
+			.click( function() {
+				this.focus();
+				this.select();
+			})
+			.blur( function() {
+				this.selectionStart = this.selectionEnd = -1;
+			});
+		
+		$('#copy_close').button({
+				label: 'Close',
+				icons:{primary:'ui-icon-close'}
+		}).click(function() {
+			$('#copy_dialog').dialog('close');
+		});
+		
+		$('#the_sequence').fragmentSequence({id: {{id}},});
+	});
+</script>

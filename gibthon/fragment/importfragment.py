@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render_to_response
 
 import simplejson as json
-from api import JsonResponse, ERROR, RawJsonResponse
+from gibthon.jsonresponses import JsonResponse, ERROR, RawJsonResponse
 
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
@@ -88,18 +88,30 @@ def handle_upload(request):
 
 			records = SeqIO.parse(wrapped_file, format)
 			ids = []
+			truncated = 0
 			for record in records:
-				g = Gene.add(record, 'UL', request.user)
+				(g, t) = Gene.add(record, 'UL', request.user, True)
+				truncated += t['truncated']
 				ids.append(g.id)
 			
-			data.append({	"name":wrapped_file.name, 
+			file_dict = {	"name":wrapped_file.name, 
 							"size":file.size,
 							"error": None,
 							"url":'/fragment/%s/' % ids[0],
 							"delete_url":'/fragment/delete/', 
 							"delete_type":"POST",
 							"delete_data": json.dumps({'selected':ids,}),
-						})
+						}
+			
+			if truncated > 0:
+				e = ''
+				if truncated == 1:
+					e = "Warning: 1 annotation was truncated"
+				else:
+					e = "Warning: %i annotations were truncated" % truncated 
+				file_dict['error'] = e
+			
+			data.append(file_dict)
 		
 		return RawJsonResponse(data)
 	raise Http404

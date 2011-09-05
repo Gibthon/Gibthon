@@ -1,4 +1,6 @@
 
+var httppat = /^http:\/\//i
+
 function px2em(input) 
 {
     var emSize = parseFloat($('body').css("font-size"));
@@ -11,30 +13,6 @@ function em2px(input)
     return (input * emSize);
 }
 
-
-var meta_initial_html = '' +
-'<div class="ui-widget-content ui-corner-top top-box" >' +
-'	<h3 id="desc"></h3>' +
-'	<h5 id="origin"></h5>' +
-'</div>' +
-'<div class="ui-widget-content ui-corner-bottom bottom-box" >' +
-'	<span id="more_details">' +
-'		<span id="more">Show</span> Details ' +
-'		<span id="icon" style="display:inline-block;padding-top:.2em;height:0.8em;" class="ui-icon ui-icon-triangle-1-s" />' +
-'	</span>' +
-'	<div id="drop_down">' +
-'		<h4>Annotations</h4>' +
-'			<div class="info" id="annot_div">' +
-'				<table id="annot_table">' +
-'				</table>' +
-'			</div>' +
-'		<h4>References</h4>' +
-'			<div class="info" id="ref_div">' +
-'				' +
-'			</div>' +
-'	</div>' +
-'</div>';
-
 (function( $, undefined ) {
 
 $.widget("ui.fragmentMeta", {
@@ -44,22 +22,29 @@ $.widget("ui.fragmentMeta", {
 	_create: function() {
 		//Init the element, and fetch the initial data
 		var self = this;
-		this.$el = $(this.element[0]).html(meta_initial_html);
+		this.$el = $(this.element[0]);
 		this.$dd = this.$el.find('#drop_down');
 		this.$more_btn = this.$el.find('#more_details')
 			.click(function() {self.show();});
 		this.$more = this.$el.find('#more');
-		this.$desc = this.$el.find('#desc');
+		this.$name = this.$el.find('#name').children('.magic-text');
+		this.$desc = this.$el.find('#desc').children('.magic-text');
 		this.$origin = this.$el.find('#origin');
 		this.$icon = this.$el.find('#icon');
 		
 		this.$annotation = this.$el.find('#annot_table');
+		this.$annot_div = this.$el.find('#annot_div');
+		this.$form = this.$el.find('form');
 		this.$ref = this.$el.find('#ref_div');
+		
+		this.visible = false;
+		this.was_visible = false;
 		
 		//fetch name and origin
 		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'meta',}, function(data) {
 			if(data[0] == 0)
 			{
+				self.$name.text(data[1].name);
 				self.$desc.text(data[1].desc);
 				self.$origin.text(data[1].length + "bp, " + data[1].origin);
 			}
@@ -79,6 +64,32 @@ $.widget("ui.fragmentMeta", {
 					self.$annotation.append(self._make_annotation(key, data[1][key], odd));
 					odd = !odd;
 				}
+				self.$form.magicForm({
+					edit: function() {
+						self.was_visible = self.visible;
+						self.show();
+						self.$annot_div.formExtender('enable');
+					},
+					cancel: function() {
+						if(!self.was_visible) self.hide();
+						self.$annot_div.formExtender('disable');
+					},
+					save: function() {
+						if(!self.was_visible) self.hide();
+						self.$annot_div.formExtender('disable');
+					},
+				});
+				self.$annot_div.formExtender({
+					unique: true,
+					disabled: true,
+					addInitial: false,
+					add: function(e, $el) {
+						self._remark();
+					},
+					remove: function(e, $el) {
+						self._remark();
+					},
+				})
 			}
 			else
 			{
@@ -95,18 +106,17 @@ $.widget("ui.fragmentMeta", {
 					self.$ref.append(self._make_reference(data[1][key]));
 				}
 				$('.ref-search-btn').button({
-														icons: {
-															primary: 'ui-icon-search'
-																},
-														label: 'Search',
-													});
+												icons: {
+													primary: 'ui-icon-search'
+														},
+												label: 'Search',
+												});
 			}
 			else
 			{
 				console.log(data[1] + ", while getting references.");
 			}
 		});
-		
 	},
 	show: function() {
 		var self = this;
@@ -117,7 +127,7 @@ $.widget("ui.fragmentMeta", {
 		this.$icon
 			.removeClass('ui-icon-triangle-1-s')
 			.addClass('ui-icon-triangle-1-n');
-		this.$dd.slideDown(250);
+		this.$dd.slideDown(250, function(){self.visible=true;});
 	},
 	hide: function() {
 		var self = this;
@@ -128,20 +138,48 @@ $.widget("ui.fragmentMeta", {
 		this.$icon
 			.removeClass('ui-icon-triangle-1-n')
 			.addClass('ui-icon-triangle-1-s');
-		this.$dd.slideUp(250);
+		this.$dd.slideUp(250, function(){self.visible=false;});
+	},
+	_remark: function()
+	{
+		var self = this;
+		var odd = false;
+		this.$annotation.find('tr').each( function() {
+			$(this).removeClass('tr tr-alt');
+			if(odd) $(this).addClass('tr-alt')
+			else $(this).addClass('tr');
+			odd = !odd;
+		});
 	},
 	_make_annotation: function(key, value_list, alt) {
 		var cls = 'tr';
 		if(alt == true)
 			cls = 'tr-alt';
-		var ret = "<tr class='" + cls + "'><td>" + key + ": </td><td>";
+		var value = '';
 		for (i in value_list)
 		{
-			ret = ret + value_list[i];
+			value = value + value_list[i];
 			if(i != value_list.length -1)
-				ret = ret + ", ";
+				value = value + ", ";
 		}
-		return ret + "</td></tr>";
+		
+		if(httppat.test(value))
+		{
+			value = "<a href='" + value + "'>" + value + "</a>";
+		}
+		
+		var ret = "" +
+		"<tr class='" + cls + " extender-item'>" +
+		"	<td id='annot_key' class='magic-item annot-key' >" +
+		"		<span class='magic-text'>" + key + "</span>" +
+		"		<input name='annot_key' class='magic-input' style='display:none;' type='text' value='Key' size=10 ></input>" +
+		"	</td>" +
+		"	<td id='annot_value' class='magic-item'>" +
+		"		<span class='magic-text'>" + value + "</span>" +
+		"	</td>" +
+		"	<td><button class='extender-remove'>Remove</button></td>"
+		"</tr>";
+		return ret;
 	},
 	_make_reference: function(ref)
 	{
@@ -186,40 +224,8 @@ $.widget("ui.fragmentMeta", {
 
 })( jQuery );	
 
-var initial_sequence_html = '' +
-'<div id="loader" class="ui-state-highlight content middle-box">' +
-'	<span id="load_span"><b>Loading:</b> <span id="progress">0</span>/<span id="length">0</span> bp </span>' +
-'	<span id="progress_span">' +
-'		<div id="progressbar" ></div>' +			
-'	</span>' +
-'</div>' +
-'<div id="seq_toolbar" class="content middle-box">' +
-'	<span id="left_btns" style="float:left;margin:.2em;">' +
-'		<button class="select_reqd" id="copy_btn"></button>' +
-'		<button id="select_btn"></button>' +
-'	</span>' +
-'	<span id="right_btns" style="float:right;margin:.2em;">' +
-'		<span id="view">' +
-'			<input type="radio" id="ds" name="view" checked="checked" />' +
-'			<label for="ds" title="Show Double Stranded">DS</label>' +
-'			<input type="radio" id="ss" name="view" />' +
-'			<label for="ss" title="Show Single Stranded">SS</label>' +
-'			<input type="radio" id="ns" name="view" />' +
-'			<label for="ns" title="Only Show Label">NS</label>' +
-'		</span>' +
-//'		<button class="select_reqd" id="edit_btn"></button>' +
-'	</span>' +
-'	<div style="clear:both;"></div>' +
-'</div>' +
-'<div class="ui-widget-content ui-corner-bottom bottom-box content">' +	
-'	<div id="seq_wrap unselectable" unselectable="on">' +
-'		<div id="seq_inner" class="unselectable" unselectable="on">' +
-'		</div>' +
-'	</div>' +
-'</div>';
-
 //inital guess at char width
-var char_width = 0.64;
+var char_width = 0.7;
 var click_thresh = 300; //ms
 
 var select_start = '<span class="selected unselectable" unselectable="on">';
@@ -233,7 +239,7 @@ $.widget("ui.fragmentSequence", {
 	},
 	_create: function() {
 		var self = this;
-		this.$el = $(this.element[0]).html(initial_sequence_html);
+		this.$el = $(this.element[0]);
 		
 		this.$el.find('#copy_btn').button({
 			label: "Copy Selection",
@@ -261,13 +267,9 @@ $.widget("ui.fragmentSequence", {
 			self.$el.find('.seq-fwd').slideUp(100);
 			self.$el.find('.seq-rev').slideUp(100);
 		});
-	/*	
-		this.$el.find('#edit_btn').button({
-			label: "Edit Selection",
-			icons: {primary: 'ui-icon-pencil'}
-		});
-	*/	
-		this._toolbar_height = $('#seq_toolbar').offset().top;
+
+		//this._toolbar_height = $('#seq_toolbar').offset().top;
+		this.toolbar_fixed = false;
 				
 		this.$len = this.$el.find('#length');
 		this.$prog = this.$el.find('#progress');
@@ -370,7 +372,10 @@ $.widget("ui.fragmentSequence", {
 		for(var i = 0; i < this.rowlength; i = i + 5)
 		{
 			seq = seq + s.substr(i, 5) + " ";
-			label = label + '<div class="seq-label unselectable" unselectable="on">' + (start + i) + '</div>';
+			var left= '';
+			for(var j = 0; j < toPadded(i); j = j+1)
+				left = left + ' ';
+			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' + left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
 		}
 		var cseq = this._complement(seq);
 		
@@ -414,19 +419,26 @@ $.widget("ui.fragmentSequence", {
 	},
 	_label_features: function()
 	{
+		var self = this;
 		for(var f in this.features)
 		{
 			var $feat = $('.feat-id-' + f);
 			$feat.tipTip({
 				maxWidth: '800px',
 				content: make_feat_tooltip(this.features[f]),
-			}).hover(function(event) { //in
+			})
+			.hover(function(event) { //in
 				var fid = $(event.target).attr('id').split('-')[0];
 				$('.feat-id-' + fid).addClass('feat-hover');
 			}, 
 			function(event) {//out
 				var fid = $(event.target).attr('id').split('-')[0];
 				$('.feat-id-' + fid).removeClass('feat-hover');
+			})
+			.click(function(event) {
+				var fid = $(event.target).attr('id').split('-')[0];
+				var feat = self.features[fid];
+				self._select(feat.start + 1, feat.end + 1);
 			});
 		}
 	},
@@ -517,7 +529,10 @@ $.widget("ui.fragmentSequence", {
 	get_sel: function()
 	{
 		if(!this._selected)
+		{
+			console.log("self.get_sel return: ''");
 			return ""
+		}
 		return this.seq.substring(this._select_start - 1, this._select_end - 1);
 	},
 	get_rev: function() {return this._reverse(this.get_sel());},
@@ -597,7 +612,8 @@ $.widget("ui.fragmentSequence", {
 	},
 	_on_scroll: function(event)
 	{
-		if($(window).scrollTop() > this._toolbar_height)
+		
+		if($(window).scrollTop() > $('#seq_toolbar_rest').offset().top)
 			$('#seq_toolbar').addClass('fixed');
 		else
 			$('#seq_toolbar').removeClass('fixed');
@@ -668,24 +684,18 @@ var make_feat_html = function(r_s, r_e, feature, f_id)
 	
 	var l = r_e - r_s;
 	
+	var start = toPadded(left);
+	var end = toPadded(l - right);
+	l = toPadded(l);
+	
 	var r = "";
-	for(var i = 0; i < l; i = i + 5)
+	for(var i = 0; i < l; i = i + 1)
 	{
-		for(var j = 0; j < 5; j = j + 1)
-		{
-			if((i+j) == left)
-			{
-				r = r + '<span id="' + f_id + '-'+r_s+'-feat" class="feat-hl feat-type-' + feature.type.toLowerCase() + ' feat-id-' + f_id + '">';
-			}
-			if((l - (i+j)) == right)
-			{
-				r = r + '</span>';
-			}
-			r = r + ' ';
-		}
-		
-		if((i+j) < l)
-			r = r + ' ';
+		if(i == start)
+			r = r + '<span id="' + f_id + '-'+r_s+'-feat" class="feat-hl feat-type-' + feature.type.toLowerCase() + ' feat-id-' + f_id + '">';
+		else if(i == end)
+			r = r + '</span>';
+		r = r + ' ';
 	}
 	
 	return '<div class="feat-div">' + r + '</div>';	
@@ -701,7 +711,7 @@ var make_feat_tooltip = function(feature)
 	var ret = '' +
 	'<table style="word-wrap:break-word;width:100%;">' +
 	'	<tr><td style="min-width:7.5em;"><h4>Type:</h4></td><td style="width:70%;"><p>' + feature.type + '</p></td></tr>' +
-	'	<tr><td><h4>Location:</h4></td><td><p>' + (feature.start) + '-' + (feature.end) + '</p></td></tr>' +
+	'	<tr><td><h4>Location:</h4></td><td><p>' + (feature.start + 1) + '-' + (feature.end + 1) + '</p></td></tr>' + //NB. Added one to switcg to biologist-friendly 1-offset
 	'	<tr><td><h4>Length:</h4></td><td><p>' + (feature.end - feature.start) + '</p></td></tr>' +
 	'	<tr><td><h4>Strand:</h4></td><td><p>' + strand + '</p></td></tr>';
 	

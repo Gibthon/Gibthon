@@ -3,11 +3,13 @@
 {% block js-include %}
 <script src="{{ STATIC_URL }}/js/fragmentview.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/jquery.tipTip.minified.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/formtools.js" type="text/javascript"></script>
 {% endblock %}
 
 {% block css-include%}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/fragmentview.css" />
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/tipTip.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/formtools.css" />
 {% endblock %}
 
 {% block menu %}
@@ -32,7 +34,7 @@
 							{% if fragment.construct_slave.all %}
 							<ul>
 								{% for construct in fragment.construct_slave.all %}
-									<li><a href="/gibthon/{{ construct.id }}/{{construct.name}}/">{{ construct.name }}</a></li>
+									<li><a href="/gibthon/{{ construct.id }}/">{{ construct.name }}</a></li>
 								{% endfor %}
 							</ul>
 							{% else %}
@@ -50,43 +52,11 @@
 {% endblock %}
 
 {% block dialog%}
-<div id='copy_dialog'>
-	<div style="text-align:center;margin-top:1.5em;">
-		<p>
-			<div class="copy_option">
-				<div class="copy_label">Forward Strand (5'->3')</div>
-				<input class="copy_ip" id="fwd_53" type="text" readonly="readonly" size=50/>
-			</div>
-			<div class="copy_option">
-				<div class="copy_label">Forward Strand Reversed (3'->5')</div>
-				<input class="copy_ip" id="fwd_35" type="text" readonly="readonly" size=50/>
-			</div>
-			<div class="copy_option">
-				<div class="copy_label">Compliment</div>
-				<input class="copy_ip" id="rev_35" type="text" readonly="readonly" size=50/>
-			</div>
-			<div class="copy_option">
-				<div class="copy_label">Reverse Compliment</div>
-				<input class="copy_ip" id="rev_53" type="text" readonly="readonly" size=50/>
-			</div>
-		</p>
-		<div>
-			<button id="copy_close"></button>
-		</div>
-	</div>
-</div>
+
 {%endblock%}
 
 {% block js %}
 <script type="text/javascript">
-	
-var show_copy_dialog = function(){
-	$('#fwd_53').val( $('#sequence').fragmentSequence('get_sel'));
-	$('#fwd_35').val( $('#sequence').fragmentSequence('get_rev'));
-	$('#rev_35').val( $('#sequence').fragmentSequence('get_cmp'));
-	$('#rev_53').val( $('#sequence').fragmentSequence('get_rev_cmp'));
-	$('#copy_dialog').dialog('open');
-}
 
 $(document).ready(function() {
 	$('button#download').button({
@@ -95,35 +65,10 @@ $(document).ready(function() {
 		.click(function() {
 			window.location.href = '{{ fragment.name }}.gb';
 		});
-	$('#fragment_info').fragmentMeta({id: {{ fragment.id }}});
+	$('#fragment_info').load('getMeta/');
 	
-	$('#sequence').fragmentSequence({id: {{fragment.id}},});
+	$('#sequence').load('getSeq/');
 	
-	$('#copy_dialog').dialog({
-		autoOpen:false,
-		resizable:false,
-		modal:true,
-		title:"Copy",
-		height:"auto",
-		width:"640",
-		open: function() {$('.copy_option:first input').select();}, //open callback
-	});
-	
-	$('.copy_option').children('input')
-		.focus( function() {
-			$('.copy_ip').blur();
-			this.select();
-		})
-		.blur( function() {
-			this.selectionStart = this.selectionEnd = -1;
-		});
-	
-	$('#copy_close').button({
-			label: 'Close',
-			icons:{primary:'ui-icon-close'}
-	}).click(function() {
-		$('#copy_dialog').dialog('close');
-	});
 });
 
 </script>

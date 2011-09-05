@@ -7,12 +7,13 @@
 .middle-box
 {
 	border-top: none;
-	margin-top: 0; 
-	padding-top: 0;
 	margin-bottom: 0;
-	padding-bottom: 0;
 	border-left: 1px solid rgb(166, 201, 226);
 	border-right: 1px solid rgb(166, 201, 226);
+	width: 800px;
+	padding: 0;
+	float: right;
+	font-size: 0.8em;
 }
 
 .bottom-box
@@ -21,6 +22,8 @@
 	padding-top: 0;
 	border-top: none;
 }
+
+.annot-key:after{content:":";}
 
 .unselectable 
 {
@@ -48,8 +51,8 @@
 .fixed
 {
 	position:fixed !important;
-	top:0;
-	margin-left:180px;
+	top:0; 
+	width: 800px;
 }
 
 #load_span
@@ -203,8 +206,6 @@
 
 #seq_inner
 {
-	margin-right: auto;
-	margin-left: auto;
 }
 .selected
 {
@@ -212,10 +213,13 @@
 }
 .seq-label
 {
-	font: 0.8em 'Arial',sans-serif;
 	display: inline-block;
-	width: 3.7em;
-	margin-right: 0.64em;
+	position: absolute;
+	white-space: pre;
+}
+.seq-label-text
+{
+	font: 0.9em 'Arial',sans-serif;
 }
 .row
 {	
@@ -225,6 +229,7 @@
 	margin-left: auto;
 	position: relative;
 	margin: 1em 0;
+	text-align: left;
 }
 .seq
 {
@@ -266,6 +271,9 @@
 .label-div
 {
 	background-color: lightgrey;
+	position: relative;
+	height: 1.1em;
+	margin-top: 0.2em;
 }
 .feat
 {
@@ -294,7 +302,7 @@
 	vertical-align: top;
 	cursor: pointer;
 }
-.feat-type-gene, .feat-type-cds
+.feat-type-gene, .feat-type-cds, .feat-type-binding
 {
 	background-color: yellow;
 	border: 1px solid orange;
@@ -304,31 +312,30 @@
 	background-color: brown;
 	border: 1px solid black;
 }
-.feat-type-mrna
+.feat-type-mrna, .feat-type-rbs
 {
 	background-color: blue;
 	border: 1px solid darkblue;
 }
-.feat-type-source
+.feat-type-source, .feat-type-promoter
 {
 	background-color: green;
 	border: 1px solid darkgreen;
 }
-.feat-type-exxon
+.feat-type-exxon, .feat-type-protein
 {
 	background-color: grey;
 	border: 1px solid black;
 }
-.feat-type-sts
+.feat-type-sts, .feat-type-biobrick
 {
 	background-color: pink;
 	border: 1px solid red;
 }
-
-.feat-type-biobrick
+.feat-type-scar
 {
-	background-color: pink;
-	border: 1px solid red;
+	background-color: black;
+	border: 1px solid grey;
 }
 .feat-type-stem_loop
 {
