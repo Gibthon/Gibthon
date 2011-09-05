@@ -1,0 +1,160 @@
+/* Input bits */
+
+.input {
+	float:left;
+	margin-left:20px;
+	width:250px;
+	border:none;
+	padding:none;
+}
+
+.go {
+	float:right;
+	width:100px;
+	border:none;
+}
+
+textarea {
+	resize:none;
+	font-family:"Courier New", Courier, monospace;
+}
+
+.error{
+	color:red;
+	font-size:0.7em;
+	height:60px;
+}
+
+.errorok{
+	color:green;
+	font-size:0.7em;
+	height:60px;
+}
+
+.errorwait{
+	color:orange;
+	font-size:0.7em;
+	height:60px;
+}
+
+.errorblank{
+	color:grey;
+	font-size:0.7em;
+	height:60px;
+}
+
+
+
+/* Display */
+#info {
+	float:right;
+	width:650px;
+	margin-top:10px;
+	padding: 10px 0;
+}
+
+td {
+	padding:5px;
+	padding-left:10px;
+	background-color:#eeeeee;
+}
+
+td#fullseq {
+	font-family:"Courier New", Courier, monospace;
+}
+
+td#time {
+	color:#777;
+}
+
+#helpshow {
+	float:right;
+	font-size:0.8em;
+	color:#CCC;
+}
+
+.helpcontent {
+	float:left;
+	width:200px;
+	font-size:0.8em;
+	padding-right:20px;
+}
+
+
+/* Gene specific bits */
+.gene {
+	position: relative;
+    padding: 10px;
+    overflow: hidden;
+	font-family:"Courier New", Courier, monospace;
+	font-weight:bold;
+}
+.gene li{
+	float: left;
+	list-style: none;
+	width:20px;
+}
+
+.gene li a {
+	position: relative; overflow: hidden;
+	text-decoration: none;
+	color: #000; outline: none;
+	text-align: center;
+	height: 30px; top: 7px;
+	float: left; display: block;
+	margin: auto 5px;
+}
+
+
+
+
+.gene li.startr{
+    background-image:url('/images/sr.png');
+    background-repeat:no-repeat;
+}
+
+
+.gene li.startl{
+    background-image:url('/images/sl.png');
+    background-repeat:no-repeat;
+}
+
+
+div.starthelp{
+    background-color:#3c6;
+    opacity:0.5;
+    width:20px;
+    height:30px;
+}
+
+div.endhelp{
+    background-color:#88f;
+    opacity:0.5;
+    width:20px;
+    height:30px;
+}
+
+
+.gene li.endr{
+    background-image:url('/images/er.png');
+    background-repeat:no-repeat;
+}
+
+.gene li.endl{
+    background-image:url('/images/el.png');
+    background-repeat:no-repeat;
+}
+
+
+.gene li.middle{
+	background-color:#eee;
+}
+.gene li.invalid{
+	background-color:#bbb;
+}
+
+/* setting tab */
+
+.numeric {
+	text-align:right;
+}

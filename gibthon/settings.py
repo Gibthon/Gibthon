@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'partsearch',
     'ligcalc',
     'accounts',
+    'pricalc',
 )
 
 LOGIN_URL = '/user/login'
