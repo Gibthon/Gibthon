@@ -39,9 +39,6 @@ def save_meta(request, fid):
 			fields.update(keys)
 			fields.update(values)
 			
-			print "Annnotations: %s" % annotations
-			
-			
 			#save changes
 			Annotation.remove(g) #remove all the gene's annotations
 			for key,value in annotations.iteritems():
