@@ -10,6 +10,8 @@
 <script src="{{ STATIC_URL }}/js/jquery-ui.min.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/ajax.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/jquery.prompt.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.easing.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.lavalamp.min.js" type="text/javascript"></script>
 {% block js-include %}{% endblock %}
 {% block js %}{% endblock %}
 {% if user.is_authenticated %}
@@ -53,7 +55,9 @@ $(document).ready(function() {
 	$('a[id^="menu"]').button();
 			
 	{% if user.is_authenticated %}
-	$('#user_tab_profile').button();
+	$('#user_tab_profile').button({
+		icons:{primary:'ui-icon-person'}
+	});
 	$('#user_tab_inbox').button({
 		icons:{primary:'ui-icon-mail-closed'}
 	});
@@ -88,6 +92,10 @@ $(document).ready(function() {
 		socket.onclose = function() {};	
 	{% endif %}
 	
+	$('a.menu_head').button().addClass('ui-corner-right').removeClass('ui-corner-all');
+	//$('a.menu_sub').button();
+	$('ul.menu_sub').lavaLamp();
+	
 });
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-18410656-4']);
@@ -119,6 +127,20 @@ $(document).ready(function() {
 	</div>
 	<div id="menu_wrap" style="width:170px; float:left;">
 		<div class="ui-widget-content ui-corner-all menu">
+<!--
+				<a class="menu_head">Home</a>
+				<ul class="menu_sub">
+					<li><a href="/" class="menu_sub">Home</a></li>
+					<li><a href="/about/" class="menu_sub">About</a></li>
+				</ul>
+				<a class="menu_head">Tools</a>
+				<ul class="menu_sub">
+					<li><a href="/fragment/" class="menu_sub">Library</a></li>
+					<li><a href="/gibthon/" class="menu_sub">Construct Designer</a></li>
+					<li><a href="/tools/ligcalc/" class="menu_sub">LigCalc</a></li>
+					<li><a href="/tools/molcalc/" class="menu_sub">MolCalc</a></li>
+				</ul>
+			-->
 			<p><strong>Navigation</strong></p>
 			<a id="menu_home" href="/">Home</a>
 			<p><strong>Gibthon</strong></p>
@@ -132,6 +154,7 @@ $(document).ready(function() {
 			<a href="/help/primer/" id="menu_help_primer">Primer Design</a>
 			<a href="/help/gibthon/" id="menu_help_gibthon">Construct Designer</a>
 			<a href="/partsearch/" id="menu_help_api">PartSearch API</a>
+			
 		</div>
 	</div>
 	{% block menu %}

@@ -31,8 +31,9 @@ td {
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-<h4>{{ user.channel }}</h4>
-<div style="padding:10px;">
+	Your channel name is <b><i>{{ user.channel }}</i></b>.
+</div>
+<div class="content-table">
 	<table id="inbox_table">
 		<thead>
 			<tr><th></th><th>Received</th><th>Type <select>
@@ -49,8 +50,6 @@ td {
 				</select></th><th>Add</th><th>Del</th></tr>
 		</thead>
 	</table>
-</div>
-
 </div>
 {% endblock %}
 

@@ -9,6 +9,7 @@ body {
 	outline:none;
 }
 
+
 a {
 	outline:none;
 }
@@ -38,6 +39,14 @@ h1, h2, h3, h4, h5, h6, p {
 	font-size:0.8em;
 	padding:5px;
     margin-bottom:10px;
+}
+
+.content-table {
+	width:800px;
+	float:right;
+	font-size:0.8em;
+	padding:0px;
+	margin-bottom:10px;
 }
 
 .menu {
