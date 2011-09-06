@@ -12,11 +12,9 @@
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/formtools.css" />
 {% endblock %}
 
-{% block menu %}
-<div class="ui-state-default ui-corner-all content">
+{% block app-menu %}
 <a href="/fragment/" id="library">Library</a>|
 <a href="{{ fragment.name }}.gb" id="download">Download</a>
-</div>
 {% endblock %}
 
 {% block content %}

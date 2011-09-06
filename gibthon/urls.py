@@ -16,6 +16,7 @@ toolpatterns = patterns('gibthon.views',
 
 urlpatterns = patterns('',
 	(r'^$', direct_to_template, {'template':'home.html'}),
+	(r'^about/$', 'gibthon.views.about'),
 	(r'^gibthon/', include('gibthon.gibson.urls')),
 	(r'^fragment/', include('gibthon.fragment.urls')),
 	(r'^help/', include('gibthon.help.urls')),

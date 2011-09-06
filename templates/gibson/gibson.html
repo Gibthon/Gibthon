@@ -30,15 +30,13 @@ td ul {
 <script src="{{ STATIC_URL }}/js/gibson.js" type="text/javascript"></script>
 {% endblock %}
 
-{% block menu %}
-<div class="ui-state-default ui-corner-all content">
+{% block app-menu %}
 <a href="/gibthon/" id="library">Library</a>|
 <button id="save">Save</button>
 <button id="delete">Delete</button>
 |
 <button id="process">Process</button>
 <a href="primers" id="primers">View Primers</a>
-</div>
 {% endblock %}
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
