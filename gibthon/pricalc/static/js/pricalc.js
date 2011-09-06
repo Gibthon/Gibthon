@@ -136,7 +136,10 @@ function liHelper(classes, g, n){
 
 // error for making gene too short!
 function move_error(side, end, index){
-	alert("Can't move " + end + " of " + (side == 'l' ? "left" : "right") + " gene to position " + index + ": overlap too short");
+	$('#prompt').prompt({
+		title:'Warning',
+		message:"Can't move " + end + " of " + (side == 'l' ? "left" : "right") + " gene to position " + index + ": overlap too short"
+	});
 }
 
 // oligo object
@@ -174,6 +177,7 @@ Oligo.prototype.get_info = function(){
 			this.Tm = data.TmF;
 			this.lseq = data.SeqT;
 			this.rseq = data.SeqB;
+			$('#time').html((data.time*1000).toString().substring(0,4) + "ms");
 			this.print_info();
 		}
 	});
@@ -265,7 +269,7 @@ Oligo.prototype.recut = function(gene, index, from){
 Oligo.prototype.get_dg = function(){
 //	this.http.open("GET", "cgi-bin/gibthon.cgi?action=godg&gene1=" + this.L.gene + "&gene2=" + this.R.gene + "&el="+this.L.end+"&sl="+this.L.start+"&er="+this.R.end+"&sr="+this.R.start+"&mg="+this.mg.value+"&na="+this.na.value,true);
 //	this.http.send(null);
-	document.getElementById('dg').innerHTML = '<img src="'+STATIC_URL+'/images/spinner.gif"/>';
+	$('#dg').html('<img src="'+STATIC_URL+'/images/spinner.gif"/>');
 }
 
 
@@ -280,13 +284,16 @@ function saltChange(){
 }
 
 function printtime(t){
-	document.getElementById('time').innerHTML=(t*1000).toString().substring(0,6) + "ms";
+	$('#time').html((t*1000).toString().substring(0,6) + "ms");
 }
 
 function getcsv(){
 	var dgb = document.getElementById('dg');
 	if(dgb.innerHTML.indexOf("Calculate") > 0 || dgb.innerHTML.indexOf("Update") > 0){
-		alert("Please refresh dg first");
+		$('#prompt').prompt({
+			title:'Note',
+			message:"Please refresh dg first"
+		});
 		return false;
 	}
 	window.open("csv.php?seq=" + JSON_ret['full'] + "&tl=" + JSON_ret['Tml'].toString().substring(0,4) + "&tr=" + JSON_ret['Tmr'].toString().substring(0,4) + "&t=" + JSON_ret['TmO'].toString().substring(0,4) + "&dg=" + JSON_ret['dG']);

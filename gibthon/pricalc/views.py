@@ -2,6 +2,7 @@ from django.template import Context, loader, RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from pricalc.models import Oligo
 
+from time import time
 import json
 
 def pricalc(request):
@@ -12,6 +13,7 @@ def pricalc(request):
 	return HttpResponse(t.render(c))
 	
 def go(request):
+	start = time()
 	try:
 		o = Oligo(data = request.POST)
 	except Exception as e:
@@ -22,5 +24,6 @@ def go(request):
 			'TmB':o.bottomTm(),
 			'TmF':o.fullTm(),
 			'SeqT':o.topPrimer(),
-			'SeqB':o.bottomPrimer()
+			'SeqB':o.bottomPrimer(),
+			'time':time()-start
 		}),mimetype="application/json")

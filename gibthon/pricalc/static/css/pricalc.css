@@ -16,7 +16,7 @@
 
 textarea {
 	resize:none;
-	font-family:"Courier New", Courier, monospace;
+	font-family:"Courier New", Courier, monospace !important;
 }
 
 .error{
@@ -47,10 +47,8 @@ textarea {
 
 /* Display */
 #info {
-	float:right;
 	width:650px;
 	margin-top:10px;
-	padding: 10px 0;
 }
 
 td {
@@ -93,6 +91,7 @@ td#time {
 	float: left;
 	list-style: none;
 	width:20px;
+	font-size:1.25em;
 }
 
 .gene li a {
