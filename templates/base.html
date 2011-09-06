@@ -65,11 +65,11 @@ $(document).ready(function() {
 	
 	$('.user_tab').addClass('ui-corner-top').removeClass('ui-corner-all');
 
-	$('span.drop').hover(function () {
-		$('ul', this).slideDown("fast") 
-	}, function () {
+	$('span.drop').mouseleave(function () {
 		$('ul', this).slideUp("fast") }
 	);
+	
+	 $('span.drop a.user_tab').mouseenter(function () {$('~ ul', this).slideDown('fast')});
 	
 	$('span.drop ul li a').button();
 	
@@ -157,9 +157,9 @@ $(document).ready(function() {
 	{% block login_prompt %}
 	{% if user.is_authenticated %}
 	{% else %}
-	<div class="ui-state-highlight ui-corner-all content">
+	<!--<div class="ui-state-highlight ui-corner-all content">
 	<p>Want to have a play around? Just <a href="/user/login">login</a> with the username 'demo' and password 'demo'. Nothing is guaranteed to work, but please email any problems you do find to <a href="mailto:bill@gibthon.org">me</a></p>
-	</div>
+	</div>-->
 	{% endif %}
 	{% endblock %}
 	

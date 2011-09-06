@@ -39,6 +39,17 @@ h1, h2, h3, h4, h5, h6, p {
     margin-bottom:25px;
 }
 
+.frontbox {
+	width:231px;
+	margin:10px;
+	margin-top:0px;
+	float:left;
+	padding:5px;
+	font-size:0.8em;
+	border-top:none;
+}
+
+
 .content{
 	min-width:790px;
 	font-size:0.8em;
