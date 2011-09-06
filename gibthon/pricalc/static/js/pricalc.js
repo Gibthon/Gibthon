@@ -61,29 +61,7 @@ function selectall(event){
 	text_val.select();
 }
 
-// http_request maker
-// creates the http function for the oligo, and sets up the return handler 
-//  - ie, dumps data into oligo and calls print function
-/*function getH(parent) {
-	var h = new XMLHttpRequest();
-	h.parent = parent;
-	h.onreadystatechange = function() {
-	  	if (this.readyState == 4){
-			var JSON_ret = JSON.parse(this.responseText);
-			if (JSON_ret['error'] < 0){
-				this.parent.L.Tm = JSON_ret['Tml'];
-				this.parent.R.Tm = JSON_ret['Tmr'];
-				this.parent.Tm = JSON_ret['TmO'];
-				this.parent.dG = JSON_ret['dG'];
-				this.parent.lseq = JSON_ret['lseq'];
-				this.parent.rseq = JSON_ret['rseq'];
-				this.parent.id = JSON_ret['id'];
-				this.parent.print_info();
-			}
-		}
-	}
-	return h;
-}*/
+var minlength = 20;
 
 // segment of oligo
 var Segment = function (side, gene, start, end){
@@ -177,17 +155,53 @@ var Oligo = function (leftgene, rightgene){
 }
 
 Oligo.prototype.get_info = function(){
-	$.post('go',{
-		gene1:this.L.gene,
-		gene2:this.R.gene,
-		el:this.L.end,
-		sl:this.L.start,
-		er:this.R.end,
-		sr:this.R.start
-	}, function(data) { console.log(data) });
-//	this.http.open("GET", "cgi-bin/gibthon.cgi?action=go&gene1=" + this.L.gene + "&gene2=" + this.R.gene + "&el="+this.L.end+"&sl="+this.L.start+"&er="+this.R.end+"&sr="+this.R.start,  true);
-//	this.http.send(null);
+	$.ajax({
+		type:'post',
+		url:'go',
+		data:{
+			gene1:this.L.gene,
+			gene2:this.R.gene,
+			el:this.L.end,
+			sl:this.L.start,
+			er:this.R.end,
+			sr:this.R.start
+		},
+		context:this,
+		dataType:'json',
+		success: function(data) {
+			this.L.Tm = data.TmT;
+			this.R.Tm = data.TmB;
+			this.Tm = data.TmF;
+			this.lseq = data.SeqT;
+			this.rseq = data.SeqB;
+			this.print_info();
+		}
+	});
 }
+
+// http_request maker
+// creates the http function for the oligo, and sets up the return handler 
+//  - ie, dumps data into oligo and calls print function
+/*function getH(parent) {
+	var h = new XMLHttpRequest();
+	h.parent = parent;
+	h.onreadystatechange = function() {
+	  	if (this.readyState == 4){
+			var JSON_ret = JSON.parse(this.responseText);
+			if (JSON_ret['error'] < 0){
+				this.parent.L.Tm = JSON_ret['Tml'];
+				this.parent.R.Tm = JSON_ret['Tmr'];
+				this.parent.Tm = JSON_ret['TmO'];
+				this.parent.dG = JSON_ret['dG'];
+				this.parent.lseq = JSON_ret['lseq'];
+				this.parent.rseq = JSON_ret['rseq'];
+				this.parent.id = JSON_ret['id'];
+				this.parent.print_info();
+			}
+		}
+	}
+	return h;
+}*/
 
 Oligo.prototype.print_info = function(){
 	this.L.print_gene();
@@ -251,7 +265,7 @@ Oligo.prototype.recut = function(gene, index, from){
 Oligo.prototype.get_dg = function(){
 //	this.http.open("GET", "cgi-bin/gibthon.cgi?action=godg&gene1=" + this.L.gene + "&gene2=" + this.R.gene + "&el="+this.L.end+"&sl="+this.L.start+"&er="+this.R.end+"&sr="+this.R.start+"&mg="+this.mg.value+"&na="+this.na.value,true);
 //	this.http.send(null);
-	document.getElementById('dg').innerHTML = '<img src="images/spinner.gif"/>';
+	document.getElementById('dg').innerHTML = '<img src="'+STATIC_URL+'/images/spinner.gif"/>';
 }
 
 

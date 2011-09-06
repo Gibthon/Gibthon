@@ -42,18 +42,26 @@ $(document).ready(function () {
 			<fieldset class="input">
 				<label for="rgene">Right Gene</label><br />
 				<textarea name="rgene" spellcheck="false" style="width:100%" rows="8" onChange="validate_gene(this)"></textarea><br />
-				<div id="lgeneerror" class="errorblank">...or a biobrick part name such as BBa_I746008</div>
+				<div id="lgeneerror" class="errorblank"></div>
 			   <input type="hidden" name="rgenec" />
 			</fieldset>
 		</form>
 	</div>
 	<div id="info">
 		<table width="650px">
-			<tr><td>Tm (left)</td><td width="84" id="tmleft"></td><td width="110">Tm (right)</td><td id="tmright"></td><th id="time" align="right"></th></tr>
+			<tr><td>Tm (top)</td><td width="84" id="tmleft"></td><td width="110">Tm (bottom)</td><td id="tmright"></td><th id="time" align="right"></th></tr>
 			<tr><td>Overall Tm</td><td id="tmall"></td><td>dG</td><td width="88" id='dg'><a href="#" onClick="MyOligo.get_dg(); return false">Calculate</a></td><td width="174"><div style="float:left"><input id="alwaysdg" name="alwaysdg" type="checkbox"></div><div style="float:right; width:80%;">Always calculate dG?</div></td></tr>
-			<tr><td width="110">Left primer</td><td style="padding-right:15px;" colspan="4"><textarea id="lseq" readonly style="width:100%;" onClick="selectall(event)"></textarea></td></tr>
-			<tr><td width="110">Right primer</td><td style="padding-right:15px;" colspan="4"><textarea id="rseq" readonly style="width:100%;" onClick="selectall(event)"></textarea></td></tr>
+			<tr><td width="110">Top primer</td><td style="padding-right:15px;" colspan="4"><textarea id="lseq" readonly style="width:100%;" onClick="selectall(event)"></textarea></td></tr>
+			<tr><td width="110">Bottom primer</td><td style="padding-right:15px;" colspan="4"><textarea id="rseq" readonly style="width:100%;" onClick="selectall(event)"></textarea></td></tr>
 		</table>
+		<div class="content">
+			<h4>Left Gene</h4>
+			<p id="lgene"></p>
+			<h4>Right Gene</h4>
+			<p id="rgene"></p>
+			<h4>Secondary Structure</h4>
+			<div id="pic"></div>
+		</div>
 		<!--<a href="#" onclick="getcsv(); return false">Download csv</a>-->
 	</div>
 	<div id="settings">

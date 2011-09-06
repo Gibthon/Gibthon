@@ -109,13 +109,13 @@ td#time {
 
 
 .gene li.startr{
-    background-image:url('/images/sr.png');
+    background-image:url('images/sr.png');
     background-repeat:no-repeat;
 }
 
 
 .gene li.startl{
-    background-image:url('/images/sl.png');
+    background-image:url('images/sl.png');
     background-repeat:no-repeat;
 }
 
@@ -136,12 +136,12 @@ div.endhelp{
 
 
 .gene li.endr{
-    background-image:url('/images/er.png');
+    background-image:url('images/er.png');
     background-repeat:no-repeat;
 }
 
 .gene li.endl{
-    background-image:url('/images/el.png');
+    background-image:url('images/el.png');
     background-repeat:no-repeat;
 }
 
