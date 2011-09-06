@@ -31,38 +31,14 @@ var inbox_refresh = function() {
 var STATIC_URL = "{{ STATIC_URL }}";
 $(document).ready(function() {
 	inbox_refresh();
-	$('button#login')
-		.button({
-			icons:{primary:'ui-icon-tag'}
-		})
-		.click(function() {
-			window.location.href = '/user/login?next='+window.location.pathname;
-		});
-	$('button#logout')
-		.button({
-			icons:{primary:'ui-icon-tag'}
-		})
-		.click(function() {
-			window.location.href = '/user/logout';
-		});
-	$('button#register')
-		.button({
-			icons:{primary:'ui-icon-key'}
-		})
-		.click(function() {
-			window.location.href = '/user/register/';
-		});
-	$('a[id^="menu"]').button();
 			
 	{% if user.is_authenticated %}
 	$('#user_tab_profile').button({
-		icons:{primary:'ui-icon-person'}
+		icons:{primary:'ui-icon-person',
+			   secondary:'ui-icon-triangle-1-s'}
 	});
 	$('#user_tab_inbox').button({
 		icons:{primary:'ui-icon-mail-closed'}
-	});
-	$('#user_tab_logout').button({
-		icons:{primary:'ui-icon-tag'}
 	});
 	{% else %}
 	$('#user_tab_login').button({
@@ -76,9 +52,28 @@ $(document).ready(function() {
 		icons:{primary:'ui-icon-key'}
 	});
 	{% endif %}
-
+	$('#user_tab_home').button({
+		icons:{primary:'ui-icon-home',
+			   secondary:'ui-icon-triangle-1-s'}
+	});
+	$('#user_tab_help').button({
+		icons:{primary:'ui-icon-help',
+			   secondary:'ui-icon-triangle-1-s'}
+	});
+	$('#user_tab_tools').button({
+		icons:{primary:'ui-icon-wrench',
+			   secondary:'ui-icon-triangle-1-s'}
+	});
+	
 	$('.user_tab').addClass('ui-corner-top').removeClass('ui-corner-all');
 
+	$('span.drop').hover(function () {
+		$('ul', this).slideDown("fast") 
+	}, function () {
+		$('ul', this).slideUp("fast") }
+	);
+	
+	$('span.drop ul li a').button();
 	
 	$('input[id^="id_captcha"]').addClass('captcha');
 	{% if user.is_authenticated %}
@@ -92,9 +87,6 @@ $(document).ready(function() {
 		socket.onclose = function() {};	
 	{% endif %}
 	
-	$('a.menu_head').button().addClass('ui-corner-right').removeClass('ui-corner-all');
-	//$('a.menu_sub').button();
-	$('ul.menu_sub').lavaLamp();
 	
 });
   var _gaq = _gaq || [];
@@ -115,47 +107,46 @@ $(document).ready(function() {
 <div class="container">
 	<div class="ui-widget-header ui-corner-all" style="height:70px; margin-bottom:10px;">
 		{% if user.is_authenticated %}
-		<a href="/user/logout" id="user_tab_logout" class="user_tab">Log out</a>
-		<a href="/user/inbox/" id="user_tab_inbox" class="user_tab">Inbox (<span id="inbox_unread" style="color:red;">&nbsp;&nbsp;</span>/<span id="inbox_not_added" style="color:black;">&nbsp;&nbsp;</span>/<span id="inbox_count">&nbsp;&nbsp;</span>)</a>
-		<a href="/user/profile/" id="user_tab_profile" class="user_tab">Logged in as {{ user }}</a>
+		<span class="user_tab"><a href="/user/inbox/" id="user_tab_inbox" class="user_tab">Inbox (<span id="inbox_unread" style="color:red;">&nbsp;&nbsp;</span>/<span id="inbox_not_added" style="color:black;">&nbsp;&nbsp;</span>/<span id="inbox_count">&nbsp;&nbsp;</span>)</a></span>
+		<span class="user_tab drop">
+			<a href="/user/profile/" id="user_tab_profile" class="user_tab">Logged in as {{ user }}</a>
+			<ul class="ui-widget-content ui-corner-bottom">
+				<li><a href="/user/profile/">Profile</a></li>
+				<li><a href="/ser/logout">Log out</a></li>
+			</ul>
+		</span>
 		{% else %}
-		<a href="/user/login/" id="user_tab_login" class="user_tab">Log in</a>
-		<a href="/user/register/" id="user_tab_register" class="user_tab">Register</a>
+		<span class="user_tab"><a href="/user/login/" id="user_tab_login" class="user_tab">Log in</a></span>
+		<span class="user_tab"><a href="/user/register/" id="user_tab_register" class="user_tab">Register</a></span>
 		{% endif %}
+		<span class="user_tab drop">
+			<a href="/help/" id="user_tab_help" class="user_tab">Help</a>
+			<ul class="ui-widget-content ui-corner-bottom">
+				<li><a href="/help/gibson/">Gibson Assembly</a></li>
+				<li><a href="/help/primer/">Primer Design</a></li>
+				<li><a href="/help/gibthon/">Construct Designer</a></li>
+				<li><a href="/partsearch/">PartSearch API</a></li>
+			</ul>
+		</span>
+		<span class="user_tab drop">
+			<a href="/tools/" id="user_tab_tools" class="user_tab">Apps</a>
+			<ul class="ui-widget-content ui-corner-bottom">
+				<li><a href="/fragment/">Library</a></li>
+				<li><a href="/gibthon/">Construct Designer</a></li>
+				<li><a href="/pricalc/">PriCalc</a></li>
+				<li><a href="/tools/ligcalc/">LigCalc</a></li>
+				<li><a href="/tools/molcalc/">MolCalc</a></li>
+			</ul>
+		</span>
+		<span class="user_tab drop">
+			<a href="/" id="user_tab_home" class="user_tab">Home</a>
+			<ul class="ui-widget-content ui-corner-bottom">
+				<li><a href="/">Home</a></li>
+				<li><a href="/about/">About</a></li>
+			</ul>
+		</span>		
 		<a href="/"><img src="{{ STATIC_URL }}/images/gibthon2.0beta.png" style="height:60px; padding:5px 10px; float:left;" alt="Gibthon" /></a>
-		<h2 style="line-height:70px;">Gibthon:<span style="font-size:0.7em">{{ title|default:"Home" }}</span></h2>
-	</div>
-	<div id="menu_wrap" style="width:170px; float:left;">
-		<div class="ui-widget-content ui-corner-all menu">
-<!--
-				<a class="menu_head">Home</a>
-				<ul class="menu_sub">
-					<li><a href="/" class="menu_sub">Home</a></li>
-					<li><a href="/about/" class="menu_sub">About</a></li>
-				</ul>
-				<a class="menu_head">Tools</a>
-				<ul class="menu_sub">
-					<li><a href="/fragment/" class="menu_sub">Library</a></li>
-					<li><a href="/gibthon/" class="menu_sub">Construct Designer</a></li>
-					<li><a href="/tools/ligcalc/" class="menu_sub">LigCalc</a></li>
-					<li><a href="/tools/molcalc/" class="menu_sub">MolCalc</a></li>
-				</ul>
-			-->
-			<p><strong>Navigation</strong></p>
-			<a id="menu_home" href="/">Home</a>
-			<p><strong>Gibthon</strong></p>
-			<a id="menu_fragment" href="/fragment/">Fragment library</a>
-			<a id="menu_gibthon" href="/gibthon/">Construct Designer</a>
-			<p><strong>Other Tools</strong></p>
-			<a href="/tools/ligcalc/" id="menu_tools_ligate">LigCalc</a>
-			<a href="/tools/molcalc/" id="menu_tools_molcal">MolCalc</a>
-			<p><strong>Help</strong></p>
-			<a href="/help/gibson/" id="menu_help_gibson">Gibson Assembly</a>
-			<a href="/help/primer/" id="menu_help_primer">Primer Design</a>
-			<a href="/help/gibthon/" id="menu_help_gibthon">Construct Designer</a>
-			<a href="/partsearch/" id="menu_help_api">PartSearch API</a>
-			
-		</div>
+		<h2 id="main_title">Gibthon:<span style="font-size:0.7em">{{ title|default:"Home" }}</span></h2>
 	</div>
 	{% block menu %}
 	{% endblock %}
