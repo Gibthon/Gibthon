@@ -165,12 +165,13 @@ input.captcha {
 
 a.user_tab {
 	font-size:0.7em;
+	border-bottom:none;
 }
 
 span.user_tab {
 	float:right;
 	margin-right:10px;
-	margin-top:46px;
+	margin-top:47px;
 }
 
 span.user_tab ul {
