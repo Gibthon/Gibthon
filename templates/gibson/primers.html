@@ -61,7 +61,7 @@ td.warningcell {
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
+<div class="ui-widget-content ui-corner-all content fixed-width">
 	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
 	<div>
 	{% for cf in construct.cf.all %}
@@ -86,7 +86,7 @@ td.warningcell {
 	<div style="clear:both;"></div>
 </div>
 <div id="primer_info">
-	<div class="ui-widget-content ui-corner-all content">
+	<div class="ui-widget-content ui-corner-all content fixed-width">
 		<h3>Summary</h3>
 		<p><table style="margin-left:30px;" class="protocol">
 		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
@@ -95,7 +95,7 @@ td.warningcell {
 		{% endfor %}
 		</table></p>
 	</div>
-	<div class="ui-widget-content ui-corner-all content">
+	<div class="ui-widget-content ui-corner-all content fixed-width">
 		<h3>PCR Particulars</h3>
 		<p>Fill in the details for all of your primers to download protocol information</p>
 		<p>Don't forget to save your changes!</p>

@@ -39,7 +39,7 @@ td ul {
 <a href="primers" id="primers">View Primers</a>
 {% endblock %}
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
+<div class="ui-widget-content ui-corner-all content fixed-width">
 {% csrf_token %}
 <div id="right-wrapper" style="width:300px; margin-right:40px; margin-top:8px; float:right;">
 <div id="settings-wrapper" style="width:300px;">
@@ -75,6 +75,7 @@ td ul {
 	<div id="fragment_list" class="ui-widget-content ui-corner-bottom" style="min-height:50px; padding:10px; width:380px;">
 	</div>
 </div>
+<div style="clear:both; height:20px;"></div>
 </div>
 {% endblock %}
 
