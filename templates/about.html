@@ -13,10 +13,10 @@ $(document).ready(function () {
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content content-fixed">
-	<div style="text-align:center;"><img src="{{ STATIC_URL }}/images/gibthon2.0beta.png" width="150px" /></div>
+<div class="ui-widget-content ui-corner-all fixed-width">
+	<div style="text-align:center; padding-top:10px;"><img src="{{ STATIC_URL }}/images/gibthon2.0beta.png" width="150px" /></div>
 	<div style="height:10px; clear:both;"></div>
-	<div style="width:50%; float:right;">
+	<div style="width:50%; float:right;" class="content">
 		<div style="height:150px;">
 			<h2 style="text-align:right;">...made Pythony</h2>
 			<p>The Gibthon Construct Designer facilitates the design of primers to create overlaps in your
@@ -25,7 +25,7 @@ $(document).ready(function () {
 		</div>
 		<div style="text-align:center;"><p><a href="help/gibthon">How does the GCD work?</a></p></div>
 	</div>
-	<div style="width:50%;">
+	<div style="width:50%;" class="content">
 		<div style="height:150px;">
 			<h1>Gibson Assembly...</h1>
 			<p>Gibson Assembly is a revolutionary new techinque described by 
@@ -35,8 +35,8 @@ $(document).ready(function () {
 		<div style="text-align:center;"><p><a href="help/gibson">How does Gibson Assembly work?</a></p></div>
 	</div>
 </div>
-<div style="padding:11px;" class="content content-fixed" >
-	<div class="ui-widget-content ui-corner-all" style="width:49%; float:right; position:relative; left:10px; font-size:0.9em;">
+<div class="fixed-width-container" style="padding-top:20px;" >
+	<div class="ui-widget-content ui-corner-all content half-width" style="float:right;">
 		<p><h2>About</h2></p>
 		<p>Gibthon was started for the <a href="http://2010.igem.org/Team:Cambridge">2010 Cambridge iGEM Team</a> as a companion
 		to our <a href="http://www.synbio.org.uk/gibson/downloads/files/RFC57.pdf">RFC on Gibson Assembly</a>.</p>
@@ -48,7 +48,7 @@ $(document).ready(function () {
 		<a href="http://www.path.cam.ac.uk/research/investigators/ajioka/">Jim Ajioka</a>, <a href="http://www.plantsci.cam.ac.uk/research/jimhaseloff.html">Jim Haseloff</a>, and
 		<a href="http://www.gen.cam.ac.uk/research/micklem.html">Gos Micklem</a>.</p>
 	</div>
-	<div class="ui-widget-content ui-corner-all" style="width:49%;">
+	<div class="ui-widget-content ui-corner-all content half-width" style="float:left;">
 		<div style="text-align:center;"><img src="{{ STATIC_URL }}/images/lcnice2.jpg" width="150px" /></div>
 		<h2>Ligation Calculator</h2>
 		<p>The Ligation Calculator is a simple tool for calculating reactant concentrations for DNA ligation</p>

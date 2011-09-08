@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
+<div class="ui-widget-content ui-corner-all content fixed-width">
 	<h2>Gibson Assembly</h2>
 	<p>Gibson Assembly, as described by <a href="http://www.ncbi.nlm.nih.gov/pubmed/19363495">Daniel Gibson in Nature, 2009</a>, 
 	allows you to create large constructs of DNA from an arbitrary number of fragments in one step without scarring.</p>
@@ -15,7 +15,7 @@
 	<p>For a slightly more rigorous explanation, have a look at <a href="http://www.synbio.org.uk/dna-assembly/guidetogibsonassembly.html">this</a>
 	page on <a href="http://www.synbio.org.uk/">synbio.org.uk</a></p>
 </div>
-<div class="content" id="tabs">
+<div class="content fixed-width-container" id="tabs">
 	<ul>
 		<li><a href="#extension">Extension</a></li>
 		<li><a href="#assembly">Assembly</a></li>
@@ -223,6 +223,7 @@ Strand B: Top:    5' <span style="color:gray;">CGGA</span><span style="color:dar
 			</div>
 		</div>
 	</div>
+	<div style="clear:both;"></div>
 </div>
 {% endblock %}
 

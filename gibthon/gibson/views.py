@@ -98,7 +98,7 @@ def primer(request, cid, pid):
 			c = RequestContext(request, {
 				'construct': con,
 				'primer_list': con.primer.all(),
-				'title': 'Primers('+con.name+')',
+				'title': 'Construct Designer',
 				'primer': p.id,
 			})
 			return HttpResponse(t.render(c))
@@ -145,7 +145,7 @@ def primers(request, cid):
 		c = RequestContext(request, {
 			'construct': con,
 			'primer_list': con.primer.all(),
-			'title':'Primers('+con.name+')',
+			'title':'Construct Designer',
 		})
 		return HttpResponse(t.render(c))
 	else:
@@ -212,7 +212,7 @@ def construct(request,cid):
 		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
 		list = zip(fragment_list, feature_list, cf_list)
 		c = RequestContext(request,{
-			'title':'Construct Designer('+con.name+')',
+			'title':'Construct Designer',
 			'list':list,
 			'construct':con,
 			'construct_form':construct_form,

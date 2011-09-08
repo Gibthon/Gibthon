@@ -26,7 +26,7 @@ def fragments(request):
 	t = loader.get_template('fragment/fragments.html')
 	c = RequestContext(request,{
 		'fragment_list':gene_list,
-		'title':'Fragments',
+		'title':'Fragment Library',
     })
 	c.update(csrf(request))
 	return HttpResponse(t.render(c))
@@ -39,7 +39,7 @@ def fragment(request, fid):
 		t = loader.get_template('fragment/fragment.html')
 		c = RequestContext(request,{
 			'fragment':f,
-			'title':'Fragment('+f.name+')',
+			'title':'Fragment Library',
 		})
 		return HttpResponse(t.render(c))
 	else:
