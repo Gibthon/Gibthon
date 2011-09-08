@@ -12,16 +12,14 @@
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/formtools.css" />
 {% endblock %}
 
-{% block menu %}
-<div class="ui-state-default ui-corner-all content">
+{% block app-menu %}
 <a href="/fragment/" id="library">Library</a>|
 <a href="{{ fragment.name }}.gb" id="download">Download</a>
-</div>
 {% endblock %}
 
 {% block content %}
 
-		<div class="ui-widget-content ui-corner-top top-box content">
+		<div class="ui-widget-content ui-corner-top top-box content fixed-width">
 			<div id="fragment_head_wrap">	
 				<div id="fragment_info_wrap">
 					<div id="fragment_info"></div>
@@ -48,7 +46,7 @@
 				<div style="clear:both;"></div>
 			</div>
 		</div>
-	<div id="sequence">
+	<div id="sequence" class="fixed-width">
 		
 	</div>
 {% endblock %}

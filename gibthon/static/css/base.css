@@ -1,22 +1,13 @@
 @charset "UTF-8";
 
-body {
+html,body {
 	font: 100%/1.4 Verdana, Arial, Helvetica, sans-serif;
 	background: #fafafa;
 	margin: 0;
 	padding: 0;
+	height:100%;
 	color: #000;
 	outline:none;
-}
-
-
-a {
-	outline:none;
-}
-
-.container {
-	width: 982px;
-	margin: 10px auto; 
 }
 
 h1, h2, h3, h4, h5, h6, p {
@@ -25,42 +16,90 @@ h1, h2, h3, h4, h5, h6, p {
 	padding-left: 15px; 
 }
 
-.footer{
+a {
+	outline:none;
+}
+
+#container {
+	width:100%; 
+	margin:0 auto;
+	position:relative;
+	height:auto !important;
+	min-height:100%;
+}
+
+#sub-container {
+	padding-top:1em;
+	padding-bottom:2em;
+	width:1080px;
+	margin-left:auto;
+	margin-right:auto;
+	border-top:none;
+}
+
+#menubar {
+	border-top:none;
+	padding:7px 0px 5px 0px;
+	margin-bottom:0px;
+}
+
+
+#main_title {
+	line-height:3em;
+}
+
+#header {
+	height:70px;
+}
+
+#footer{
     clear:both;
     text-align:center;
     font-size:0.7em;
-    padding:5px;
-    margin-bottom:25px;
+    padding:5px 0px;
+    width:100%;
+	position:absolute;
+	bottom:0;
 }
 
-.content{
-	width:790px;
-	float:right;
+#apptitle {
+	color: #e17009;
+}
+
+.frontbox {
+	width:29%;
+	margin:10px;
+	margin-top:0px;
+	float:left;
+	padding:10px;
+	border-top:none;
+}
+
+.fixed-width {
+	width:960px;
+	margin-left:auto;
+	margin-right:auto;
+	padding-left:30px;
+	padding-right:30px;
+}
+
+.half-width {
+	width:500px;
+}
+
+.fixed-width-container {
+	width:1020px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.content {
 	font-size:0.8em;
-	padding:5px;
     margin-bottom:10px;
+    border:none;
 }
 
-.content-table {
-	width:800px;
-	float:right;
-	font-size:0.8em;
-	padding:0px;
-	margin-bottom:10px;
-}
 
-.menu {
-	width:170px;
-	font-size:0.8em;
-    padding-top:10px;
-    text-align:center;
-    margin-bottom:15px;
-}
-
-.menu a {
-    margin-bottom:10px;
-    width:130px;
-}
 
 pre.dna_demo {
 	font-size:1.5em;
@@ -124,11 +163,34 @@ input.captcha {
 	height:20px;
 }
 
-.user_tab {
+a.user_tab {
+	font-size:0.7em;
+}
+
+span.user_tab {
 	float:right;
 	margin-right:10px;
-	font-size:0.7em;
 	margin-top:46px;
+}
+
+span.user_tab ul {
+	list-style:none;
+	padding:5px;
+	margin-top:0px;
+	border-top:none;
+	position:absolute;
+	display:none;
+	z-index:10;
+}
+
+span.user_tab ul li {
+	padding:5px;
+}
+
+span.user_tab ul li a {
+	font-size:0.7em;
+	color:#222;
+	width:150px;
 }
 
 div.ui-state-default a.ui-button {
