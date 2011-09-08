@@ -165,7 +165,7 @@ input.captcha {
 
 a.user_tab {
 	font-size:0.7em;
-	border-bottom:none;
+	border-bottom:none !important;
 }
 
 span.user_tab {
