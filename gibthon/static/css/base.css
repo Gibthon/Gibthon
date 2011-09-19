@@ -46,6 +46,7 @@ a {
 
 #main_title {
 	line-height:3em;
+  margin-bottom: 0;
 }
 
 #header {
@@ -139,7 +140,7 @@ pre {
  word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
-table { clear: both; width:100%; }
+table { clear: both; width:100%;m }
 
 table.protocol {
     margin-left:auto;
