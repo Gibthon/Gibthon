@@ -38,45 +38,47 @@ $(document).ready(function () {
 <div id="container">
 	<div class="ui-widget-header" id="header">
 		<div class="fixed-width">
-			{% if user.is_authenticated %}
-			<span class="user_tab"><a href="/user/inbox/" id="user_tab_inbox" class="user_tab">Inbox (<span id="inbox_unread" style="color:red;">&nbsp;&nbsp;</span>/<span id="inbox_not_added" style="color:black;">&nbsp;&nbsp;</span>/<span id="inbox_count">&nbsp;&nbsp;</span>)</a></span>
-			<span class="user_tab drop">
-				<a href="/user/profile/" id="user_tab_profile" class="user_tab">Logged in as {{ user }}</a>
-				<ul class="ui-widget-content ui-corner-bottom">
-					<li><a href="/user/profile/">Profile</a></li>
-					<li><a href="/user/logout">Log out</a></li>
-				</ul>
-			</span>
-			{% else %}
-			<span class="user_tab"><a href="/user/login/" id="user_tab_login" class="user_tab">Log in</a></span>
-			<span class="user_tab"><a href="/user/register/" id="user_tab_register" class="user_tab">Register</a></span>
-			{% endif %}
-			<span class="user_tab drop">
-				<a href="/help/" id="user_tab_help" class="user_tab">Help</a>
-				<ul class="ui-widget-content ui-corner-bottom">
-					<li><a href="/help/gibson/">Gibson Assembly</a></li>
-					<li><a href="/help/primer/">Primer Design</a></li>
-					<li><a href="/help/gibthon/">Construct Designer</a></li>
-					<li><a href="/partsearch/">PartSearch API</a></li>
-				</ul>
-			</span>
-			<span class="user_tab drop">
-				<a href="/tools/" id="user_tab_tools" class="user_tab">Apps</a>
-				<ul class="ui-widget-content ui-corner-bottom">
-					<li><a href="/fragment/">Library</a></li>
-					<li><a href="/gibthon/">Construct Designer</a></li>
-					<li><a href="/pricalc/">PriCalc</a></li>
-					<li><a href="/tools/ligcalc/">LigCalc</a></li>
-					<li><a href="/tools/molcalc/">MolCalc</a></li>
-				</ul>
-			</span>
-			<span class="user_tab drop">
-				<a href="/" id="user_tab_home" class="user_tab">Home</a>
-				<ul class="ui-widget-content ui-corner-bottom">
-					<li><a href="/">Home</a></li>
-					<li><a href="/about/">About</a></li>
-				</ul>
-			</span>		
+      <div class='menu-bar'>
+        {% if user.is_authenticated %}
+        <span class="user_tab"><a href="/user/inbox/" id="user_tab_inbox" class="user_tab">Inbox (<span id="inbox_unread" style="color:red;">&nbsp;&nbsp;</span>/<span id="inbox_not_added" style="color:black;">&nbsp;&nbsp;</span>/<span id="inbox_count">&nbsp;&nbsp;</span>)</a></span>
+        <span class="user_tab drop">
+          <a href="/user/profile/" id="user_tab_profile" class="user_tab">Logged in as {{ user }}</a>
+          <ul class="ui-widget-content ui-corner-bottom">
+            <li><a href="/user/profile/">Profile</a></li>
+            <li><a href="/user/logout">Log out</a></li>
+          </ul>
+        </span>
+        {% else %}
+        <span class="user_tab"><a href="/user/login/" id="user_tab_login" class="user_tab">Log in</a></span>
+        <span class="user_tab"><a href="/user/register/" id="user_tab_register" class="user_tab">Register</a></span>
+        {% endif %}
+        <span class="user_tab drop">
+          <a href="/help/" id="user_tab_help" class="user_tab">Help</a>
+          <ul class="ui-widget-content ui-corner-bottom">
+            <li><a href="/help/gibson/">Gibson Assembly</a></li>
+            <li><a href="/help/primer/">Primer Design</a></li>
+            <li><a href="/help/gibthon/">Construct Designer</a></li>
+            <li><a href="/partsearch/">PartSearch API</a></li>
+          </ul>
+        </span>
+        <span class="user_tab drop">
+          <a href="/tools/" id="user_tab_tools" class="user_tab">Apps</a>
+          <ul class="ui-widget-content ui-corner-bottom">
+            <li><a href="/fragment/">Library</a></li>
+            <li><a href="/gibthon/">Construct Designer</a></li>
+            <li><a href="/pricalc/">PriCalc</a></li>
+            <li><a href="/tools/ligcalc/">LigCalc</a></li>
+            <li><a href="/tools/molcalc/">MolCalc</a></li>
+          </ul>
+        </span>
+        <span class="user_tab drop">
+          <a href="/" id="user_tab_home" class="user_tab">Home</a>
+          <ul class="ui-widget-content ui-corner-bottom">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about/">About</a></li>
+          </ul>
+        </span>	
+      </div>
 			<a href="/"><img src="{{ STATIC_URL }}/images/gibthon2.0beta.png" style="height:60px; padding:5px 10px; float:left;" alt="Gibthon" /></a>
 			<h2 id="main_title">Gibthon<!--:<span style="font-size:0.7em">{{ title|default:"Home" }}</span>--></h2>
 		</div>

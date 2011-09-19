@@ -49,7 +49,7 @@ a {
 }
 
 #header {
-	height:70px;
+	border: none;
 }
 
 #footer{
@@ -82,6 +82,7 @@ a {
 	margin-right:auto;
 	padding-left:30px;
 	padding-right:30px;
+  position: relative;
 }
 
 .half-width {
@@ -164,6 +165,11 @@ input.captcha {
 	height:20px;
 }
 
+div.menu-bar{
+  position: absolute;
+  right: 0; bottom: 0;
+}
+
 a.user_tab {
 	font-size:0.7em;
 	border-bottom:none !important;
@@ -172,7 +178,7 @@ a.user_tab {
 span.user_tab {
 	float:right;
 	margin-right:10px;
-	margin-top:47px;
+  margin-bottom: 0;
 }
 
 span.user_tab ul {
