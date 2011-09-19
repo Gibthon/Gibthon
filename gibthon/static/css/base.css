@@ -139,7 +139,7 @@ pre {
  word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
-table { clear: both }
+table { clear: both; width:100%; }
 
 table.protocol {
     margin-left:auto;
