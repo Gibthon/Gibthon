@@ -84,7 +84,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('form#settings_form').magicForm({
-			defaultInput: $("<input class='magic-input' size=4 maxlength=8 />"),
+			defaultInput: "<input class='magic-input' size=4 maxlength=8 />",
 			save: function(e, data) {$('#status').text(data[1].modified);},
 		});
 	});

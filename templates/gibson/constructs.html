@@ -9,16 +9,12 @@
 <script src="{{ STATIC_URL }}/js/jquery.dataTables.min.js" type="text/javascript"></script>
 {% endblock %}
 
-{% block menu %}
-|
+{% block app-menu %}
 <button id="addc">Add new Construct</button>
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
-
-<h3>Construct Library</h3>
-<div style="padding:10px;">
+<div class="content fixed-width">
 	<table id="construct_table">
 		<thead>
 			<tr><th>Name</th><th>Description</th></tr>
@@ -30,13 +26,15 @@
 		</tbody>
 	</table>
 </div>
+{% endblock %}
+
+{% block dialog %}
 <div id="construct_add">
 	<form action="add" method="post">
 		{% csrf_token %}
 		{% include "gibson/constructform.html" %}
 	</form>
 	<div style="float:right; padding-right:10px;"><button id="add">Add</button></div>
-</div>
 </div>
 {% endblock %}
 
@@ -58,10 +56,10 @@ $(document).ready(function() {
 		bJQueryUI: true,
 		aoColumns: [
 			{
-				sWidth:"200px"
+				sWidth:"25%"
 			},
 			{
-				sWidth:"574px"
+				sWidth:"75%"
 			}
 		],
 		oLanguage:{

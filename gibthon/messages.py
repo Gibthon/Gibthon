@@ -30,5 +30,5 @@ class MessagePasser():
 		conn = self.conn()
 		conn.request("GET", "/?channel_name=%s&response_format=plain_with_push"%(self.channel))
 		res = conn.getresponse()
-		data = res.read()
-		print json.loads(data)
+		data = json.loads(res.read())
+		return data['channel_push_token']

@@ -53,16 +53,15 @@ td.warningcell {
 <script src="{{ STATIC_URL }}/js/jquery.cookie-modified.js" type="text/javascript"></script>
 {% endblock %}
 
-{% block menu %}
-|
+{% block app-menu %}
+<a href="/gibthon/{{ construct.id }}/{{ construct.name }}/" id="back_to_construct">Back to Construct</a>|
 <button id="download">Download Primers and Protocols</button>
 |
 <button id="reset_offset">Reset Offsets</button>
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
-	<h3>Primers</h3>
+<div class="ui-widget-content ui-corner-all content fixed-width">
 	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
 	<div>
 	{% for cf in construct.cf.all %}
@@ -84,9 +83,10 @@ td.warningcell {
 		</div>
 	{% endfor %}
 	</div>
+	<div style="clear:both;"></div>
 </div>
 <div id="primer_info">
-	<div class="ui-widget-content ui-corner-all content">
+	<div class="ui-widget-content ui-corner-all content fixed-width">
 		<h3>Summary</h3>
 		<p><table style="margin-left:30px;" class="protocol">
 		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
@@ -95,7 +95,7 @@ td.warningcell {
 		{% endfor %}
 		</table></p>
 	</div>
-	<div class="ui-widget-content ui-corner-all content">
+	<div class="ui-widget-content ui-corner-all content fixed-width">
 		<h3>PCR Particulars</h3>
 		<p>Fill in the details for all of your primers to download protocol information</p>
 		<p>Don't forget to save your changes!</p>
@@ -144,20 +144,6 @@ td.warningcell {
 {% endblock %}
 
 {% block dialog %}
-
-<div id="primer_sequence"></div>
-
-<div id="wait">
-	<p>Loading...</p>
-</div>
-
-<div id="primer_offset_confirm"></div>
-
-<div id="process">
-	<p>Processing...</p>
-	<div id="process_progress" style="height:22px;"></div>
-</div>
-
 {% endblock %}
 
 {% block js %}
@@ -179,19 +165,32 @@ $(document).ready(function() {
 			$.post('save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
 		});
 	$('button.primer_button').click(function() {
-		$('#wait').dialog('open');
-		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0], function() {
-			$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
-			$('.primer_info_wrapper:hidden').show()
-			$('#wait').dialog('close');
+		$('#prompt').prompt({
+			type:'wait',
+			title:'Loading',
+			message:'',
+			target: {
+				location:'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0],
+				target:'#primer_info',
+				callback: function () {
+					$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
+					$('.primer_info_wrapper:hidden').show()
+				}
+			}
 		});
+		
 		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
 	});
 	if ('{{ primer }}' != ''){
-		$('#wait').dialog('open');
-		$('#primer_info').load('/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}', function() {
-			$('.primer_info_wrapper:hidden').show()
-			$('#wait').dialog('close');
+		$('#prompt').prompt({
+			type:'wait',
+			title:'Loading',
+			message:'',
+			target: {
+				location:'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}',
+				target:'#primer_info',
+				callback: function () { $('.primer_info_wrapper:hidden').show() }
+			}
 		});
 		$('.primer_info_wrapper').show();
 	}
@@ -199,20 +198,21 @@ $(document).ready(function() {
 	$('button#download').button({
 		icons:{primary:'ui-icon-clipboard'}
 	}).click(function() {
-		$('#wait').dialog('open');
+		$('#prompt').prompt({
+			type:'wait',
+			title:'Generating Download',
+			message:''
+		});
 		var token = new Date().getTime();
 		downloadTimer = window.setInterval(function () {
 			var cookieValue = $.cookie('fileDownloadToken');
 			if (cookieValue == token) {
-				$('#wait').dialog('close');
+				$('#prompt').prompt('close');
 				window.clearInterval(downloadTimer);
 				$.cookie('fileDownloadToken', null);
 			}
 		},500);
 		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download?tk='+token;
-		
-
-		//window.location.href = '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download';
 	});
 });
 </script>

@@ -9,7 +9,7 @@ from django.core.exceptions import *
 
 import simplejson as json
 
-def molcal(request):
+def molcalc(request):
 	t = loader.get_template("tools/molcal.html")
 	c = RequestContext(request, {
 		'title':'Molarity Calculator',

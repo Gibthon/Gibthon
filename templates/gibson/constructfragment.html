@@ -1,0 +1,30 @@
+{% for cf,feature in list %}
+<div id="{{ cf.id }}">
+	<h3>{{ cf.fragment.description }}</h3>
+	<div>
+		<form class="formthing">
+		<table>
+			<tr>
+				<td style="width:150px;"><strong>ID:</strong> {{ cf.fragment.name }}</td>
+				<td style="width:150px;"><strong>Length:</strong> {{ cf.fragment.length }}</td>
+			</tr>
+			<tr>
+				<th>Start</th>
+				<th>Finish</th>
+			</tr>
+			<tr>
+				<td>
+					{{ feature.start_feature }}
+				</td>
+				<td>
+					{{ feature.finish_feature }}
+				</td>
+			</tr>
+		</table>
+		<div style="width:200px; margin-left:auto; margin-right:auto; text-align:center;">{{ feature.direction }}</div>
+		</form>
+		<div style="float:left"><button id="view/{{ fragment.id }}">Browse</button></div>
+		<div style="float:right"><button id="delete/{{ cf.id }}">Delete</button></div>
+	</div>
+</div>
+{% endfor %}

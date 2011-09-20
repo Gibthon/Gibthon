@@ -14,5 +14,5 @@ class JsonResponse(HttpResponse):
 
 class RawJsonResponse(HttpResponse):
 	def __init__(self, data):
-		print "Return JSON: '%s'" % json.dumps(data)
 		HttpResponse.__init__(self, json.dumps(data), mimetype='application/json')
+

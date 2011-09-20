@@ -5,18 +5,29 @@ from django.contrib.contenttypes.models import ContentType
 
 from gibthon.messages import MessagePasser
 from fragment.models import Gene
-from gibson.models import Construct, add_fragment
+from gibson.models import Construct
 from fragment import partsregistry
 
 import json
+from datetime import datetime, timedelta
+import time
 
 class GibthonUser(User):
 
-	channel_key = models.CharField(max_length=120)
+	channel_key = models.CharField(max_length=120, blank=True, null=True)
+	channel_key_expire = models.DateTimeField(blank=True, null=True)
 	objects = UserManager()
 	
 	def channel(self):
 		return 'GCD-' + self.username
+	
+	def get_channel_key(self):
+		if not (self.channel_key and datetime.now() < self.channel_key_expire):
+			m = MessagePasser(self.channel())
+			self.channel_key = m.get_key()
+			self.channel_key_expire = datetime.now() + timedelta(0,(60*60))
+			self.save()
+		return self.channel_key
 
 class Inbox(models.Model):
 	user = AutoOneToOneField('GibthonUser', related_name='inbox')
@@ -98,12 +109,11 @@ class Message(models.Model):
 						fs.append(Gene.add(p.to_seq_record(), "BB", self.inbox.user))
 					else:
 						fs.append(x)
-					print 'yay'
 				name = "New Construct"
 				description = "New Construct from GEC"
 				c = Construct.objects.create(name=name, description=description, shape='c', owner=self.inbox.user)
 				for f in fs:
-					add_fragment(c, f)
+					c.add_fragment(f)
 				return 1
 			else:
 				return -4
@@ -113,3 +123,6 @@ class Message(models.Model):
 	
 	def __unicode__(self):
 		return "Message from " + self.sender + " to " + self.inbox.user.channel()
+
+	def json(self):
+		return [self.read,time.mktime(self.received.timetuple()),self.description(),self.added,self.id]

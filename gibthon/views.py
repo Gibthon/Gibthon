@@ -14,3 +14,8 @@ def molcal(request):
 
 def ligcal(request):
     return HttpResponseRedirect('/tools/ligcalc/')
+    
+def about(request):
+	t = loader.get_template('about.html')
+	c = RequestContext(request)
+	return HttpResponse(t.render(c))

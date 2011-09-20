@@ -1,0 +1,60 @@
+<div id='fragmentmeta'>
+<form id='metaform' action="saveMeta/" method="post" onsubmit="return false">
+	<div class="ui-widget-content ui-corner-top top-box" >
+		<div style="float:left;max-width:70%;">
+			<span id="name" class="magic-item">
+				<h3 class="magic-text"></h3>
+			</span>
+		</div>
+		<div style="float:right;margin: .2em .5em;" >
+			<button class="magic-button"></button>
+			<button class="magic-button-cancel"></button>
+		</div>
+		<div style="clear:both"></div>
+		<div>
+			<span id="desc" class="magic-item">
+				<h4  class="magic-text"></h4>
+				<textarea name='desc' class='magic-input' cols=50 rows=3></textarea>
+			</span>
+			<h5 id="origin"></h5>
+		</div>
+		
+	</div>
+	<div class="ui-widget-content ui-corner-bottom bottom-box" >
+		<span id="more_details">
+			<span id="more">Show</span> Details 
+			<span id="icon" style="display:inline-block;padding-top:.2em;height:0.8em;" class="ui-icon ui-icon-triangle-1-s" />
+		</span>
+		<div id="drop_down">
+			<h4>Annotations</h4>
+				<div class="info" id="annot_div">
+					<table id="annot_table" class='extender-target'>
+						<tr id='extender-copy'> 
+							<td id='annot_key' class='magic-item annot-key' > 
+								<span class='magic-text' style='display:none;'>Key</span> 
+								<input name='annot_key' class='magic-input' style='display:inline-block;' type='text' value='Key' size=10 ></input>
+								<p class='magic-error' style='display:none;'></p>
+							</td> 
+							<td id='annot_value' class='magic-item'> 
+								<span class='magic-text' style='display:none;'>Value</span>
+								<input name='annot_value' class='magic-input' type='text' style='display:inline-block;' value='Value'></input>
+								<p class='magic-error' style='display:none;'></p>
+							</td> 
+							<td><button class='extender-remove'>Remove</button></td>
+						</tr>
+					</table>
+					<button class='extender-add'>Add</button>
+				</div>
+			<h4>References</h4>
+				<div class="info" id="ref_div">
+					
+				</div>
+		</div>
+	</div>
+</form>
+</div>
+<script type='text/javascript'>
+$(window).ready( function() {
+	$('#fragmentmeta').fragmentMeta({ id: {{ id }}, });
+});
+</script>

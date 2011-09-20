@@ -34,20 +34,19 @@ class Part:
 			raise ValueError("Invalid part name '%s'" % name)
 		#try and retrieve BioBrick data
 		try:
-			print("Fetching data from:\t %s" % (partsURL % name) )
 			f = urllib2.urlopen(partsURL % name)
 			soup = BeautifulSoup(f)
 			if soup.find("error"):
 				raise ValueError("Part '%s' does not exist" % name)
-			else:
-				print "Successfully fetched part %s!" % name
 		except urllib2.URLError:
 			raise IOError("Could not retrieve data.")
+			
 		def getTag(asoup, tag, default=u""):
 			if asoup.find(tag).contents:
 				return asoup.find(tag).string.strip()
 			else:
 				return default
+		
 		#name, description, type, status, etc
 		self.name = getTag(soup, "part_name")
 		self.short_name = getTag(soup, "part_short_name")
@@ -100,7 +99,7 @@ class Part:
 				self.features.append( { "name" : "RFC[10]",
 										"type" : "scar",
 										"strand": 1,
-										"startpos" : match.start() + 1,
+										"startpos" : match.start(),
 										"endpos" : match.end() } )
 		for match in re.finditer("tactag", self.sequence):
 			ends = [x['endpos'] for x in self.features if x['type'].lower() == u'rbs']
@@ -109,7 +108,7 @@ class Part:
 				self.features.append( { "name" : "RFC[10.1]",
 										"type" : "scar",
 										"strand": 1,
-										"startpos" : match.start() + 1,
+										"startpos" : match.start(),
 										"endpos" : match.end() } )
 		#close the filehandle
 		f.close()
@@ -127,10 +126,10 @@ class Part:
 		features = []
 		for feat in self.features:
 			features.append( SeqFeature( 
-				location = FeatureLocation(feat['startpos'], feat['endpos']),
+				location = FeatureLocation(feat['startpos'] - 1, feat['endpos']), #NB partsregistry uses 1-offset, and inclusive.
 				type = feat['type'],
 				strand = feat['strand'],
-				id = feat['name']))
+				qualifiers = {'title': feat['name'],}))
 		
 		return SeqRecord(	self.sequence, 
 							id=self.name,

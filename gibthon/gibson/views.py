@@ -56,24 +56,6 @@ def download(request, cid):
 		return HttpResponseNotFound()
 
 @login_required
-def construct_settings(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		if request.method == 'POST':
-			form = SettingsForm(request.POST, instance=con.settings)
-			if form.is_valid():
-				form.save()
-				return HttpResponse()
-		t = loader.get_template('gibson/settings.html')
-		s = con.settings
-		c = RequestContext(request, {
-			'settings':s,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-
-@login_required
 def settings_edit(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
@@ -98,7 +80,7 @@ def primer(request, cid, pid):
 			c = RequestContext(request, {
 				'construct': con,
 				'primer_list': con.primer.all(),
-				'title': 'Primers('+con.name+')',
+				'title': 'Construct Designer',
 				'primer': p.id,
 			})
 			return HttpResponse(t.render(c))
@@ -140,12 +122,12 @@ def load_primer(request, cid, pid):
 @login_required
 def primers(request, cid):
 	con = get_construct(request.user, cid)
-	if con and len(con.primer.all()) == 2*len(con.cf.all()):
+	if con and len(con.primer.all()) == 2*len(con.cf.all()) and len(con.primer.all()) > 0:
 		t = loader.get_template('gibson/primers.html')
 		c = RequestContext(request, {
 			'construct': con,
 			'primer_list': con.primer.all(),
-			'title':'Primers('+con.name+')',
+			'title':'Construct Designer',
 		})
 		return HttpResponse(t.render(c))
 	else:
@@ -156,12 +138,8 @@ def primers(request, cid):
 def process(request, cid, reset=True, new=True):
 	con = get_construct(request.user, cid)
 	if con:
-		try:
-			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
-		except:
-			print 'wok'
-		else:
-			return resp
+		resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+		return resp
 	else:
 		return HttpResponseNotFound()
 
@@ -216,7 +194,7 @@ def construct(request,cid):
 		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
 		list = zip(fragment_list, feature_list, cf_list)
 		c = RequestContext(request,{
-			'title':'Construct Designer('+con.name+')',
+			'title':'Construct Designer',
 			'list':list,
 			'construct':con,
 			'construct_form':construct_form,
@@ -226,27 +204,15 @@ def construct(request,cid):
 		return HttpResponseNotFound()
 
 @login_required
-def designer(request,cid):
+def construct_fragment(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
-		t = loader.get_template('gibson/designer.html')
-		c = RequestContext(request,{
-			'title':'Construct Designer: '+con.name+'',
-			'id': cid,
-			'construct':con,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def design_tab(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		t = loader.get_template('gibson/designtab.html')
-		c = RequestContext(request,{
-			'id': cid,
-			'construct':con,
+		t = loader.get_template('gibson/constructfragment.html')
+		cf_list = con.cf.all()
+		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
+		list = zip(cf_list, feature_list)
+		c = RequestContext(request, {
+			'list':list
 		})
 		return HttpResponse(t.render(c))
 	else:
@@ -261,7 +227,7 @@ def construct_delete(request, cid):
 	else:
 		return HttpResponseNotFound()
 
-@login_required	
+@login_required
 def fragment_viewer(request, cid, fid):
 	if get_construct(request.user, cid):
 		f = get_fragment(request.user, fid)
@@ -296,7 +262,8 @@ def fragment_add(request, cid, fid):
 	if con:
 		f = get_fragment(request.user, fid)
 		if f:
-			add_fragment(con,f)
+			con.add_fragment(f)
+#			return HttpResponse('OK')
 			return HttpResponseRedirect('/gibthon/'+cid+'/'+con.name+'/')
 		else:
 			return HttpResponseNotFound()
@@ -311,7 +278,7 @@ def fragment_delete(request, cid, cfid):
 		except ObjectDoesNotExist: return HttpResponseNotFound()
 		else:
 			cf.delete()
-			return HttpResponseRedirect('/gibthon/'+cid+'/'+cf.construct.name+'/')
+			return HttpResponse("OK")
 	else:
 		return HttpResponseNotFound()
 
@@ -441,7 +408,6 @@ def pcr_instructions(request, cid):
 def primer_download(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
-		print request.GET['tk']
 		#set up response headers
 		response = HttpResponse(mimetype='application/zip')
 		response['Content-Disposition'] = 'attachment; filename='+con.name+'.zip'

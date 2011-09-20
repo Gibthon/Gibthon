@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 
-from gibthon.jsonresponses import JsonResponse, RawJsonResponse
+from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 
 @login_required
 def get_fragments(request):
@@ -26,13 +26,52 @@ def get_fragments(request):
 					})
 	return JsonResponse({'fragments': ret})
 
+def save_meta(request, fid):
+	try:
+		fid = int(fid)
+	except ValueError:
+		raise Http404
+  
+	if request.method == 'POST':
+		try:
+			g = Gene.objects.get(id = fid, owner=request.user)
+			g.name = request.POST.get('name', g.name);
+			g.description = request.POST.get('desc', g.description);
+			
+			annotations = {}
+			keys = {}
+			values = {}
+			
+			for kname,key in request.POST.iteritems():
+				if kname.startswith('annot_key'):
+					vname = kname.replace('key', 'value')
+					value = request.POST.get(vname, '')
+					annotations[key] = value
+					values[vname] = value
+					keys[kname] = key
+			
+			fields = {'name': g.name, 'desc': g.description,}
+			fields.update(keys)
+			fields.update(values)
+			
+			#save changes
+			Annotation.remove(g) #remove all the gene's annotations
+			for key,value in annotations.iteritems():
+				Annotation.add(g, key, value)
+			g.save()
+			return JsonResponse({'fields': fields}) 
+			
+		except ObjectDoesNotExist:
+			return JsonResponse({'errors': {'all': "Fragment with ID='%s' does not exist." % id,},}, ERROR)
+	raise Http404
+
 # functions which get the appropriate data
 def get_meta(g, request):
 	return JsonResponse({	'name': g.name,
-									'desc': g.description,
-									'origin': g.get_origin_display(),
-									'length': len(g.sequence)
-								})
+							'desc': g.description,
+							'origin': g.get_origin_display(),
+							'length': len(g.sequence)
+						})
 
 def get_seq_meta(g, request):
 	"""get all the sequence metadata"""		
@@ -42,8 +81,8 @@ def get_seq_meta(g, request):
 		quals = []
 		for q in f.qualifiers.all():
 			quals.append({	'name': q.name,
-								'data': q.data,
-							 })
+							'data': q.data,
+						 })
 		s = None
 		if f.direction == 'f':
 			s = 1
@@ -65,9 +104,9 @@ def get_seq_meta(g, request):
 		alpha[let[i].upper()] = rlet[i].upper()
 	
 	return JsonResponse({	'len': len(g.sequence),
-									'feats': feats,
-									'alpha': alpha,
-								})
+							'feats': feats,
+							'alpha': alpha,
+						})
 	
 def get_seq(g, request):
 	#return a section of the sequence
@@ -95,11 +134,11 @@ def get_refs(g, request):
 	data = []
 	for r in g.references.all():
 		data.append({	'title': r.title,
-							'authors':r.authors,
-							'journal':r.journal,
-							'medline_id':r.medline_id,
-							'pubmed_id':r.pubmed_id,
-						})
+						'authors':r.authors,
+						'journal':r.journal,
+						'medline_id':r.medline_id,
+						'pubmed_id':r.pubmed_id,
+					})
 	return JsonResponse(data)
 	
 def get_feats(g, request):
@@ -117,11 +156,12 @@ def get_feats(g, request):
 		elif f.direction == 'r':
 			s = -1
 		data.append({	'start': f.start,
-							'end': f.end,
-							'strand': s,
-							'type': f.type,
-							'qualifiers': quals,
-						})
+						'end': f.end,
+						'strand': s,
+						'type': f.type,
+						'id': f.id,
+						'qualifiers': quals,
+					})
 	return JsonResponse(data)
 	
 def get_len(g,request):
