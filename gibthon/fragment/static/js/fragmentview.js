@@ -225,7 +225,7 @@ $.widget("ui.fragmentMeta", {
 })( jQuery );	
 
 //inital guess at char width
-var char_width = 0.6;
+var char_width = 0.55;
 var click_thresh = 300; //ms
 
 var select_start = '<span class="selected unselectable" unselectable="on">';
@@ -281,9 +281,8 @@ $.widget("ui.fragmentSequence", {
 		this.seq = "";
 		this.pos = 0;
 		this.rowlength = parseInt(px2em(this.$el.width()) / char_width);
-    this.rowlength = 5 * Math.floor(this.rowlength / 5);
-    console.log('this.rowlength = 10 * parseInt(px2em(' + this.$el.width() + ') / (11 * ' + char_width + '));');
-    console.log('  ' + this.rowlength);
+		this.rowlength = 5 * Math.floor(this.rowlength / 6);
+
 		this._get_seq_meta();
 		
 		this._get_char_width();
