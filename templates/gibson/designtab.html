@@ -4,7 +4,7 @@
 		<div id='left_div' style='float:left;width:70%;'>
 			<div id='cdesigner_pad' class='design-content ui-widget-content ui-corner-all' style='padding:5px;'>
 				<div style="height:600px;">
-					<canvas style="border:1px solid blue; display:block; height:100%; width:100%;" id="cdesigner"></canvas>
+					<canvas id="cdesigner" style="display:block; height:100%; width:100%;"></canvas>
 				</div>
 			</div>
 		</div>
@@ -29,7 +29,15 @@
 <script type='text/javascript'>
 $(window).ready( function() {
 	$('#frag_drag').fragmentDrag();
+	console.log('$("#cdesigner").designer()');
 	$('#cdesigner').designer({
+		name: '{{construct.name}}',
+	}).droppable({
+		drop: function(event, ui) {
+			var id = ui.draggable.attr('id').replace('frag_', '');
+			console.log('Dropping: ' + id);
+			$(this).designer('addFragment', id);			
+		}
 	});
 	$('#right_div').outerHeight($('#left_div').outerHeight());
 });
