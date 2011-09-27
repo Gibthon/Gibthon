@@ -18,7 +18,6 @@ var save = function () {
 	});
 	$('#summary').load('summary');
 };
-
 var refresh = function () {
 	$('#fragment_list').hide().accordion('destroy');
 	$('#fragment_list').load('fragments', function() {
