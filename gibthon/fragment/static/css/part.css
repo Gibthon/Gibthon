@@ -1,12 +1,16 @@
 .status{
 	width: 24px;
 	height: 24px;
+	border: none;
 	margin: .2em;
 	display: inline-block;
 	vertical-align: middle;
 }
 .status-busy{
-	background-image: url(images/spinner.gif);
+	width: 16px !important;
+	height: 16px !important;
+	margin: 4px !important;
+	background-image: url(images/import-spinner.gif);
 }
 .status-ok{
 	background-image: url(images/ok_fail_icons.png);

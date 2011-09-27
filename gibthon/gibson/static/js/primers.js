@@ -141,36 +141,44 @@ $('document').ready(function () {
 	$('button#reset_offset').button({
 		icons:{primary:'ui-icon-refresh'}
 	}).click(function () {
-		$('#prompt').prompt({
-			type:'confirm',
-			title:'Confirm reset',
-			message:'You are about to reset all of the primers to 0 offset.',
-			confirm: {
-				click: function () {
-					$('#prompt2').prompt({
-						title:'Please wait',
-						message:'Resetting primers.',
-						type:'progress',
-						confirm: {
-							text: "View primers",
-							icon: 'ui-icon-transferthick-e-w',
-							click: function () { window.location.href='primers'; }
-						},
-						cancel: {
-							text: "Close",
-							icon: 'ui-icon-close'
-						},
-						target: { 
-							location :'reset',
-							callback: function () { window.location.reload() }
-						},
-						buttons:false
-					});
+		$('#primer_offset_confirm').html('You are about to reset all of the primers to 0 offset.');
+		$('#primer_offset_confirm').dialog( "option", "buttons", { 
+			"Ok": function() {
+				$(this).dialog("close"); 
+				$('#process').dialog('open');
+				var h = makeHttpObject();
+				h.open('GET', 'reset', true)
+				h.onreadystatechange = function (){
+					p = parseInt(this.responseText.split(':').pop());
+					$('#process_progress').progressbar('value', p);
+					if (p==100){
+						window.location.reload();
+					}
 				}
-			}
+				h.send(null);
+			},
+			"Cancel": function() { 
+				$(this).dialog("close"); 
+			} 
 		});
+		$('#primer_offset_confirm').dialog('open');
 	});
 	$('.primer_info_wrapper').hide();
+	$('#process_progress').progressbar({ value: 0 });
+	$('#process').dialog({
+		autoOpen:false,
+		modal:true,
+		resizable:false,
+		title:'Please wait',
+		closeOnEscape:false,
+		draggable:false,
+		open: function(event, ui) {
+			$(".ui-dialog-titlebar-close").hide();
+		},
+		close: function(event, ui) {
+			$('#process_progress').progressbar('value', 0);
+		}
+	});
 	$('#primer_offset_confirm').dialog({
 		autoOpen:false,
 		width:"500",
@@ -200,8 +208,5 @@ $('document').ready(function () {
 	});
 	$('button.primer_bottom').button({
 		icons:{secondary:'ui-icon-circle-arrow-e'}
-	});
-	$('a#back_to_construct').button({
-		icons:{primary:'ui-icon-arrowreturn-1-n'}
 	});
 });

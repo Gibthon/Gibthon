@@ -144,7 +144,7 @@ $.widget("ui.importer", {
 				
 			});
 		});
-		this._enable_back_cancel($new);
+		this._enable_back_cancel($new, 'Close');
 		
 	},
 	_show_manual: function(){
@@ -265,14 +265,15 @@ $.widget("ui.importer", {
 		
 	},
 	
-	_enable_back_cancel: function($new){
+	_enable_back_cancel: function($new, cancel_label){
+		if (cancel_label == undefined) cancel_label = 'Cancel';
 		var self = this;
 		$new.find('#back_btn').button({
 			label: 'Back',
 			icons: {primary: 'ui-icon-arrowreturn-1-w'},
 		}).click(function() { self._show_main();});
 		$new.find('#cancel_btn').button({
-			label: 'Cancel',
+			label: cancel_label,
 			icons: {primary: 'ui-icon-cancel'},
 		}).click(function() { self.close(); });
 	},

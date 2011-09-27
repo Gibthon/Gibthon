@@ -70,7 +70,7 @@ def create(request, email_hash):
 		if f.is_valid(email_hash):
 			user = f.save()
 			user.channel_key = user.inbox.messagePasser().get_key()
-			user.channel_key_expire = datetime.now() + timedelta(0,(60*60))
+			user.channel_key_expire = datetime.datetime.now() + timedelta(0,(60*60))
 			user.save()
 			auth_login(request, user)
 			return HttpResponseRedirect('/user/profile/')
