@@ -1,15 +1,4 @@
-.pad-div
-{
-	width: 100%;
-	min-height: 3.2em;
-	position: relative;
-	margin-bottom: 1.2em;
-}
-.pad-content
-{
-	position: abosolute;
-	top:0;bottom:0;left:0;right:0;
-}
+
 #desc{ margin: 1em .7em;}
 #status
 {
@@ -20,11 +9,6 @@
 #tabs
 {
 	font-size:10pt;
-}
-#settings_table
-{
-	border-collapse:collapse;
-	border: 1px solid lightblue;
 }
 .tab-link
 {
@@ -49,9 +33,11 @@
 	padding-left: 0.5em;
 }
 
+p.magic-text {display:inline;}
 .setting-conc:after {content:' M';}
 .setting-temp:after {content:' ᴼC';}
 .setting-len:after {content:' bp';}
+.setting-title:after {content:":";}
 
 tr.settings
 {
@@ -61,13 +47,7 @@ tr.settings-alt
 {
 	background-color: lightblue;
 }
-.setting-title:after
-{
-	content:":";
-}
-.center {text-align: center;}
-.left {text-align: left;}
-.right {text-align: right;}
+
 .design-content
 {
 	margin: .2em;

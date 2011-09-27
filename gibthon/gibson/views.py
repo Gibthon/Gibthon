@@ -204,7 +204,7 @@ def construct_add(request):
 def construct(request,cid):
 	con = get_construct(request.user, cid)
 	if con:
-		t = loader.get_template('gibson/gibson.html')
+		t = loader.get_template('gibson/designer.html')
 		if request.method == 'POST':
 			rp = fix_request(request.POST)
 			f = ConstructForm(rp, instance=con)

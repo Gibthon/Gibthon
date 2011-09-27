@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import Context, loader, RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from views import get_construct
-
+ 
 from models import *
 from forms import *
 
@@ -12,7 +12,7 @@ def designer(request,cid):
 	if con:
 		t = loader.get_template('gibson/designer.html')
 		c = RequestContext(request,{
-			'title':'Construct Designer: '+con.name+'',
+			'title':'Construct Designer',
 			'id': cid,
 			'construct':con,
 		})

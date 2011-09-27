@@ -54,6 +54,7 @@ from fragment.models import Gene
 
 import os, subprocess, shlex, sys, csv
 from subprocess import CalledProcessError
+from datetime import datetime
 
 def hybrid_options(t,settings):
 	return ' -n DNA -t %.2f -T %.2f -N %.2f -M %.2f --mfold=5,-1,100 ' %(t + settings.ss_safety, t + settings.ss_safety, settings.na_salt, settings.mg_salt)
@@ -531,6 +532,10 @@ class Construct(models.Model):
 			yield ' '*1024
 		yield ':100'		
 
+	def last_modified(self):
+		"""Return the date/time that the construct was last modified as a formatted string"""
+		return self.modified.strftime('%c')
+	
 class ConstructFragment(models.Model):
 	construct = models.ForeignKey('Construct', related_name='cf')
 	fragment = models.ForeignKey('fragment.Gene', related_name='cf')

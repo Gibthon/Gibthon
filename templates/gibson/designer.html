@@ -12,9 +12,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget-content ui-corner-all content">
-	<div class="pad-div">
-		<div id="meta-box" class="ui-widget-content ui-corner-all">
+<div>
+	<div class="center fixed-width content">
+		<div id="meta-box" class="ui-widget-content ui-corner-all left">
 			<form id='meta_form' action='saveMeta/' method='POST' onsubmit='return false;'>
 				{% csrf_token %}
 				<div id='name' class="ui-widget-header ui-corner-top magic-item" style="padding:10px;height:1.6em;">
@@ -34,8 +34,8 @@
 		</div>	
 	</div>
 	
-	<div class="pad-div">
-		<div id='tabs' class='pad-content'>
+	<div class="content center full-width">
+		<div id='tabs' class='left'>
 			<ul>
 				<li>
 					<a href="design/" class='tab-link'>

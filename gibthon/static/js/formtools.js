@@ -36,6 +36,7 @@ $.widget("ui.formExtender", {
 			icons: {primary: 'ui-icon-plusthick',},
 		}).click( function(event) {
 			self._add(event);
+			return false;
 		});
 		
 		this.$el.find('button.extender-remove').each( function() {
@@ -43,8 +44,8 @@ $.widget("ui.formExtender", {
 				text: false,
 				icons: {primary: 'ui-icon-trash',},
 			}).click( function(event) {
-				console.log('remove');
 				self._remove(event);
+				return false;
 			});
 		});
 		
@@ -100,6 +101,7 @@ $.widget("ui.formExtender", {
 			icons: {primary: 'ui-icon-trash',},
 		}).click( function(event) {
 			self._remove(event);
+			return false;
 		});
 		
 		this._trigger('beforeAdd', event, $clone);
@@ -158,10 +160,10 @@ $.widget("ui.magicForm", {
 		this.save_opts = {'label': 'Save', 'icons': {'primary': 'ui-icon-disk',},}
 		this.$button = this.$form.find('button.magic-button')
 			.button(this.edit_opts)
-			.click( function() {self._edit();});
+			.click( function() {self._edit(); return false;});
 		this.$button_cancel = this.$form.find('button.magic-button-cancel')
 			.button({label: 'Cancel', icons: {primary: 'ui-icon-cancel'}, disabled: true,})
-			.click( function() {self._cancel();});
+			.click( function() {self._cancel(); return false;});
 			
 		this.$form.find('.magic-item').each( function() {
 			var $text = $(this).find('.magic-text');
@@ -203,7 +205,7 @@ $.widget("ui.magicForm", {
 		});
 		this.$button.button('option', this.save_opts)
 			.unbind('click')
-			.click( function() {self._save();});
+			.click( function() {self._save(); return false;});
 		this.$button_cancel.button('enable');
 		this._trigger('edit');
 	},
@@ -212,7 +214,7 @@ $.widget("ui.magicForm", {
 		var self = this;
 		this.$button.button('option', this.edit_opts)
 			.unbind('click')
-			.click( function() {self._edit();});
+			.click( function() {self._edit(); return false;});
 		this.$button_cancel.button('disable');
 		
 		this.$form.find('.magic-item').each( function() {
@@ -249,8 +251,8 @@ $.widget("ui.magicForm", {
 		});
 		this.$button.button('option', this.edit_opts)
 			.unbind('click')
-			.click( function() {self._edit();});
-		this.$cancel_btn.button('disable');
+			.click( function() {self._edit(); return false;});
+		this.$button_cancel.button('disable');
 	},
 	_data: function(data)
 	{
@@ -278,7 +280,7 @@ $.widget("ui.magicForm", {
 		{	
 			this.$button.button('option', this.edit_opts)
 				.unbind('click')
-				.click( function() {self._edit();});
+				.click( function() {self._edit(); return false;});
 			this.$button_cancel.button('disable');
 			this.$form.find('.magic-item').each( function() {
 				var $item = $(this);
