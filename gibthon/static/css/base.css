@@ -112,7 +112,7 @@ a {
 .right {text-align: right;}
 .center {text-align: center;}
 
-span.login-box {
+span.form-box {
 	display: inline-block;
 	margin-left: 2em;
 }

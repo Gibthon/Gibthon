@@ -5,7 +5,7 @@
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
-<span class='center login-box'>
+<span class='center form-box'>
 	<form method="post" action="/user/login/?next={{ next }}">
 	{% csrf_token %}
 	<table>
