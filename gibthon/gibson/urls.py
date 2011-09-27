@@ -25,25 +25,15 @@ constructpatterns = patterns('gibson.views',
 	(r'^add$', 'fragment_browse'),
 	(r'^add/(?P<fid>\d+)$', 'fragment_add'),
 	(r'^delete/(?P<cfid>\d+)$', 'fragment_delete'),
-	(r'^save/$', 'save'),
-	(r'^process/$', 'process'),
+	(r'^save$', 'save'),
+	(r'^process$', 'process'),
 	(r'^primers/', include(primerpatterns)),
-)
-
-designerpatterns = patterns('gibson.designer',
-	(r'^$', 'designer'),
-	(r'^settings/$', 'construct_settings'),
-	(r'^saveMeta/$', 'update_meta'),
-	(r'^saveSettings/$', 'update_settings'),
-	(r'^design/$', 'design_tab'),
 )
 
 urlpatterns = patterns('gibson.views',
 	(r'^$', 'constructs'),
 	(r'^add$', 'construct_add'),
 	(r'^(?P<cid>\d+)/\w+\.gb', 'download'),
-#	(r'^(?P<cid>\d+)/', include(constructpatterns)),
-#	(r'^(?P<cid>\d+)/[\w\d ]+/', include(constructpatterns)),
-	(r'^(?P<cid>\d+)/', include(designerpatterns)),
+	(r'^(?P<cid>\d+)/[.\w\d ]+/', include(constructpatterns)),
 )
 

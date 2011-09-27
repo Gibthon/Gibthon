@@ -1,0 +1,61 @@
+<div style="width:100%; padding:10px; height:25px;" class="ui-widget-header ui-corner-top">
+	<div style="float:right;"><button id="settings">Submit</button></div>
+	<div style="float:right; margin-right:10px;"><button id="cancel">Cancel</button></div>
+	Settings
+</div>
+<div id="settings" style="width:100%; padding:10px;" class="ui-widget-content ui-corner-bottom">
+	<form action="settings" method="post">
+	{% csrf_token %}
+	<table id="settings_table">
+		<tr>
+			<td style="width:170px;">Mg<sup>2+</sup> concentration:</td>
+			<td>{{ form.mg_salt }} M</td>
+		</tr>
+		<tr>
+			<td>Na<sup>+</sup> concentration:</td>
+			<td>{{ form.na_salt }} M</td>
+		</tr>
+		<tr>
+			<td>Secondary structure safety margin:</td>
+			<td>{{ form.ss_safety }}&deg;C</td>
+		</tr>
+		<tr>
+			<td>Target annealing temperature:</td>
+			<td>{{ form.min_anneal_tm }}&deg;C</td>
+		</tr>
+		<tr>
+			<td>Target primer annealing temperature:</td>
+			<td>{{ form.min_primer_tm }}&deg;C</td>
+		</tr>
+		<tr>
+			<td>Minimum overlap:</td>
+			<td>{{ form.min_overlap }} bp</td>
+		</tr>
+	</table>
+	</form>
+</div>
+<script type="text/javascript">
+$(document).ready( function () {
+	$('button').button('disable');
+	$('#fragment_list').accordion('disable').sortable('disable');
+	$('button#settings')
+		.button({
+			icons:{primary:'ui-icon-check'}
+		})
+		.click(function(event) {
+			$.post('settings', $('form[action^="settings"]').serialize());
+			$('button').button('enable');
+			$('#fragment_list').accordion('enable').sortable('enable');
+			$('#settings-wrapper').load('settings')
+		});
+	$('button#cancel')
+		.button({
+			icons:{primary:'ui-icon-close'}
+		})
+		.click(function(event) {
+			$('button').button('enable');
+			$('#fragment_list').accordion('enable').sortable('enable');
+			$('#settings-wrapper').load('settings')
+		});
+});
+</script>

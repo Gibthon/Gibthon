@@ -19,6 +19,18 @@ var save = function () {
 	$('#summary').load('summary');
 };
 
+/* http factory for process request */
+function makeHttpObject() {
+  try {return new XMLHttpRequest();}
+  catch (error) {}
+  try {return new ActiveXObject("Msxml2.XMLHTTP");}
+  catch (error) {}
+  try {return new ActiveXObject("Microsoft.XMLHTTP");}
+  catch (error) {}
+
+  throw new Error("Could not create HTTP request object.");
+}
+
 var refresh = function () {
 	$('#fragment_list').hide().accordion('destroy');
 	$('#fragment_list').load('fragments', function() {
@@ -27,14 +39,17 @@ var refresh = function () {
 			.button({ icons:{primary:'ui-icon-trash'} })
 			.click(function(event){
 				var targetUrl = this.id;
-				$('#prompt').prompt({
-					type:'confirm',
-					title:'Confirm Delete',
-					message:'Are you sure you want to remove this fragment?',
-					confirm: {
-						click: function () { $.get(targetUrl, function () { refresh();}); }
+				$('#fragment_delete').dialog({
+					buttons : {
+						"Cancel" : function() {
+							$(this).dialog("close");
+						},
+						"Confirm" : function() {
+							$.get(targetUrl, function () { refresh(); $('#fragment_delete').dialog('close'); });
+						}
 					}
 				});
+				$('#fragment_delete').dialog('open');
 			});
 		$('.formthing').each(function(i,form) {
 			form.elements[2].parentNode.id = form.elements[2].name;
@@ -104,11 +119,19 @@ $(document).ready(function() {
 	/* load the fragments */
 	refresh();
 	
+	/* general initialisations */
+	$('#process_progress').progressbar({ value: 0 });
 	
 	/* load the settings */
 	$('div#settings-wrapper').load('settings');
 	
 	/* buttons */
+	$('button#close_progress')
+		.button({ icons:{primary:'ui-icon-close'} })
+		.click(function(){ $('#wait').dialog('close'); });
+	$('button#primers_progress')
+		.button({ icons:{primary:'ui-icon-transferthick-e-w'} })
+		.click(function(){ window.location.href='primers'; });
 	$('button#info')
 		.button({ icons:{primary:'ui-icon-pencil'} })
 		.click(function(){ $('#construct_edit').dialog('open'); });
@@ -122,41 +145,27 @@ $(document).ready(function() {
 				window.location.href = url;
 			});
 		});
-	$('a#primers')
-		.button({ icons:{primary:'ui-icon-transferthick-e-w'} });
+	$('button#primers')
+		.button({ icons:{primary:'ui-icon-transferthick-e-w'} })
+		.click(function(){ window.location.href="primers" });
 	$('button#process')
 		.button({ icons:{primary:'ui-icon-check'} })
 		.click( function(event) {
 			save();
-			$('#prompt').prompt({
-				title:'Please wait',
-				message:'Processing construct.',
-				type:'progress',
-				confirm: {
-					text: "View primers",
-					icon: 'ui-icon-transferthick-e-w',
-					click: function () { window.location.href='primers'; }
-				},
-				cancel: {
-					text: "Close",
-					icon: 'ui-icon-close'
-				},
-				target: {
-					location: 'process'
+			$('#wait').dialog('open');
+			var h = makeHttpObject();
+			h.open('GET', 'process', true)
+			h.onreadystatechange = function (){
+				p = parseInt(this.responseText.split(':').pop());
+				$('#process_progress').progressbar('value', p);
+				if (p==100){
+					$('button.button_progress').button('enable');
 				}
-			});
+			}
+			h.send();			
 		});
 	$('button#delete')
-		.click(function(){
-			$('#prompt').prompt({
-				type:'confirm',
-				title:'Confirm Delete',
-				message: 'Are you sure you want to delete this construct?',
-				confirm: {
-					click: function() { window.location.href = 'delete'; }
-				}
-			});
-		})
+		.click(function(){ $('#construct_delete').dialog('open'); })
 		.button({ icons:{primary:'ui-icon-trash'} });
 	$('button#save')
 		.button({ icons:{primary:'ui-icon-disk'} })
@@ -166,10 +175,10 @@ $(document).ready(function() {
 		.click(function(event){
 			$('#fragment_browser_content').load('add');
 			$('#fragment_browser').dialog('open');
-		});		
-	$('a#library').button({
-		icons:{primary:'ui-icon-note'}
-	});
+		});
+		
+	$('button.button_progress').button('disable');
+		
 	
 	/* dialogs */
 	$('#construct_edit').dialog({
@@ -178,6 +187,42 @@ $(document).ready(function() {
 		modal:true,
 		title:'Add new Construct',
 		width:400
+	});
+	$('#wait').dialog({
+		autoOpen:false,
+		modal:true,
+		resizable:false,
+		title:'Please wait',
+		closeOnEscape:false,
+		draggable:false,
+		open: function(event, ui) {
+			$('button.button_progress').button('disable');
+			$(".ui-dialog-titlebar-close").hide();
+		},
+		close: function(event, ui) {
+			$('#process_progress').progressbar('value', 0);
+			$('button.button_progress').button('disable');
+		}
+	});
+	$('#fragment_delete').dialog({
+		autoOpen:false,
+		modal:true,
+		resizable:false,
+		title:'Confirm Delete'
+	});
+	$('#construct_delete').dialog({
+		autoOpen:false,
+		modal:true,
+		resizable:false,
+		title:'Confirm Delete',
+		buttons : {
+			"Cancel" : function() {
+				$(this).dialog('close');
+			},
+			"Delete" : function() {
+				window.location.href = 'delete';
+			}
+		}
 	});
 	$('#fragment_browser').dialog({
 		autoOpen:false,
