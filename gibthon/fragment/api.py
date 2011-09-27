@@ -11,12 +11,27 @@ from Bio.Seq import Seq
 
 from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 
+@login_required
+def get_fragments(request):
+	"""Return all fragments owned by a user"""
+	try:
+		frags = Gene.objects.filter(owner=request.user)
+	except ObjectDoesNotExist:
+		frags = []
+	ret = []
+	for f in frags:
+		ret.append( {	'id': f.id,
+						'name': f.name,
+						'desc': f.description,
+					})
+	return JsonResponse({'fragments': ret})
+
 def save_meta(request, fid):
 	try:
 		fid = int(fid)
 	except ValueError:
 		raise Http404
-
+  
 	if request.method == 'POST':
 		try:
 			g = Gene.objects.get(id = fid, owner=request.user)

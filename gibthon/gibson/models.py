@@ -19,7 +19,7 @@
 # 1) PrimerHalf
 #	Each primer is stored as two primerhalfs, one for the sticky end, one for the flappy end
 #
-# 2) Setings
+# 2) Settings
 # 	A class separate from the Construct class for storing settings for each 
 #	construct. No huge benefit to it being separate from Construct, other than
 #	separating fairly different aspects. Also makes forms a bit easier.
@@ -387,6 +387,8 @@ class PrimerHalf(models.Model):
 		else:
 			return self.stick.name + ' (stick): ' + str(self.seq()) + ' (' + str(self.tm()) + ')'
 
+import datetime
+
 SHAPE_CHOICES = (
 	('c', 'Circular'),
 	('l', 'Linear'),
@@ -410,6 +412,9 @@ class Construct(models.Model):
 		for f in self.cf.all():
 			dna += f.sequence()
 		return dna
+	
+	def last_modified(self):
+		return self.modified.strftime('%b. %d, %Y, %I:%M %p')
 	
 	def length(self):
 		return len(self.sequence())

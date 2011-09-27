@@ -21,7 +21,7 @@
 		</thead>
 		<tbody>
 			{% for construct in construct_list %}
-				<tr><td><a href="{{ construct.id }}/{{ construct.name }}/">{{ construct.name }}</a></td><td>{{ construct.description|truncatewords:10 }}</td></tr>
+				<tr><td><a href="{{ construct.id }}/">{{ construct.name }}</a></td><td>{{ construct.description|truncatewords:10 }}</td></tr>
 			{% endfor %}
 		</tbody>
 	</table>
@@ -56,10 +56,10 @@ $(document).ready(function() {
 		bJQueryUI: true,
 		aoColumns: [
 			{
-				sWidth:"200px"
+				sWidth:"25%"
 			},
 			{
-				sWidth:"600px"
+				sWidth:"75%"
 			}
 		],
 		oLanguage:{

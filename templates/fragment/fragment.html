@@ -46,7 +46,7 @@
 				<div style="clear:both;"></div>
 			</div>
 		</div>
-	<div id="sequence" class="fixed-width">
+	<div id="sequence" class='full-width'>
 		
 	</div>
 {% endblock %}
@@ -65,6 +65,7 @@ $(document).ready(function() {
 	$('a#library').button({
 		icons:{primary:'ui-icon-note'}
 	});
+
 	$('#fragment_info').load('getMeta/');
 	
 	$('#sequence').load('getSeq/');

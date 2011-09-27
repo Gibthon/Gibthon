@@ -4,7 +4,7 @@ from fragment.models import Gene, Feature
 from fragment.views import get_fragment
 
 from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import condition
@@ -52,24 +52,6 @@ def download(request, cid):
 		response = HttpResponse(mimetype='text/plain')
 		response.write(con.gb())
 		return response
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def construct_settings(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		if request.method == 'POST':
-			form = SettingsForm(request.POST, instance=con.settings)
-			if form.is_valid():
-				form.save()
-				return HttpResponse()
-		t = loader.get_template('gibson/settings.html')
-		s = con.settings
-		c = RequestContext(request, {
-			'settings':s,
-		})
-		return HttpResponse(t.render(c))
 	else:
 		return HttpResponseNotFound()
 
