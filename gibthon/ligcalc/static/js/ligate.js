@@ -98,7 +98,7 @@ Reaction.prototype.go = function(){
 		this.components[comps[i]].vol = (this.components[dom].vol / this.components[dom].mol) * this.components[comps[i]].mol;
 	}
 	out = document.getElementById('output');
-	outs = "<table style=\"width:125px;\"><tr><th style=\"width:100px;\"></th><th style=\"width:25px;\">Vol (µl)</th></tr><tr><td>Buffer</td><td>" + this.bv.value + "</td></tr><tr><td>Enzyme</td><td>" + this.lv.value + " </td></tr>";
+	outs = "<table style=\"width:90%;\"><tr><th style=\"width:65%;\"></th><th style=\"width:35%;\">Vol (µl)</th></tr><tr><td>Buffer</td><td>" + this.bv.value + "</td></tr><tr><td>Enzyme</td><td>" + this.lv.value + " </td></tr>";
 	var water = this.maxvol;
 	for (var i = 0; i < this.components.length; i++){
 		outs += "<tr><td>"+this.components[i].name.value+"</td><td>"+round2dp(this.components[i].vol)+"</td></tr>";

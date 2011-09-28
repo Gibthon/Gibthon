@@ -52,6 +52,8 @@ from annoying.fields import AutoOneToOneField
 
 from fragment.models import Gene
 
+from gibthon.unafold import UnaFolder
+
 import os, subprocess, shlex, sys, csv
 from subprocess import CalledProcessError
 
@@ -205,124 +207,32 @@ class Primer(models.Model):
 		self.delete()
 	
 	def self_prime_check(self):
-		self.warning.filter(type='sy').delete()
-		# check for self prime events
-		name = str(self.id)
-		cwd = os.getcwd()
-		# perform all work here. this should be in settings at some point
-		wd = settings.UNAFOLD_WD
-		os.chdir(wd)
-		# dump the primer sequence into a file, because hyrbid* only supports file input
-		w = open(wd + name,'w')
-		w.write(str(self.seq()))
-		w.close()
-		devnull = open(os.devnull, 'w')
-		# hyrbidise!
-		cline = settings.HYBRID_SS_MIN_PATH + hybrid_options(self.tm(), self.construct.settings) + wd + name
-		if not run_subprocess(cline, self):
-			return False
-		# generate a pretty boxplot
-		cline = settings.BOXPLOT_NG_PATH + ' -t "Energy Dotplot for ' + name + ' " ' + wd + name + '.plot'
-		if not run_subprocess(cline, self):
-			return False
-		# go through the boxplot info and check for mispriming
-		try:
-			csvfile = open(wd + name + '.plot', 'r')
-		except IOError as e:
-			w = Warning.objects.create(
-					primer = self,
-					type = 'sy',
-					text = 'Error making boxplot',
-				)
-			return False
-		ss = csv.DictReader(csvfile, delimiter='\t')
-		warnings = []
-		for r in ss:
-			if int(r['j']) == len(self.seq()):
-				warnings.append((r['length'],float(r['energy'])/10))
-		# conver the boxplot to a png
-		cline = 'convert ' + wd + name + '.ps ' + wd + name + '.png'
-		if not run_subprocess(cline, self):
-			return False		
-		# move it to the media directory
-		os.rename(wd+name+'.png',settings.MEDIA_ROOT+'unafold/'+name+'.png')
-		# clean up after yourself
-		for f in os.listdir('.'):
-			if os.path.isfile(f) and f.startswith(name):
-				os.remove(f)
-		os.chdir(cwd)
-		# delete old warnings and update info
-		self.boxplot = name + '.png'
+		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
+		ret, image = u.self_prime(str(self.seq()))
+		os.rename(image, settings.MEDIA_ROOT+'unafold/p-'+str(self.id))
 		self.warning.all().filter(type='sp').delete()
 		self.save()
-		for warning in warnings:
+		for warning in u.warnings:
 			w = Warning.objects.create(
 				primer = self,
 				type = 'sp',
 				text = 'Potential self-priming of 3\' end! Length: ' + str(warning[0]) + ', dG: ' + str(warning[1]),
-			)
-			
-			
-	def corrprime(self):
-		primer_name = str(self.name)
-		fragment_name = str(self.construct.name) + '-' + str(self.stick.cfragment.fragment.name)
-		cwd = os.getcwd()
-		wd = settings.UNAFOLD_WD
-		os.chdir(wd)
-		w = open(wd + primer_name,'w')
-		w.write(str(self.seq()))
-		w.close()
-		w = open(wd + fragment_name,'w')
-		w.write(str(reverse_complement(self.stick.seq())))
-		w.close()
-		devnull = open(os.devnull, 'w')
-		cline = settings.HYBRID_MIN_PATH + hybrid_options(self.tm(), self.construct.settings) + wd + fragment_name + ' ' + wd + primer_name
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
-		
+			)		
 	
 	def misprime_check(self):
-		primer_name = str(self.id)
-		fragment_name = str(self.construct.id) + '-' + str(self.stick.cfragment.id)
-		cwd = os.getcwd()
-		wd = settings.UNAFOLD_WD
-		os.chdir(wd)
-		w = open(wd + primer_name,'w')
-		w.write(str(self.seq()))
-		w.close()
-		w = open(wd + fragment_name,'w')
+		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
 		if(self.stick.top):
-			w.write(str(self.stick.cfragment.sequence()))
+			target = str(self.stick.cfragment.sequence())
 		else:
-			w.write(str(reverse_complement(Seq(self.stick.cfragment.sequence()))))
-		w.close()
-		devnull = open(os.devnull, 'w')
-		cline = settings.HYBRID_MIN_PATH + hybrid_options(self.tm(), self.construct.settings) + wd + fragment_name + ' ' + wd + primer_name
-		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
-		ss = csv.DictReader(open(wd + fragment_name + '-' + primer_name + '.plot'), delimiter='\t')
-		warnings = []
-		for r in ss:
-			# length of annealing
-			l = int(r['length'])
-			# bp index from 3' end that is annealing
-			j = len(self.seq()) - (int(r['j']) - len(self.stick.cfragment.sequence()))
-			# bp index from 5' end of fragment
-			i = (int(r['i']) + l - 1)
-			if (j == 0 and i == len(self.stick.cfragment.sequence())) or (l == 1 or l == len(self.stick.seq())-1):
-				# that's the priming we wanted! store the energy for comparison
-				continue
-			else:
-				warnings.append((l,j,i,float(r['energy'])/10))
-		self.warning.all().filter(type='mp').delete()
-		for warning in warnings:
-			w = Warning.objects.create(
-				primer = self,
-				type = 'mp',
-				text= 'Potentital mis-priming ' + (str(warning[1]) + ' bp from ' if warning[1] > 0 else ' of ') + '3\' end of primer at bp ' + str(warning[2]) + ', length ' + str(warning[0]) + ', energy ' + str(warning[3]),
-			)
-		for f in os.listdir('.'):
-			if os.path.isfile(f) and f.startswith(self.construct.name):
-				os.remove(f)
-		os.chdir(cwd)
+			target = str(reverse_complement(Seq(self.stick.cfragment.sequence())))
+		if u.mis_prime(target, str(self.seq())):
+			self.warning.all().filter(type='mp').delete()
+			for warning in u.warnings:
+				w = Warning.objects.create(
+					primer = self,
+					type = 'mp',
+					text= 'Potentital mis-priming ' + (str(warning[1]) + ' bp from ' if warning[1] > 0 else ' of ') + '3\' end of primer at bp ' + str(warning[2]) + ', length ' + str(warning[0]) + ', energy ' + str(warning[3]),
+				)
 
 
 class PrimerHalf(models.Model):

@@ -204,4 +204,7 @@ $('document').ready(function () {
 	$('a#back_to_construct').button({
 		icons:{primary:'ui-icon-arrowreturn-1-n'}
 	});
+	$('a#back_to_summary').button({
+		icons:{primary:'ui-icon-arrowreturn-1-n'}
+	});
 });
