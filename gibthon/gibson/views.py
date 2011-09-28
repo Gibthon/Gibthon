@@ -229,7 +229,7 @@ def construct(request,cid):
 @login_required
 def construct_fragment(request, cid):
 	con = get_construct(request.user, cid)
-	if con:
+	if con and not request.is_ajax():
 		t = loader.get_template('gibson/constructfragment.html')
 		cf_list = con.cf.all()
 		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
@@ -238,8 +238,12 @@ def construct_fragment(request, cid):
 			'list':list
 		})
 		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
+	if con and request.is_ajax():
+		cf_list = con.cf.all()
+		frag_list = [cf.fragment.id for cf in cf_list]
+		return JsonResponse(frag_list)
+		
+	return HttpResponseNotFound()
 
 @login_required
 def construct_delete(request, cid):
@@ -288,9 +292,12 @@ def fragment_add(request, cid, fid):
 		f = get_fragment(request.user, fid)
 		if f:
 			con.add_fragment(f)
-#			return HttpResponse('OK')
+			if request.is_ajax():
+				return JsonResponse('OK')
 			return HttpResponseRedirect('/gibthon/%s/' % cid)
 		else:
+			if request.is_ajax():
+				return JsonResponse('Could not find fragment "%s"' % fid, ERROR)
 			return HttpResponseNotFound()
 	else:
 		return HttpResponseNotFound()

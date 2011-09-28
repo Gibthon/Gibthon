@@ -77,6 +77,21 @@ $.widget("ui.designer", {
 		this.length = 0;
 		this.name = this.options.name;
 
+		$.getJSON('fragments/', [], function(data) {
+			if(data[0] != 0)
+			{
+				console.log('could not get initial fragments: ' + data[1]);
+				return;
+			}
+			console.log('adding initial fragments');
+			for(var i in data[1])
+			{
+				self.addFragment(data[1][i]);
+			}
+			self._redraw();
+		});
+
+
 		this._redraw();
 	},
 	addFragment: function(id){
@@ -88,7 +103,12 @@ $.widget("ui.designer", {
 		var f = new Fragment(id);
 		this.fragments.push(f);
 		this.length = this.length + f.length;
-		console.log('calling _redraw...');
+		
+		$.getJSON('addFragment/' + id + '/', [], function(data) {
+			if(data[0] != 0)
+				console.log('Error while adding fragment: ' + data[1]);
+		});
+		
 		this._redraw();
 	},
 	changeName: function(new_name){

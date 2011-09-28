@@ -27,6 +27,8 @@ urlpatterns = patterns('gibson.views',
 	(r'^add$', 'construct_add'),
 	(r'^(?P<cid>\d+)/\w+\.gb', 'download'),
 	(r'^(?P<cid>\d+)/delete/$', 'construct_delete'),
+	(r'^(?P<cid>\d+)/fragments/$', 'construct_fragment'),
+	(r'^(?P<cid>\d+)/addFragment/(?P<fid>\d+)/$', 'fragment_add'),
 	(r'^(?P<cid>\d+)/', include(constructpatterns)),
 )
 
