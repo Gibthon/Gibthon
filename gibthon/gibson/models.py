@@ -61,12 +61,14 @@ def hybrid_options(t,settings):
 
 def run_subprocess(cline, primer):
 	try:
+		print "Popen(%s)" % cline
 		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	except IOError:
 		print 'aspifjoasijfoiaj'
 		return False
 	stdout, stderr = p.communicate()
 	if p.returncode > 0:
+		print 'Primer calculation failed with error %d\n%s\n%s'%(p.returncode,stderr,stdout)
 		w = Warning.objects.create(
 			primer = primer,
 			type = 'sy',
@@ -247,6 +249,7 @@ class Primer(models.Model):
 		if not run_subprocess(cline, self):
 			return False		
 		# move it to the media directory
+		print 'os.rename('+wd+name+'.png, ' + settings.MEDIA_ROOT+'unafold/'+name+'.png)'
 		os.rename(wd+name+'.png',settings.MEDIA_ROOT+'unafold/'+name+'.png')
 		# clean up after yourself
 		for f in os.listdir('.'):
@@ -300,7 +303,18 @@ class Primer(models.Model):
 		devnull = open(os.devnull, 'w')
 		cline = settings.HYBRID_MIN_PATH + hybrid_options(self.tm(), self.construct.settings) + wd + fragment_name + ' ' + wd + primer_name
 		p = subprocess.check_call(shlex.split(cline), stdout=devnull, stderr=devnull)
-		ss = csv.DictReader(open(wd + fragment_name + '-' + primer_name + '.plot'), delimiter='\t')
+		
+		try:
+			csvfile = open(wd + fragment_name + '-' + primer_name + '.plot', 'r')
+		except IOError as e:
+			#w = Warning.objects.create(
+			#		primer = self,
+			#		type = 'sy',
+			#		text = 'Error making boxplot',
+			#	)
+			return False
+		
+		ss = csv.DictReader(csvfile, delimiter='\t')
 		warnings = []
 		for r in ss:
 			# length of annealing
@@ -525,9 +539,11 @@ class Construct(models.Model):
 			if self.settings.min_primer_tm > 0:
 				p.tm_len_primer(self.settings.min_primer_tm)
 			p.self_prime_check()
+			print 'yield ":%d"' % (((2*i)+1)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+1)*(90.0/(4.0*n)))
 			yield ' '*1024
 			p.misprime_check()
+			print 'yield ":%d"' % (((2*i)+2)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
 		yield ':100'		

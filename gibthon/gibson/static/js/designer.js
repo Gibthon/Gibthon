@@ -51,6 +51,10 @@ $.widget("ui.designer", {
 	},
 	_init: function(){
 		console.log('ui.designer._init();');
+		this._redraw();
+	},
+	_create: function(){
+		console.log('ui.designer._create();');
 		var self = this;
 		this.canvas = this.element[0];
 		this.ctx = this.canvas.getContext('2d');
@@ -86,7 +90,7 @@ $.widget("ui.designer", {
 			console.log('adding initial fragments');
 			for(var i in data[1])
 			{
-				self.addFragment(data[1][i]);
+				self.addFragment(data[1][i], false);
 			}
 			self._redraw();
 		});
@@ -94,20 +98,23 @@ $.widget("ui.designer", {
 
 		this._redraw();
 	},
-	addFragment: function(id){
+	addFragment: function(id, tell_server){
 		if(id == undefined) return;
+		if(tell_server == undefined) tell_server = true;
 		id = parseInt(id);
 		if( isNaN(id) ) return;
 		
-		console.log('adding: ' + id);
 		var f = new Fragment(id);
 		this.fragments.push(f);
 		this.length = this.length + f.length;
 		
-		$.getJSON('addFragment/' + id + '/', [], function(data) {
-			if(data[0] != 0)
-				console.log('Error while adding fragment: ' + data[1]);
-		});
+		if(tell_server)
+		{
+			$.getJSON('addFragment/' + id + '/', [], function(data) {
+				if(data[0] != 0)
+					console.log('Error while adding fragment: ' + data[1]);
+			});
+		}
 		
 		this._redraw();
 	},
@@ -131,11 +138,9 @@ $.widget("ui.designer", {
 		this.ll_down = this.cy + this.p_radius * 0.7071;
 	},
 	_redraw: function(){
-		console.log('_redraw()');
 		this.ctx.clearRect(0,0,this.width, this.height);
 		this._draw_title();	
 		this._draw_plasmid();
-		console.log('  call _draw_labels()');
 		this._draw_labels();
 	},
 	_draw_title: function(){
@@ -175,7 +180,6 @@ $.widget("ui.designer", {
 		}
 	},
 	_draw_labels: function(){
-		console.log('_draw_labels()');
 		var left = this.la_width / 2;
 		var right = this.width - this.la_width / 2;
 		var lh = 10; var rh = 10;
@@ -212,7 +216,6 @@ $.widget("ui.designer", {
 				l = rl;
 				rl = rl - 5;
 			}
-			console.log('  drawing label for "' + f.name + '" at (' + ex + ', ' + ey + ')');
 			this.ctx.fillText(f.name, ex, ey - 2);
 			
 			this._draw_handle(sx, sy);
@@ -276,7 +279,6 @@ $.widget("ui.designer", {
 		this.ctx.restore();
 	},
 	_draw_fragment: function(start, end, colour){
-		console.log('_draw_fragment(' + start + ', ' + end + ')');
 		this.ctx.save();
 		this.ctx.strokeStyle = colour;
 		this.ctx.lineWidth = this.p_thickness;
@@ -304,7 +306,6 @@ $.widget("ui.designer", {
 		if((angular_length == undefined) || (angular_length <= 0))
 			angular_length = Math.PI / 50;
 		var p = start;
-		console.log('angular_length: ' + angular_length);
 		
 		while((p + angular_length) < end)
 		{

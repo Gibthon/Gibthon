@@ -5,7 +5,7 @@ from fragment.views import get_fragment
 from gibthon.jsonresponses import JsonResponse, ERROR
 
 from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import condition
@@ -140,6 +140,7 @@ def load_primer(request, cid, pid):
 		
 @login_required
 def primers(request, cid):
+	print "primers %s" % cid
 	con = get_construct(request.user, cid)
 	if con and len(con.primer.all()) == 2*len(con.cf.all()) and len(con.primer.all()) > 0:
 		t = loader.get_template('gibson/primers.html')
@@ -148,9 +149,12 @@ def primers(request, cid):
 			'primer_list': con.primer.all(),
 			'title':'Primers('+con.name+')',
 		})
-		return HttpResponse(t.render(c))
 	else:
-		return HttpResponseNotFound()
+		t = loader.get_template('gibson/process.html')
+		c = RequestContext(request, {
+			'construct': con,
+		})
+	return HttpResponse(t.render(c))
 
 @login_required
 @condition(etag_func=None)
@@ -159,12 +163,11 @@ def process(request, cid, reset=True, new=True):
 	if con:
 		try:
 			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+			return resp
 		except:
 			print 'wok'
-		else:
-			return resp
 	else:
-		return HttpResponseNotFound()
+		raise Http404()
 
 @login_required
 def constructs(request):
