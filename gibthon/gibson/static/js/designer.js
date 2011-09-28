@@ -20,8 +20,9 @@ var get_col = function(num){
 function Fragment(id)
 {
 	this.id = id;
+	this.center = 0; //the angle of the center of the fragment
 	var self = this;
-	var url = '/fragment/get/' + id + '?value=meta';
+	var url = '/fragment/get/' + id + '/?value=meta';
 	$.ajax({
 	  url: url,
 	  dataType: 'json',
@@ -43,6 +44,10 @@ $.widget("ui.designer", {
 		lengthFont: '16px Arial',
 		titleColour: 'rgb(20,20,20)',
 		lengthColour: 'rgb(100,100,100)',
+		labelAreaWidth: 0.25, 
+		labelFont: '16px italic Arial',
+		lineColour: 'rgb(100,100,100)',
+		stubLength: 20,
 	},
 	_init: function(){
 		console.log('ui.designer._init();');
@@ -52,21 +57,26 @@ $.widget("ui.designer", {
 		
 		this.fragments = Array();
 		
-		/*Variables*/
-		this.width = $(this.canvas).width();
-		this.height = $(this.canvas).height();
-		this.cx = this.width / 2;
-		this.cy = this.height / 2;
+		/*Create Layout Variables*/
+		this.width = 0;
+		this.height = 0;
+		this.cx = 0;
+		this.cy = 0;
 		
-		this.p_radius = Math.min(this.width, this.height) * 0.4;
-		this.p_thickness = 20;
-		this.p_margin = 5;
+		this.p_radius = 0;
+		this.p_thickness = 0;
+		
+		this.la_width = 0;//label area width
+		this.ll_up = 0;//max height for label-line to be upwards
+		this.ll_down = 0;//min height for label-line to be downwards
+		
+		//Calculate what they should be.
+		this._update_layout();
+		
 		
 		this.length = 0;
+		this.name = this.options.name;
 
-		
-		$(this.canvas).attr('height', this.height).attr('width', this.width);
-		
 		this._redraw();
 	},
 	addFragment: function(id){
@@ -74,16 +84,39 @@ $.widget("ui.designer", {
 		id = parseInt(id);
 		if( isNaN(id) ) return;
 		
-		console.log('adding:' + id);
+		console.log('adding: ' + id);
 		var f = new Fragment(id);
 		this.fragments.push(f);
 		this.length = this.length + f.length;
+		console.log('calling _redraw...');
 		this._redraw();
 	},
+	changeName: function(new_name){
+		this.name = new_name;
+		this._redraw();
+	},
+	_update_layout: function() {
+		this.width = $(this.canvas).width();
+		this.height = $(this.canvas).height();
+		$(this.canvas).attr('height', this.height).attr('width', this.width);
+		
+		this.cx = this.width / 2;
+		this.cy = this.height / 2;
+		
+		this.p_radius = Math.min(this.width * ( 1 - 2 * this.options.labelAreaWidth), this.height) * 0.4;
+		this.p_thickness = this.p_radius * 0.1;
+		
+		this.la_width = this.width * this.options.labelAreaWidth;
+		this.ll_up = this.cy - this.p_radius * 0.7071;
+		this.ll_down = this.cy + this.p_radius * 0.7071;
+	},
 	_redraw: function(){
+		console.log('_redraw()');
 		this.ctx.clearRect(0,0,this.width, this.height);
 		this._draw_title();	
 		this._draw_plasmid();
+		console.log('  call _draw_labels()');
+		this._draw_labels();
 	},
 	_draw_title: function(){
 		this.ctx.fillStyle = this.options.titleColour;
@@ -93,7 +126,7 @@ $.widget("ui.designer", {
 		var x = this.cx;
 		var y = this.cy - 22;
 		
-		this.ctx.fillText(this.options.name, x, y);
+		this.ctx.fillText(this.name, x, y);
 		
 		this.ctx.fillStyle = this.options.lengthColour;
 		this.ctx.font = this.options.lengthFont;
@@ -117,8 +150,110 @@ $.widget("ui.designer", {
 		{
 			var f = this.fragments[i];
 			this._draw_fragment(pos, pos + f.length * rad_per_bp, get_col(i));
+			f.center = pos + (f.length * rad_per_bp / 2);
 			pos = pos + f.length * rad_per_bp;
 		}
+	},
+	_draw_labels: function(){
+		console.log('_draw_labels()');
+		var left = this.la_width / 2;
+		var right = this.width - this.la_width / 2;
+		var lh = 10; var rh = 10;
+		var ll = this.la_width * 0.9; var rl = this.width - this.la_width * 0.9;
+		
+		this.ctx.fillStyle = this.options.titleColour;
+		this.ctx.font = this.options.labelFont;
+		this.ctx.textAlign = 'center';
+		
+		for(var i  in this.fragments)
+		{
+			var f = this.fragments[i];
+			var sy = this.cy + this.p_radius * Math.sin(f.center);
+			var sx = this.cx + this.p_radius * Math.cos(f.center);
+			var ex = 0; var ey = 0;
+			var l = 0;
+			if(sx < this.cx) //label on left
+			{
+				ex = left;
+				//vertical position
+				ey = lh + 20;
+				lh = lh + 25;
+				//position of vertical line
+				l = ll;
+				ll = ll + 5;
+			}
+			else //label on right
+			{
+				ex = right;
+				//vertical position
+				ey = rh + 20;
+				rh = rh + 25;
+				//position of vertical line
+				l = rl;
+				rl = rl - 5;
+			}
+			console.log('  drawing label for "' + f.name + '" at (' + ex + ', ' + ey + ')');
+			this.ctx.fillText(f.name, ex, ey - 2);
+			
+			this._draw_handle(sx, sy);
+			
+			this.ctx.save();
+			
+			this.ctx.strokeStyle = this.options.lineColour;
+			this.ctx.lineWidth = 1;
+			
+			this.ctx.beginPath();			
+			//draw stub
+			if(sy < this.ll_up) //stub is upwards
+			{
+				this.ctx.moveTo(sx, sy - 5);
+				sy = sy - this.options.stubLength;
+			}
+			else if(sy > this.ll_down) //stub is downwards
+			{
+				this.ctx.moveTo(sx, sy + 5);
+				sy = sy + this.options.stubLength;
+			}
+			else if(sx > this.cx) //stub is right
+			{
+				this.ctx.moveTo(sx + 5, sy);
+				sx = sx + this.options.stubLength;
+			}
+			else if(sx < this.cx) //stub is left
+			{
+				this.ctx.moveTo(sx - 5, sy);
+				sx = sx - this.options.stubLength;
+			}
+			
+			this.ctx.lineTo(sx, sy);
+			
+			//draw to line
+			this.ctx.lineTo(l,sy);
+			this.ctx.lineTo(l,ey);
+			//draw to label
+			this.ctx.lineTo(ex,ey);
+			
+			this.ctx.stroke();
+			
+			this.ctx.restore();
+		}
+		
+	},
+	_draw_handle: function(x, y){
+		this.ctx.save();
+		this.ctx.fillStyle = this.options.lineColour;
+		this.ctx.strokeStyle = this.options.lineColour;
+		this.ctx.lineWidth = 1;
+		
+		this.ctx.beginPath();
+		this.ctx.arc(x,y,3,0,2*Math.PI);
+		this.ctx.fill();
+		
+		this.ctx.beginPath();
+		this.ctx.arc(x,y,5,0,2*Math.PI);
+		this.ctx.stroke();
+		
+		this.ctx.restore();
 	},
 	_draw_fragment: function(start, end, colour){
 		console.log('_draw_fragment(' + start + ', ' + end + ')');

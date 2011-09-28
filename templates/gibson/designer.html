@@ -141,8 +141,11 @@
 		});
 		
 		$('#meta_form').magicForm({
-			save: function(e, data) {update(data[1].modified);},}
-		);
+			save: function(e, data) {
+				update(data[1].modified); 
+				$('#cdesigner').designer('changeName', $('#c_name').text());
+			},
+		});
 	});
 
 var update = function(modified){
