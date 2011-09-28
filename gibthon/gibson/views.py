@@ -2,6 +2,7 @@ from models import *
 from forms import *
 from fragment.models import Gene, Feature
 from fragment.views import get_fragment
+from gibthon.jsonresponses import JsonResponse, ERROR
 
 from django.template import Context, loader, RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
@@ -187,7 +188,7 @@ def construct_add(request):
 			c = form.save()
 			c.owner = request.user
 			c.save()
-			return HttpResponse('/gibthon/'+str(c.id)+'/'+c.name+'/')
+			return HttpResponse('/gibthon/%s/' % c.id)
 		t = loader.get_template('gibson/gibsonnew.html')
 		con = Construct.objects.all().filter(owner=request.user)
 		c = RequestContext(request, {
@@ -245,6 +246,8 @@ def construct_delete(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
 		con.delete()
+		if request.is_ajax():
+			return JsonResponse('/gibthon') 
 		return HttpResponseRedirect('/gibthon')
 	else:
 		return HttpResponseNotFound()
@@ -286,7 +289,7 @@ def fragment_add(request, cid, fid):
 		if f:
 			con.add_fragment(f)
 #			return HttpResponse('OK')
-			return HttpResponseRedirect('/gibthon/'+cid+'/'+con.name+'/')
+			return HttpResponseRedirect('/gibthon/%s/' % cid)
 		else:
 			return HttpResponseNotFound()
 	else:
