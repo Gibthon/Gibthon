@@ -4,5 +4,5 @@ from django.conf import settings
 urlpatterns = patterns('pricalc.views',
 	(r'^$', 'pricalc'),
 	(r'^go$', 'go'),
+	(r'^selfprime$', 'selfprime'),
 )
-

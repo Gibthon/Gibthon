@@ -26,3 +26,10 @@ def gibthon(request):
 		'title':'Help -> Construct Designer'
 	})
 	return HttpResponse(t.render(c))
+
+def boxplots(request):
+	t = loader.get_template('help/boxplots.html')
+	c = RequestContext(request, {
+		'title':'Help -> Reading Boxplots'
+	})
+	return HttpResponse(t.render(c))
