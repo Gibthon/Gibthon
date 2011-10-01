@@ -210,6 +210,7 @@ Oligo.prototype.print_info = function(){
 	$('#tmall').html(this.Tm.toString().substring(0,4) + "&deg;C");
 	$('#lseq').html(this.lseq);
 	$('#rseq').html(this.rseq);
+	$('#length').html(this.lseq.length);
 	
 	var that = this;
 	$(".end").draggable({

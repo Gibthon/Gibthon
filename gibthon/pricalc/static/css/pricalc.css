@@ -3,7 +3,6 @@
 .input {
 	float:left;
 	margin-left:20px;
-	width:250px;
 	border:none;
 	padding:none;
 }
@@ -22,32 +21,31 @@ textarea {
 .error{
 	color:red;
 	font-size:0.7em;
-	height:60px;
+	height:30px;
 }
 
 .errorok{
 	color:green;
 	font-size:0.7em;
-	height:60px;
+	height:30px;
 }
 
 .errorwait{
 	color:orange;
 	font-size:0.7em;
-	height:60px;
+	height:30px;
 }
 
 .errorblank{
 	color:grey;
 	font-size:0.7em;
-	height:60px;
+	height:30px;
 }
 
 
 
 /* Display */
 #info {
-	width:650px;
 	margin-top:10px;
 }
 
@@ -78,6 +76,20 @@ td#time {
 	padding-right:20px;
 }
 
+.uparrow {
+	float:right;
+	position:relative;
+	bottom:4px;
+	cursor:pointer;
+}
+
+.downarrow {
+	float:right;
+	position:relative;
+	top:8px;
+	left:15px;
+	cursor:pointer;
+}
 
 /* Gene specific bits */
 .gene {

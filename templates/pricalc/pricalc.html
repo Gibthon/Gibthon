@@ -20,6 +20,69 @@ $(document).ready(function () {
 			}
 		}
 	});
+	{% if user.is_authenticated %}
+	$('input[name="lgene-search"]').autocomplete({
+		source:'list',
+		minLength:1,
+		focus: function( event, ui ){
+			return false;
+		},
+		select:function( event, ui ){
+			$('textarea[name="lgene"]')[0].value = ui.item.last.toLowerCase();
+			validate_gene($('textarea[name="lgene"]')[0]);
+		}
+	});
+	$('input[name="rgene-search"]').autocomplete({
+		source:'list',
+		minLength:1,
+		focus: function( event, ui ){
+			return false;
+		},
+		select:function( event, ui ){
+			$('textarea[name="rgene"]')[0].value = ui.item.first.toLowerCase();
+			validate_gene($('textarea[name="rgene"]')[0]);
+		}
+	});
+	{% endif %}
+	
+	$('#left-up').click(function () {
+		if (MyOligo.L.end < $('#lgene ul').children().length) {
+			MyOligo.L.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#left-down').click(function () {
+		if (MyOligo.L.end - MyOligo.L.start > $('#lgene ul li[class^="invalid"]').length + 2 ){
+			MyOligo.L.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#right-up').click(function () {
+		if (MyOligo.R.end < $('#rgene ul').children().length) {
+			MyOligo.R.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#right-down').click(function () {
+		if (MyOligo.R.end - MyOligo.R.start > $('#rgene ul li[class^="invalid"]').length + 2 ){
+			MyOligo.R.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+	$('.all-up').click(function () {
+		if (MyOligo.L.end < $('#lgene ul').children().length && MyOligo.R.end < $('#rgene ul').children().length) {
+			MyOligo.R.end += 1;
+			MyOligo.L.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('.all-down').click(function() {
+		if (MyOligo.R.end - MyOligo.R.start > $('#rgene ul li[class^="invalid"]').length + 2  && MyOligo.L.end - MyOligo.L.start > $('#lgene ul li[class^="invalid"]').length + 2) {
+			MyOligo.R.end -= 1;
+			MyOligo.L.end -= 1;
+			MyOligo.get_info();
+		}
+	});
 });
 </script>
 {% endblock %}
@@ -31,27 +94,67 @@ $(document).ready(function () {
 		<li><a href="#info"><span>Results</span></a></li>
 		<li><a href="#settings"><span>Settings</span></a></li>
 	</ul>
-	<div id="input" style="margin-left:auto; margin-right:auto; width:700px;">
-		<form id="form" onsubmit="return validate(this)" method="post">
-			<fieldset class="input">
-				<label for="lgene">Left Gene</label> <br/>
-				<textarea name="lgene" spellcheck="false" style="width:100%" rows="8" onChange="validate_gene(this)"></textarea><br />
-				<div id="lgeneerror" class="errorblank">Enter a sequence of atgc...</div>
-				<input type="hidden" name="lgenec" />
-			</fieldset>
-			<fieldset class="input">
-				<label for="rgene">Right Gene</label><br />
-				<textarea name="rgene" spellcheck="false" style="width:100%" rows="8" onChange="validate_gene(this)"></textarea><br />
-				<div id="lgeneerror" class="errorblank"></div>
-			   <input type="hidden" name="rgenec" />
-			</fieldset>
-		</form>
+	<div id="input">
+			<form id="form" onsubmit="return validate(this)" method="post">
+				<fieldset class="input">
+					<label for="lgene">Left Gene</label> <br/>
+					<textarea name="lgene" spellcheck="false" style="width:400px" rows="8" onChange="validate_gene(this)" tabindex=1></textarea><br />
+					<div id="lgeneerror" class="errorblank">Enter a sequence of atgc...</div>
+					<input type="hidden" name="lgenec" />
+					{% if user.is_authenticated %}
+					<label for="lgene-search">Library search</label></br/>
+					<input name="lgene-search" spellcheck="false" tabindex=3 />
+					{% else %}
+					Log in to access parts from the Registry and other sources
+					{% endif %}
+				</fieldset>
+				<fieldset class="input">
+					<label for="rgene">Right Gene</label><br />
+					<textarea name="rgene" spellcheck="false" style="width:400px" rows="8" onChange="validate_gene(this)" tabindex=2></textarea><br />
+					<div id="lgeneerror" class="errorblank"></div>
+					<input type="hidden" name="rgenec" />
+					{% if user.is_authenticated %}
+					<label for="rgene-search">Library search</label></br/>
+					<input name="rgene-search" spellcheck="false" tabindex=4 />
+					{% endif %}
+				</fieldset>
+			</form>
+			<div style="clear:both;"></div>
 	</div>
-	<div id="info" style="margin-left:80px;">
-		<table width="850px">
-			<tr><th></th><th>Primer sequence</th><th>Annealing T<sub>m</sub></th><th>Full T<sub>m</sub></th></tr>
-			<tr><td width="110">Top primer</td><td style="padding-right:15px;"><textarea id="lseq" readonly style="width:100%;" onClick="selectall(event)"></textarea></td><td id="tmleft" style="text-align:center;"></td><td rowspan="2" id="tmall" style="text-align:center;"></td></tr>
-			<tr><td width="110">Bottom primer</td><td style="padding-right:15px;"><textarea id="rseq" readonly style="width:100%;" onClick="selectall(event)"></textarea></td><td id="tmright" style="text-align:center;"></td></tr>
+	<div id="info">
+		<table width="850px" style="margin-left:auto; margin-right:auto;">
+			<tr><th></th><th>Primer sequence</th><th>Annealing T<sub>m</sub></th><th>Full T<sub>m</sub></th><th>Length</th></tr>
+			<tr>
+				<td width="110">Top primer</td>
+				<td style="padding-right:15px;">
+					<textarea id="lseq" readonly style="width:100%;" onClick="selectall(event)"></textarea>
+				</td>
+				<td style="text-align:right;">
+					<span id="tmleft" style="position:relative; left:10px;"></span>
+					<span id="left-up" class="ui-icon ui-icon-arrowthick-1-n uparrow"></span>
+					<span id="left-down" class="ui-icon ui-icon-arrowthick-1-s downarrow"></span>
+				</td>
+				<td rowspan="2" style="text-align:right;">
+					<span id="tmall" style="position:relative; left:10px;"></span>
+					<span class="ui-icon ui-icon-arrowthick-1-n uparrow all-up"></span>
+					<span class="ui-icon ui-icon-arrowthick-1-s downarrow all-down"></span>
+				</td>
+				<td rowspan="2" style="text-align:right">
+					<span id="length" style="position:relative; left:10px;"></span>
+					<span class="ui-icon ui-icon-arrowthick-1-n uparrow all-up"></span>
+					<span class="ui-icon ui-icon-arrowthick-1-s downarrow all-down"></span>
+				</td>
+			</tr>
+			<tr>
+				<td width="110">Bottom primer</td>
+				<td style="padding-right:15px;">
+					<textarea id="rseq" readonly style="width:100%;" onClick="selectall(event)"></textarea>
+				</td>
+				<td style="text-align:right;">
+					<span id="tmright" style="position:relative; left:10px;"></span>
+					<span id="right-up" class="ui-icon ui-icon-arrowthick-1-n uparrow"></span>
+					<span id="right-down" class="ui-icon ui-icon-arrowthick-1-s downarrow"></span>
+				</td></tr>
 		</table>
 		<div style="margin-top:20px;">
 			<h3>Left Gene</h3>
@@ -64,8 +167,8 @@ $(document).ready(function () {
 			<div id="boxplot"></div>
 		</div>
 	</div>
-	<div id="settings" style="margin-left:auto; margin-right:auto; width:700px;">
-		<form id="settingform">
+	<div id="settings">
+		<form id="settingform" style="margin-left:auto; margin-right:auto;">
 			<label for="mgsalt">Mg++ conc</label>&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="mgsalt" id="mgsalt" class="numeric" value="50" onchange="saltChange()"/>mM
 			<br /><br />
 			<label for="nasalt">Na+ conc</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="nasalt" id="nasalt" class="numeric" value="0" onchange="saltChange()"/>mM

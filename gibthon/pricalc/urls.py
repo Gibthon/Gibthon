@@ -5,4 +5,5 @@ urlpatterns = patterns('pricalc.views',
 	(r'^$', 'pricalc'),
 	(r'^go$', 'go'),
 	(r'^selfprime$', 'selfprime'),
+	(r'^list', 'list'),
 )
