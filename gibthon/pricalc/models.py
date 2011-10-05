@@ -14,6 +14,8 @@ class Oligo():
 		self.sr=int(data.get('sr'))-1
 		self.el=int(data.get('el'))
 		self.er=int(data.get('er'))
+		self.mg=float(data.get('mg'))/1000.0
+		self.na=float(data.get('na'))/1000.0
 	
 	def leftHalf(self):
 		return self.left[::-1][self.sl:self.el][::-1]
@@ -37,7 +39,7 @@ class Oligo():
 		return Tm_staluc(self.bottomPrimer())
 	
 	def selfPrime(self):
-		u = UnaFolder(t = self.fullTm(), safety=3, mg_salt=0, na_salt=1)
+		u = UnaFolder(t = self.fullTm(), safety=3, mg_salt=self.mg, na_salt=self.na)
 		ret, image = u.self_prime(str(self.topPrimer()))
 		print settings.MEDIA_ROOT
 		os.rename(image, settings.MEDIA_ROOT+image[1::])

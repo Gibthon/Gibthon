@@ -150,30 +150,9 @@ var Oligo = function (leftgene, rightgene){
 	this.lseq = null;
 	this.rseq = null;
 	this.id = null;
-	this.mg = $('#mgsalt');
-	this.na = $('#nasalt');
-	this.dgbutton = $('button#self-prime-check-button').button().click(function() {
-		$(this).button('disable');
-		$.ajax({
-			type:'post',
-			url:'selfprime',
-			data:{
-				gene1:MyOligo.L.gene,
-				gene2:MyOligo.R.gene,
-				el:MyOligo.L.end,
-				sl:MyOligo.L.start,
-				er:MyOligo.R.end,
-				sr:MyOligo.R.start
-			},
-			context:MyOligo,
-			dataType:'json',
-			success: function(data) {
-				$('#boxplot').html('<img src="'+data.image+'" />');
-				console.log(this);
-				$(this.dgbutton).button('enable');
-			}
-		});
-	});
+	this.mg = $('#mgsalt')[0];
+	this.na = $('#nasalt')[0];
+	this.dgbutton = $('button#self-prime-check-button').button();
 	this.get_info();
 }
 
@@ -187,7 +166,9 @@ Oligo.prototype.get_info = function(){
 			el:this.L.end,
 			sl:this.L.start,
 			er:this.R.end,
-			sr:this.R.start
+			sr:this.R.start,
+			mg:this.mg.value,
+			na:this.na.value
 		},
 		context:this,
 		dataType:'json',
@@ -201,6 +182,30 @@ Oligo.prototype.get_info = function(){
 		}
 	});
 }
+
+Oligo.prototype.get_ss = function() {
+	$.ajax({
+		type:'post',
+		url:'selfprime',
+		data:{
+			gene1:this.L.gene,
+			gene2:this.R.gene,
+			el:this.L.end,
+			sl:this.L.start,
+			er:this.R.end,
+			sr:this.R.start,
+			mg:this.mg.value,
+			na:this.na.value
+		},
+		context:this,
+		dataType:'json',
+		success: function(data) {
+			$('#boxplot').html('<img src="'+data.image+'" />');
+			this.dgbutton.button('enable');
+		}
+	});
+}
+	
 
 Oligo.prototype.print_info = function(){
 	this.L.print_gene();
@@ -255,4 +260,83 @@ function saltChange(){
 		}
 	}
 }
+
+$(document).ready(function () {
+	$('#tabs').tabs({
+		disabled:[1],
+		show: function(event, ui) {
+			if(ui.index == 1){
+				var form = $('#form')[0];
+				MyOligo = new Oligo(form.lgenec.value.toLowerCase(), form.rgenec.value.toUpperCase());
+			}
+		}
+	});
+
+	 $('button#self-prime-check-button').click(function() {
+		$(this).button('disable');
+		MyOligo.get_ss();
+	});
+
+	$('input[name="lgene-search"]').autocomplete({
+		source:'list',
+		minLength:1,
+		focus: function( event, ui ){
+			return false;
+		},
+		select:function( event, ui ){
+			$('textarea[name="lgene"]')[0].value = ui.item.last.toLowerCase();
+			validate_gene($('textarea[name="lgene"]')[0]);
+		}
+	});
+	$('input[name="rgene-search"]').autocomplete({
+		source:'list',
+		minLength:1,
+		focus: function( event, ui ){
+			return false;
+		},
+		select:function( event, ui ){
+			$('textarea[name="rgene"]')[0].value = ui.item.first.toLowerCase();
+			validate_gene($('textarea[name="rgene"]')[0]);
+		}
+	});
+	
+	$('#left-up').click(function () {
+		if (MyOligo.L.end < $('#lgene ul').children().length) {
+			MyOligo.L.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#left-down').click(function () {
+		if (MyOligo.L.end - MyOligo.L.start > $('#lgene ul li[class^="invalid"]').length + 2 ){
+			MyOligo.L.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#right-up').click(function () {
+		if (MyOligo.R.end < $('#rgene ul').children().length) {
+			MyOligo.R.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#right-down').click(function () {
+		if (MyOligo.R.end - MyOligo.R.start > $('#rgene ul li[class^="invalid"]').length + 2 ){
+			MyOligo.R.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+	$('.all-up').click(function () {
+		if (MyOligo.L.end < $('#lgene ul').children().length && MyOligo.R.end < $('#rgene ul').children().length) {
+			MyOligo.R.end += 1;
+			MyOligo.L.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('.all-down').click(function() {
+		if (MyOligo.R.end - MyOligo.R.start > $('#rgene ul li[class^="invalid"]').length + 2  && MyOligo.L.end - MyOligo.L.start > $('#lgene ul li[class^="invalid"]').length + 2) {
+			MyOligo.R.end -= 1;
+			MyOligo.L.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+});
 
