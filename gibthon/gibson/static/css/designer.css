@@ -1,0 +1,84 @@
+.pad-div
+{
+	width: 100%;
+	min-height: 3.2em;
+	position: relative;
+	margin-bottom: 1.2em;
+}
+.pad-content
+{
+	position: abosolute;
+	top:0;bottom:0;left:0;right:0;
+}
+#desc{ margin: 1em .7em;}
+#status
+{
+	color: darkgrey;
+	font-style: italic;
+}
+#status:before {content: "Last saved: ";}
+#tabs
+{
+	font-size:10pt;
+}
+#settings_table
+{
+	border-collapse:collapse;
+	border: 1px solid lightblue;
+}
+.tab-link
+{
+	padding-left: .8em;
+}
+.tab-icon
+{
+	display: inline-block;
+	vertical-align: middle;
+}
+.setting-title
+{
+	font-weight:bold;
+	text-align:right;
+	width:20em;
+	padding-right: 0.5em;
+}
+.setting-value
+{
+	width:20em;
+	text-align:left;
+	padding-left: 0.5em;
+}
+
+.setting-conc:after {content:' M';}
+.setting-temp:after {content:' ᴼC';}
+.setting-len:after {content:' bp';}
+
+tr.settings
+{
+	height: 32px;
+}
+tr.settings-alt
+{
+	background-color: lightblue;
+}
+.setting-title:after
+{
+	content:":";
+}
+.center {text-align: center;}
+.left {text-align: left;}
+.right {text-align: right;}
+.design-content
+{
+	margin: .2em;
+}
+.fragment
+{
+	margin: .5em;
+	height: 2em;
+	padding: .5em 0 0 .5em;
+	margin: .5em;
+	font-weight: bold;
+	#font-size: 1.2em;
+	cursor: move;
+}

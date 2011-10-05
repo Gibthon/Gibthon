@@ -11,34 +11,41 @@
 
 {% block content %}
 <div class="ui-widget-content ui-corner-all content">
-{% if form %}
-{% if stage == 1 %}
-<form action="." method="POST">
-{% csrf_token %}
-<h4>Please enter your email and the answer to the equation</h4>
-<p class="form_error">{{ form.non_field_errors}}</p>
-<p>E-mail: {{ form.email }} <span class="form_error">{% for error in form.email.errors %}{{ error }}{% endfor %}</span></p>
-<p>{{ form.captcha }} <span class="form_error">{% for error in form.captcha.errors %}{{ error }}{% endfor %}</p>
-<input type="submit" />
-</form>
-{% endif %} 
-{% if stage == 2 %}
-<form action="." method="POST">
-{% csrf_token %}
-<h4>Please fill out the following details</h4>
-<p class="form_error">{{ form.non_field_errors}}</p>
-<p>Username: {{ form.username }} <span class="form_error">{% for error in form.username.errors %}{{ error }}{% endfor %}</span></p>
-<p>Email: {{ form.email }} <span class="form_error">{% for error in form.email.errors %}{{ error }}{% endfor %}</span></p>
-<p>First name: {{ form.first_name }} <span class="form_error">{% for error in form.first_name.errors %}{{ error }}{% endfor %}</span></p>
-<p>Last name: {{ form.last_name }} <span class="form_error">{% for error in form.last_name.errors %}{{ error }}{% endfor %}</span></p>
-<p>Password: {{ form.password1 }} <span class="form_error">{% for error in form.password1.errors %}{{ error }}{% endfor %}</span></p>
-<p>Repeat: {{ form.password2 }} <span class="form_error">{% for error in form.password2.errors %}{{ error }}{% endfor %}</span></p>
-<input type="submit" />
-</form>
-{% endif %}
-{% endif %}
-{% if message %}
-<p>{{ message }}</p>
-{% endif %}
+	<span class='center form-box'>
+		{% if form %}
+		<form action="." method="POST">
+			
+		{% csrf_token %}
+		{% if stage == 1 %}
+			<h4>Please enter your email and the answer to the equation</h4>
+			<p class="form_error">{{ form.non_field_errors}}</p>
+			<p>E-mail: {{ form.email }} <span class="form_error">{% for error in form.email.errors %}{{ error }}{% endfor %}</span></p>
+			<p>{{ form.captcha }} <span class="form_error">{% for error in form.captcha.errors %}{{ error }}{% endfor %}</p>
+		{% endif %} 
+		{% if stage == 2 %}
+			<h4>Please fill out the following details</h4>
+			<p class="form_error">{{ form.non_field_errors}}</p>
+			<p>Username: {{ form.username }} <span class="form_error">{% for error in form.username.errors %}{{ error }}{% endfor %}</span></p>
+			<p>Email: {{ form.email }} <span class="form_error">{% for error in form.email.errors %}{{ error }}{% endfor %}</span></p>
+			<p>First name: {{ form.first_name }} <span class="form_error">{% for error in form.first_name.errors %}{{ error }}{% endfor %}</span></p>
+			<p>Last name: {{ form.last_name }} <span class="form_error">{% for error in form.last_name.errors %}{{ error }}{% endfor %}</span></p>
+			<p>Password: {{ form.password1 }} <span class="form_error">{% for error in form.password1.errors %}{{ error }}{% endfor %}</span></p>
+			<p>Repeat: {{ form.password2 }} <span class="form_error">{% for error in form.password2.errors %}{{ error }}{% endfor %}</span></p>
+		{% endif %}
+			<button id='register_btn' >Register</button>
+		</form>
+		{% endif %}
+		{% if message %}
+		<p>{{ message }}</p>
+		{% endif %}
+	</span>
 </div>
+{% endblock %}
+
+{% block js %}
+<script type='text/javascript'>
+	$(window).ready( function() {
+		$('#register_btn').button({ icons: {primary: 'ui-icon-tag'} });
+	});
+</script>
 {% endblock %}

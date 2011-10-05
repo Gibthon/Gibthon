@@ -99,7 +99,6 @@ $.widget("ui.formExtender", {
 			text: false,
 			icons: {primary: 'ui-icon-trash',},
 		}).click( function(event) {
-			console.log('remove');
 			self._remove(event);
 		});
 		
@@ -236,13 +235,29 @@ $.widget("ui.magicForm", {
 			success: function(data) {self._data(data);},
 		});
 	},
+	_cancel: function()
+	{
+		var self = this;
+		//hide the errors
+		this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
+		this.$form.find('.magic-item').each( function() {
+			var $item = $(this);
+			var $input = $item.find('.magic-input');
+			var $text = $item.find('.magic-text');
+			//show the text again
+			$input.fadeOut('fast', function() {$text.fadeIn('fast');});
+		});
+		this.$button.button('option', this.edit_opts)
+			.unbind('click')
+			.click( function() {self._edit();});
+		this.$cancel_btn.button('disable');
+	},
 	_data: function(data)
 	{
 		var self = this;
 		this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
 		if(data[0] != 0) //if error
 		{
-			console.log('Error!');
 			$inputs = this.$form.find('.magic-input');
 			for(i in data[1].errors)
 			{
@@ -251,7 +266,6 @@ $.widget("ui.magicForm", {
 					var $t = $(this);
 					if($t.attr('name') == i)
 					{
-					console.log('input name: ' + $t.attr('name') + ' i: ' + i);
 						//show the error
 						var $item = $t.closest('.magic-item').find('.magic-error');
 						$item.text('' + data[1].errors[i]);

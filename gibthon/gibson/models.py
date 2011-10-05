@@ -64,6 +64,7 @@ def run_subprocess(cline, primer):
 	try:
 		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	except IOError:
+		print 'aspifjoasijfoiaj'
 		return False
 	stdout, stderr = p.communicate()
 	if p.returncode > 0:

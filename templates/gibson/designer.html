@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}/css/designer.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/formtools.css" />
+{% endblock %}
+
+{% block js-include %}
+<script src="{{ STATIC_URL }}/js/formtools.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/designer.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/fragmentDrag.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content">
+	<div class="pad-div">
+		<div id="meta-box" class="ui-widget-content ui-corner-all">
+			<form id='meta_form' action='saveMeta/' method='POST' onsubmit='return false;'>
+				{% csrf_token %}
+				<div id='name' class="ui-widget-header ui-corner-top magic-item" style="padding:10px;height:1.6em;">
+					<h3 id='c_name' class='magic-text' style="display:inline-block;">{{ construct.name }}</h3>
+					<div style="float:right; padding-right:10px;">
+						<button id="info_btn" class='magic-button'>Edit</button>
+						<button id="cancel_btn" class='magic-button-cancel'>Cancel</button>
+					</div>
+				</div>	
+				<div id='desc' class='magic-item'>
+					<div id='desc_text' class='magic-text'>{{ construct.description }}</div>
+					<textarea name='desc' class='magic-input' cols=80 rows=4 ></textarea>
+				</div>
+				<div id='meta_error'></div>
+				<p id="status">{{ construct.last_modified }}</p>
+			</form>
+		</div>	
+	</div>
+	
+	<div class="pad-div">
+		<div id='tabs' class='pad-content'>
+			<ul>
+				<li>
+					<a href="design/" class='tab-link'>
+						<span class='ui-icon ui-icon-pencil tab-icon'></span>
+						Designer
+					</a>
+				</li>
+				<li>
+					<a href="settings/" class='tab-link'>
+						<span class='ui-icon ui-icon-wrench tab-icon'></span>
+						Settings
+					</a>
+				</li>
+				<li>
+					<a href="#tabs-2" class='tab-link'>
+						<span class='ui-icon ui-icon-script tab-icon'></span>
+						Summary
+					</a>
+					
+				</li>
+				<li>
+					<a href="#tabs-3" class='tab-link'>
+						<span class='ui-icon ui-icon-transferthick-e-w tab-icon'></span>
+						Primers
+					</a>
+				</li>
+			</ul>
+			<div id="tabs-2">
+		<p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra massa metus id nunc. Duis scelerisque molestie turpis. Sed fringilla, massa eget luctus malesuada, metus eros molestie lectus, ut tempus eros massa ut dolor. Aenean aliquet fringilla sem. Suspendisse sed ligula in ligula suscipit aliquam. Praesent in eros vestibulum mi adipiscing adipiscing. Morbi facilisis. Curabitur ornare consequat nunc. Aenean vel metus. Ut posuere viverra nulla. Aliquam erat volutpat. Pellentesque convallis. Maecenas feugiat, tellus pellentesque pretium posuere, felis lorem euismod felis, eu ornare leo nisi vel felis. Mauris consectetur tortor et purus.</p>
+	</div>
+	<div id="tabs-3">
+		<p>Mauris eleifend est et turpis. Duis id erat. Suspendisse potenti. Aliquam vulputate, pede vel vehicula accumsan, mi neque rutrum erat, eu congue orci lorem eget lorem. Vestibulum non ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce sodales. Quisque eu urna vel enim commodo pellentesque. Praesent eu risus hendrerit ligula tempus pretium. Curabitur lorem enim, pretium nec, feugiat nec, luctus a, lacus.</p>
+		<p>Duis cursus. Maecenas ligula eros, blandit nec, pharetra at, semper at, magna. Nullam ac lacus. Nulla facilisi. Praesent viverra justo vitae neque. Praesent blandit adipiscing velit. Suspendisse potenti. Donec mattis, pede vel pharetra blandit, magna ligula faucibus eros, id euismod lacus dolor eget odio. Nam scelerisque. Donec non libero sed nulla mattis commodo. Ut sagittis. Donec nisi lectus, feugiat porttitor, tempor ac, tempor vitae, pede. Aenean vehicula velit eu tellus interdum rutrum. Maecenas commodo. Pellentesque nec elit. Fusce in lacus. Vivamus a libero vitae lectus hendrerit hendrerit.</p>
+	</div>
+		</div>
+	</div>
+</div>
+
+<script type='text/javascript'>
+	$(window).ready( function() {
+		//tabs
+		$( "#tabs" ).tabs({
+			ajaxOptions: {
+				error: function( xhr, status, index, anchor ) {
+					$( anchor.hash ).html(
+						"<p>ERROR: Failed to load this tab, status: " + status + " </p>");
+				}
+			}
+		});
+		
+		$('#meta_form').magicForm({
+			save: function(e, data) {update(data[1].modified);},}
+		);
+	});
+
+var update = function(modified){
+	if(modified != undefined)
+		$('#status').text(modified);
+}
+
+</script>
+{% endblock %}

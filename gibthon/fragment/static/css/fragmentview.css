@@ -6,13 +6,8 @@
 
 .middle-box
 {
-	border-top: none;
-	margin-bottom: 0;
-	border-left: 1px solid rgb(166, 201, 226);
-	border-right: 1px solid rgb(166, 201, 226);
-	width: 800px;
-	padding: 0;
-	float: right;
+	border: none;
+	width: 100%;
 	font-size: 0.8em;
 }
 
@@ -52,7 +47,7 @@
 {
 	position:fixed !important;
 	top:0; 
-	width: 800px;
+  width: 100%;
 }
 
 #load_span
@@ -197,6 +192,10 @@
 
 /* *** Fragment view
 */
+
+#seq_outer{
+  text-align: center;
+}
 
 #seq_wrap
 {

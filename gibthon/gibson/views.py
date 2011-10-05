@@ -98,7 +98,7 @@ def primer(request, cid, pid):
 			c = RequestContext(request, {
 				'construct': con,
 				'primer_list': con.primer.all(),
-				'title': 'Construct Designer',
+				'title': 'Primers('+con.name+')',
 				'primer': p.id,
 			})
 			return HttpResponse(t.render(c))
@@ -145,7 +145,7 @@ def primers(request, cid):
 		c = RequestContext(request, {
 			'construct': con,
 			'primer_list': con.primer.all(),
-			'title':'Construct Designer',
+			'title':'Primers('+con.name+')',
 		})
 		return HttpResponse(t.render(c))
 	else:
@@ -156,8 +156,12 @@ def primers(request, cid):
 def process(request, cid, reset=True, new=True):
 	con = get_construct(request.user, cid)
 	if con:
-		resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
-		return resp
+		try:
+			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+		except:
+			print 'wok'
+		else:
+			return resp
 	else:
 		return HttpResponseNotFound()
 
@@ -212,7 +216,7 @@ def construct(request,cid):
 		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
 		list = zip(fragment_list, feature_list, cf_list)
 		c = RequestContext(request,{
-			'title':'Construct Designer',
+			'title':'Construct Designer('+con.name+')',
 			'list':list,
 			'construct':con,
 			'construct_form':construct_form,
@@ -426,6 +430,7 @@ def pcr_instructions(request, cid):
 def primer_download(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
+		print request.GET['tk']
 		#set up response headers
 		response = HttpResponse(mimetype='application/zip')
 		response['Content-Disposition'] = 'attachment; filename='+con.name+'.zip'
