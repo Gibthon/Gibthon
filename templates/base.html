@@ -38,6 +38,7 @@ $(document).ready(function () {
 <div id="container">
 	<div class="ui-widget-header" id="header">
 		<div class="fixed-width">
+			<div class="menu-bar">
 			{% if user.is_authenticated %}
 			<span class="user_tab"><a href="/user/inbox/" id="user_tab_inbox" class="user_tab">Inbox (<span id="inbox_unread" style="color:red;">&nbsp;&nbsp;</span>/<span id="inbox_not_added" style="color:black;">&nbsp;&nbsp;</span>/<span id="inbox_count">&nbsp;&nbsp;</span>)</a></span>
 			<span class="user_tab drop">
@@ -77,7 +78,8 @@ $(document).ready(function () {
 					<li><a href="/">Home</a></li>
 					<li><a href="/about/">About</a></li>
 				</ul>
-			</span>		
+			</span>	
+			</div>
 			<a href="/"><img src="{{ STATIC_URL }}/images/gibthon2.0beta.png" style="height:60px; padding:5px 10px; float:left;" alt="Gibthon" /></a>
 			<h2 id="main_title">Gibthon<!--:<span style="font-size:0.7em">{{ title|default:"Home" }}</span>--></h2>
 		</div>
