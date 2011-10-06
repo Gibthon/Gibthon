@@ -31,3 +31,10 @@ urlpatterns = patterns('',
     (r'^sitemap.xml$', direct_to_template, {'template': 'sitemap.xml', 'mimetype':'text/xml'}),
 )
 
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+            'document_root': settings.MEDIA_ROOT,
+        }),
+   )

@@ -209,4 +209,10 @@ $('document').ready(function () {
 	$('button.primer_bottom').button({
 		icons:{secondary:'ui-icon-circle-arrow-e'}
 	});
+	$('a#back_to_construct').button({
+		icons:{primary:'ui-icon-arrowreturn-1-n'}
+	});
+	$('a#back_to_summary').button({
+		icons:{primary:'ui-icon-arrowreturn-1-n'}
+	});
 });

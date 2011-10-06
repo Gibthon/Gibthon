@@ -1,5 +1,5 @@
 
-<div class="ui-widget-content ui-corner-all content">
+<div class="ui-widget-content ui-corner-all content fixed-width">
 	<p><strong>Primer {{ primer.name }}</strong></p>
 	<table style="padding-left:15px;">
 		<tr>
@@ -23,7 +23,7 @@
 </div>
 
 {% if primer.warning.all %}
-	<div class='ui-state-highlight ui-corner-all content'>
+	<div class='ui-state-highlight ui-corner-all content fixed-width'>
 		<ul>
 		{% for w in primer.warning.all %}
 			<li>{{ w.text|safe }}</li>
@@ -33,7 +33,7 @@
 {% endif %}
 
 
-<div class="ui-widget-content ui-corner-all content">
+<div class="ui-widget-content ui-corner-all content fixed-width">
 <p>Want to edit the start/end positions to avoid misprimes? Drag and drop the orange base.</p>
 <p><strong>Flap</strong> ({{ primer.flap.cfragment.fragment.name }}) <em>- {{ primer.flap.length }} bp, {{ primer.flap.tm|floatformat }}&deg;C</em></p>
 <div style="font-family:monospace; padding:10px;">

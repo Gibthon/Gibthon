@@ -1,0 +1,23 @@
+{% extends "help/base.html" %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content fixed-width">
+<h2>Self-priming boxplots</h2>
+<img src="{{ STATIC_URL }}/images/boxplot.png"  style="float:right;"/>
+<p>On the right is shown a sample boxplot. This is the output of the folding program used to determine whether any self annealing will occur.
+Each mark on the plot represents a possible basepairing. The colour determines the likelyhood of pairing forming.</p>
+<h3>Colour</h3>
+<p>Black represents the lowest free energy, followed by red, green, and yellow. The lower the free energy, the more likely the structure is to form.
+As a general rule of thumb, if it is positive, it will be fine. If it is greater than ~-3kcal/mol, it will probably be OK. Any lower than this and,
+depending on position, you will probably want to consider redesigning your primers.</p>
+<h3>Position</h3>
+<p>The right hand side of the plot corresponds to the 3' end of the primer. If there are any marks on this column, then the 3' end may be bound
+to another part of the primer. This will prevent extension of the primer along the target fragemnt. Note that the boxplot auto-scales to fit the provided data,
+so make sure you compare the number	in the top right with the length of your primer.</p>
+<p></p>
+<h3>Reading this boxplot</h3>
+<p>This boxplot has a number of potential secondary structures forming. However, the most likely to form (at 22 bp from the 5' end) still has quite a high free energy,
+and due to its position is unlikely to affect the ability of the 3' end to extend. The original primer was 40bp long, so the secondary structure forming at 39bp from the 5' end
+does not include the 3' base pair. It is also a much higher free energy, and so is very unlikely to appear.</p>
+</div>
+{% endblock %}

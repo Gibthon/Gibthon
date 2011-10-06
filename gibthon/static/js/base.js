@@ -47,11 +47,12 @@ $(document).ready(function() {
 	
 	$('.user_tab').addClass('ui-corner-top').removeClass('ui-corner-all');
 
-	$('span.drop').mouseleave(function () {
-		$('ul', this).slideUp("fast") }
-	);
+//	$('span.drop').mouseleave(function () {$('ul', this).slideUp("fast") });
 	
-	 $('span.drop a.user_tab').mouseenter(function () {$('~ ul', this).slideDown('fast')});
+//	$('span.drop a.user_tab').mouseenter(function () {$('~ ul', this).slideDown('fast')});
+
+	$('span.drop').mouseleave(function () {$('ul', this).hide()});
+	$('span.drop a.user_tab').mouseenter(function() {$('~ ul', this).show()});
 	
 	$('span.drop ul li a').button();
 	

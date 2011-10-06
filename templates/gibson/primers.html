@@ -46,11 +46,13 @@ td.warningcell {
 <script src="{{ STATIC_URL }}/js/primers.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/jquery.cookie-modified.js" type="text/javascript"></script>
 
+
 <div id='buttons'>
-<a href="/gibthon/{{ construct.id }}/" id="back_to_construct">Back to Construct</a>|
-<button id="download">Download Primers and Protocols</button>
-|
-<button id="reset_offset">Reset Offsets</button>
+	<a href="/gibthon/{{ construct.id }}/" id="back_to_construct">Back to Construct</a>
+	<a href="/gibthon/{{ construct.id }}/primers/" id="back_to_summary">Back to Summary</a>|
+	<button id="download">Download Primers and Protocols</button>
+	|
+	<button id="reset_offset">Reset Offsets</button>
 </div>
 
 <div class="ui-widget-content ui-corner-all content fixed-width">

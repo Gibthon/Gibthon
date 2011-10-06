@@ -10,10 +10,10 @@
 
 {% block content %}
 <div class="content fixed-width">
-	<div style="float:right; margin:10px; width:150px;">
+	<div style="float:right; margin:10px; width:250px;">
 		<div>
 			<div class='ui-widget-header ui-corner-top'><h4>Ligation Mix</h4></div>
-			<div class='ui-state-default ui-corner-bottom' id="output">
+			<div class='ui-state-default ui-corner-bottom' style=" background:#DFEFFC !important;" id="output">
 			</div>
 		</div>
 	</div>
@@ -24,7 +24,7 @@
 		<p>To use, set the volumes in the right hand box, and add components as necessary below.</p>
 		<p>Then, just read off from the "Ligation Mix" box for your final volumes</p>
 	</div>
-	<div style="float:left; margin:10px; width:200px;">
+	<div style="float:left; margin:10px; width:255px;">
 		<div class="ui-widget-content ui-corner-all" style="padding:10px; height:180px;">
 			<form id="base">
 				<table>
@@ -41,7 +41,7 @@
 			</form>
 		</div>
 	</div>
-	<div style="float:left; margin:10px; width:595px;">
+	<div style="float:left; margin:10px; width:650px;">
 		<div class="ui-widget-header ui-corner-top"><button id="button-addrow" name="button-addrow" onmouseup="addTableRow($('#input'));" style="margin:2px; float:right; font-size:0.8em;"></button><h4>Components</h4></div>
 		<div class="ui-widget-content ui-corner-bottom">
 		{% if user.is_authenticated %}

@@ -6,4 +6,5 @@ urlpatterns = patterns('help.views',
 	(r'^gibson/$', 'gibson'),
 	(r'^primer/$', 'primer'),
 	(r'^gibthon/$', 'gibthon'),
+	(r'^boxplots/$', 'boxplots'),
 )

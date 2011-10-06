@@ -61,7 +61,7 @@ function selectall(event){
 	text_val.select();
 }
 
-var minlength = 20;
+var minlength = 10;
 
 // segment of oligo
 var Segment = function (side, gene, start, end){
@@ -80,7 +80,7 @@ var Segment = function (side, gene, start, end){
 // for printing the interface to gene
 Segment.prototype.print_gene = function(){
 	// this is where we're putting the gene
-	var out = document.getElementById(this.side + 'gene');
+	var out = $('#'+this.side + 'gene');
 	// break it down now y'all
 	var g = this.gene.split("");
 	// lets add everything into one variable, and then put it in in one go
@@ -108,7 +108,7 @@ Segment.prototype.print_gene = function(){
 	// close list
 	outs = outs + '<\/ul>';
 	// gogogo!
-	out.innerHTML=outs;	
+	out.html(outs);	
 }
 
 Segment.prototype.recut = function(index, from){
@@ -147,13 +147,12 @@ var Oligo = function (leftgene, rightgene){
 	this.L = new Segment('l', leftgene, 1, 20);
 	this.R = new Segment('r', rightgene, 1, 20);
 	this.Tm = null;
-	this.dG = null;
 	this.lseq = null;
 	this.rseq = null;
 	this.id = null;
-	this.alwaysdg = document.getElementById('alwaysdg');
-	this.mg = document.getElementById('mgsalt');
-	this.na = document.getElementById('nasalt');
+	this.mg = $('#mgsalt')[0];
+	this.na = $('#nasalt')[0];
+	this.dgbutton = $('button#self-prime-check-button').button();
 	this.get_info();
 }
 
@@ -167,7 +166,9 @@ Oligo.prototype.get_info = function(){
 			el:this.L.end,
 			sl:this.L.start,
 			er:this.R.end,
-			sr:this.R.start
+			sr:this.R.start,
+			mg:this.mg.value,
+			na:this.na.value
 		},
 		context:this,
 		dataType:'json',
@@ -177,56 +178,44 @@ Oligo.prototype.get_info = function(){
 			this.Tm = data.TmF;
 			this.lseq = data.SeqT;
 			this.rseq = data.SeqB;
-			$('#time').html((data.time*1000).toString().substring(0,4) + "ms");
 			this.print_info();
 		}
 	});
 }
 
-// http_request maker
-// creates the http function for the oligo, and sets up the return handler 
-//  - ie, dumps data into oligo and calls print function
-/*function getH(parent) {
-	var h = new XMLHttpRequest();
-	h.parent = parent;
-	h.onreadystatechange = function() {
-	  	if (this.readyState == 4){
-			var JSON_ret = JSON.parse(this.responseText);
-			if (JSON_ret['error'] < 0){
-				this.parent.L.Tm = JSON_ret['Tml'];
-				this.parent.R.Tm = JSON_ret['Tmr'];
-				this.parent.Tm = JSON_ret['TmO'];
-				this.parent.dG = JSON_ret['dG'];
-				this.parent.lseq = JSON_ret['lseq'];
-				this.parent.rseq = JSON_ret['rseq'];
-				this.parent.id = JSON_ret['id'];
-				this.parent.print_info();
-			}
+Oligo.prototype.get_ss = function() {
+	$.ajax({
+		type:'post',
+		url:'selfprime',
+		data:{
+			gene1:this.L.gene,
+			gene2:this.R.gene,
+			el:this.L.end,
+			sl:this.L.start,
+			er:this.R.end,
+			sr:this.R.start,
+			mg:this.mg.value,
+			na:this.na.value
+		},
+		context:this,
+		dataType:'json',
+		success: function(data) {
+			$('#boxplot').html('<img src="'+data.image+'" />');
+			this.dgbutton.button('enable');
 		}
-	}
-	return h;
-}*/
+	});
+}
+	
 
 Oligo.prototype.print_info = function(){
 	this.L.print_gene();
 	this.R.print_gene();
-	document.getElementById('tmleft').innerHTML=this.L.Tm.toString().substring(0,4) + "&deg;C";
-	document.getElementById('tmright').innerHTML=this.R.Tm.toString().substring(0,4) + "&deg;C";
-	document.getElementById('tmall').innerHTML=this.Tm.toString().substring(0,4) + "&deg;C";	
-	document.getElementById('lseq').innerHTML=this.lseq;
-	document.getElementById('rseq').innerHTML=this.rseq;
-	var dgb = document.getElementById('dg');
-	if(!this.dG){
-		if(dgb.innerHTML.indexOf("Calculate") < 0 ){
-			if(dgb.innerHTML.indexOf("Update") < 0 && dgb.innerHTML.indexOf('.gif') < 0){
-				var old = dgb.innerHTML;
-				dgb.innerHTML = old + ' <a href="#" onClick="MyOligo.get_dg(); return false">Update</a>';
-			}
-		}
-	}else{
-		document.getElementById('pic').innerHTML="<img src='out/" + this.id + ".jpg' />"
-		dgb.innerHTML = this.dG;
-	}
+	$('#tmleft').html(this.L.Tm.toString().substring(0,4) + "&deg;C");
+	$('#tmright').html(this.R.Tm.toString().substring(0,4) + "&deg;C");
+	$('#tmall').html(this.Tm.toString().substring(0,4) + "&deg;C");
+	$('#lseq').html(this.lseq);
+	$('#rseq').html(this.rseq);
+	$('#length').html(this.lseq.length);
 	
 	var that = this;
 	$(".end").draggable({
@@ -259,43 +248,95 @@ Oligo.prototype.recut = function(gene, index, from){
 	}else{
 		this.R.recut(index,from);
 	}
-	if(this.alwaysdg.checked){
-		this.get_dg();
-	}else{
-		this.get_info();
-	}
-}
-
-Oligo.prototype.get_dg = function(){
-//	this.http.open("GET", "cgi-bin/gibthon.cgi?action=godg&gene1=" + this.L.gene + "&gene2=" + this.R.gene + "&el="+this.L.end+"&sl="+this.L.start+"&er="+this.R.end+"&sr="+this.R.start+"&mg="+this.mg.value+"&na="+this.na.value,true);
-//	this.http.send(null);
-	$('#dg').html('<img src="'+STATIC_URL+'/images/spinner.gif"/>');
+	this.get_info();
 }
 
 
 function saltChange(){
-	var dgb = document.getElementById('dg');
-	if(dgb.innerHTML.indexOf("Calculate") < 0 ){
-		if(dgb.innerHTML.indexOf("Update") < 0 && dgb.innerHTML.indexOf('.gif') < 0){
-			var old = dgb.innerHTML;
-			dgb.innerHTML = old + ' <a href="#" onClick="MyOligo.get_dg(); return false">Update</a>';
+	var dgb = $('#dg');
+	if(dgb.html().indexOf("Calculate") < 0 ){
+		if(dgb.html().indexOf("Update") < 0 && dgb.html().indexOf('.gif') < 0){
+			dgb.html(dgb.html() + ' <a href="#" onClick="MyOligo.get_dg(); return false">Update</a>');
 		}
 	}
 }
 
-function printtime(t){
-	$('#time').html((t*1000).toString().substring(0,6) + "ms");
-}
+$(document).ready(function () {
+	$('#tabs').tabs({
+		disabled:[1],
+		show: function(event, ui) {
+			if(ui.index == 1){
+				var form = $('#form')[0];
+				MyOligo = new Oligo(form.lgenec.value.toLowerCase(), form.rgenec.value.toUpperCase());
+			}
+		}
+	});
 
-function getcsv(){
-	var dgb = document.getElementById('dg');
-	if(dgb.innerHTML.indexOf("Calculate") > 0 || dgb.innerHTML.indexOf("Update") > 0){
-		$('#prompt').prompt({
-			title:'Note',
-			message:"Please refresh dg first"
-		});
-		return false;
-	}
-	window.open("csv.php?seq=" + JSON_ret['full'] + "&tl=" + JSON_ret['Tml'].toString().substring(0,4) + "&tr=" + JSON_ret['Tmr'].toString().substring(0,4) + "&t=" + JSON_ret['TmO'].toString().substring(0,4) + "&dg=" + JSON_ret['dG']);
-	return false;
-}
+	 $('button#self-prime-check-button').click(function() {
+		$(this).button('disable');
+		MyOligo.get_ss();
+	});
+
+	$('input[name="lgene-search"]').autocomplete({
+		source:'list',
+		minLength:1,
+		focus: function( event, ui ){
+			return false;
+		},
+		select:function( event, ui ){
+			$('textarea[name="lgene"]')[0].value = ui.item.last.toLowerCase();
+			validate_gene($('textarea[name="lgene"]')[0]);
+		}
+	});
+	$('input[name="rgene-search"]').autocomplete({
+		source:'list',
+		minLength:1,
+		focus: function( event, ui ){
+			return false;
+		},
+		select:function( event, ui ){
+			$('textarea[name="rgene"]')[0].value = ui.item.first.toLowerCase();
+			validate_gene($('textarea[name="rgene"]')[0]);
+		}
+	});
+	
+	$('#left-up').click(function () {
+		if (MyOligo.L.end < $('#lgene ul').children().length) {
+			MyOligo.L.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#left-down').click(function () {
+		if (MyOligo.L.end - MyOligo.L.start > $('#lgene ul li[class^="invalid"]').length + 2 ){
+			MyOligo.L.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#right-up').click(function () {
+		if (MyOligo.R.end < $('#rgene ul').children().length) {
+			MyOligo.R.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('#right-down').click(function () {
+		if (MyOligo.R.end - MyOligo.R.start > $('#rgene ul li[class^="invalid"]').length + 2 ){
+			MyOligo.R.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+	$('.all-up').click(function () {
+		if (MyOligo.L.end < $('#lgene ul').children().length && MyOligo.R.end < $('#rgene ul').children().length) {
+			MyOligo.R.end += 1;
+			MyOligo.L.end += 1;
+			MyOligo.get_info();
+		}
+	});
+	$('.all-down').click(function() {
+		if (MyOligo.R.end - MyOligo.R.start > $('#rgene ul li[class^="invalid"]').length + 2  && MyOligo.L.end - MyOligo.L.start > $('#lgene ul li[class^="invalid"]').length + 2) {
+			MyOligo.R.end -= 1;
+			MyOligo.L.end -= 1;
+			MyOligo.get_info();
+		}
+	});
+});
+

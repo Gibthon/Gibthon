@@ -1,9 +1,10 @@
 from django.db import models
 from Bio.Seq import reverse_complement, Seq
 from Bio.SeqUtils.MeltingTemp import Tm_staluc
+from gibthon.unafold import UnaFolder
+from django.conf import settings
 
-# Create your models here.
-
+import os
 
 class Oligo():
 	def __init__(self, data):
@@ -13,6 +14,8 @@ class Oligo():
 		self.sr=int(data.get('sr'))-1
 		self.el=int(data.get('el'))
 		self.er=int(data.get('er'))
+		self.mg=float(data.get('mg'))/1000.0
+		self.na=float(data.get('na'))/1000.0
 	
 	def leftHalf(self):
 		return self.left[::-1][self.sl:self.el][::-1]
@@ -34,5 +37,15 @@ class Oligo():
 	
 	def fullTm(self):
 		return Tm_staluc(self.bottomPrimer())
+	
+	def selfPrime(self):
+		u = UnaFolder(t = self.fullTm(), safety=3, mg_salt=self.mg, na_salt=self.na)
+		ret, image = u.self_prime(str(self.topPrimer()))
+		print settings.MEDIA_ROOT
+		os.rename(image, settings.MEDIA_ROOT+image[1::])
+		wst = ''
+		for warning in u.warnings:
+			wst += 'Potential self-priming of 3\' end! Length: ' + str(warning[0]) + ', dG: ' + str(warning[1]) + '<br />'
+		return settings.MEDIA_URL + image, wst
 	
 		
