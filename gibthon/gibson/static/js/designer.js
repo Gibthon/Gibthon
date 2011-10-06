@@ -182,8 +182,6 @@ $.widget("ui.designer", {
 	_draw_labels: function(){
 		var left = this.la_width / 2;
 		var right = this.width - this.la_width / 2;
-		var lh = 10; var rh = 10;
-		var ll = this.la_width * 0.9; var rl = this.width - this.la_width * 0.9;
 		
 		this.ctx.fillStyle = this.options.titleColour;
 		this.ctx.font = this.options.labelFont;
@@ -195,29 +193,23 @@ $.widget("ui.designer", {
 			var sy = this.cy + this.p_radius * Math.sin(f.center);
 			var sx = this.cx + this.p_radius * Math.cos(f.center);
 			var ex = 0; var ey = 0;
-			var l = 0;
 			if(sx < this.cx) //label on left
 			{
-				ex = left;
+				//horizontal position
+				ex = left + (2 + 0.5 * this.ctx.measureText(f.name).width);
+				var text_x = left;
 				//vertical position
-				ey = lh + 20;
-				lh = lh + 25;
-				//position of vertical line
-				l = ll;
-				ll = ll + 5;
+				ey = sy;
 			}
 			else //label on right
 			{
-				ex = right;
+				//horizontal position
+				ex = right - (2 + 0.5 * this.ctx.measureText(f.name).width);
+				var text_x = right;
 				//vertical position
-				ey = rh + 20;
-				rh = rh + 25;
-				//position of vertical line
-				l = rl;
-				rl = rl - 5;
+				ey = sy;
 			}
-			this.ctx.fillText(f.name, ex, ey - 2);
-			
+			var text_y = ey;
 			this._draw_handle(sx, sy);
 			
 			this.ctx.save();
@@ -230,11 +222,13 @@ $.widget("ui.designer", {
 			if(sy < this.ll_up) //stub is upwards
 			{
 				this.ctx.moveTo(sx, sy - 5);
+				text_y = text_y - this.options.stubLength;
 				sy = sy - this.options.stubLength;
 			}
 			else if(sy > this.ll_down) //stub is downwards
 			{
 				this.ctx.moveTo(sx, sy + 5);
+				text_y = text_y + this.options.stubLength;
 				sy = sy + this.options.stubLength;
 			}
 			else if(sx > this.cx) //stub is right
@@ -250,15 +244,16 @@ $.widget("ui.designer", {
 			
 			this.ctx.lineTo(sx, sy);
 			
-			//draw to line
-			this.ctx.lineTo(l,sy);
-			this.ctx.lineTo(l,ey);
-			//draw to label
-			this.ctx.lineTo(ex,ey);
+			//draw to text
+			
+			this.ctx.lineTo(ex,sy);
+			
 			
 			this.ctx.stroke();
 			
 			this.ctx.restore();
+			
+			this.ctx.fillText(f.name, text_x, text_y + 6);
 		}
 		
 	},
