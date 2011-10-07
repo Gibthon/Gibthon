@@ -13,8 +13,12 @@ var cols = [
 	'rgb(0,255,255)',
 	];
 
-var get_col = function(num){
-	return cols[ num % cols.length ];
+var colnum = 0;
+
+var get_col = function(){
+	var ret = cols[ colnum % cols.length ];
+	colnum = colnum + 1;
+	return ret;
 }
 
 function Fragment(id)
@@ -23,12 +27,13 @@ function Fragment(id)
 	this.start = 0; //the start angle of the fragment
 	this.center = 0; //the angle of the center of the fragment
 	this.end = 0; //the end angle of the fragment
+	this.color = get_col();
 	var self = this;
 	var url = '/fragment/get/' + id + '/?value=meta';
 	this.highlight = false;
 	this.reordering = false;
 	this.handle_angle = 0; //the offset from the center of the fragment where the mouse originally clicked
-	this.reorder_offset = 0;
+	this.reorder_pos = 0;
 	$.ajax({
 	  url: url,
 	  dataType: 'json',
@@ -306,18 +311,17 @@ $.widget("ui.designer", {
 		var f = this.fragments[i];
 		f.start = pos;
 		f.end =  pos + f.length * this.rad_per_bp;
-		var colour = get_col(i);		
+				
 		f.center = pos + (f.length * this.rad_per_bp / 2);
 		
 		this.ctx.save();
-		this.ctx.strokeStyle = colour;
+		this.ctx.strokeStyle = f.color;
 		this.ctx.lineWidth = this.p_thickness;
 		if(f.highlight)
 		{
 			this.ctx.globalAlpha = 0.5;
 		}
-		var space = 1.5 / this.p_radius;
-		
+				
 		if(f.start == f.end) f.end = f.end + 2 * Math.PI;
 		
 		var r = this.p_radius;
@@ -327,8 +331,8 @@ $.widget("ui.designer", {
 		{
 			this._draw_blank(f.start, f.end);
 			r = this.outer_radius;
-			s = s + f.reorder_offset;
-			e = e + f.reorder_offset;
+			s = f.reorder_pos - (f.length / 2 * this.rad_per_bp);
+			e = f.reorder_pos + (f.length / 2 * this.rad_per_bp);
 		}
 		
 		this.ctx.beginPath();
@@ -435,9 +439,11 @@ $.widget("ui.designer", {
 							{
 								this.state = STATE_REORDER;
 								var f = this.fragments[selected];
+								f.highlight = false;
 								f.reordering = true;
 								f.handle_angle = this._mdown_pos.theta - f.center;
-								f.reorder_drag = 0;
+								f.reorder_pos = f.center;
+								document.body.style.cursor = 'move';
 								this._redraw();
 							}
 						}
@@ -456,10 +462,14 @@ $.widget("ui.designer", {
 				//handle dragging
 				for(i in this.fragments)
 				{
+					i = parseInt(i);
 					var f = this.fragments[i];
 					if(f.reordering)
 					{
-						f.reorder_offset = pos.theta - (f.center + f.handle_angle);
+						f.reorder_pos = pos.theta - f.handle_angle;
+						//check for reordering
+						
+						 
 						this._redraw();
 					}
 				}
@@ -486,6 +496,7 @@ $.widget("ui.designer", {
 		else
 		{
 			this.state = STATE_NORMAL;
+			document.body.style.cursor = 'default';
 			for(i in this.fragments)
 				this.fragments[i].reordering = false;
 			this._redraw();
