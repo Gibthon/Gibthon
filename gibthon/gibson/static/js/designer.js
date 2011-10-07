@@ -90,7 +90,7 @@ $.widget("ui.designer", {
 			console.log('adding initial fragments');
 			for(var i in data[1])
 			{
-				self.addFragment(data[1][i], false);
+				self.addFragment(data[1][i], false, false);
 			}
 			self._redraw();
 		});
@@ -98,9 +98,10 @@ $.widget("ui.designer", {
 
 		this._redraw();
 	},
-	addFragment: function(id, tell_server){
+	addFragment: function(id, tell_server, redraw){
 		if(id == undefined) return;
 		if(tell_server == undefined) tell_server = true;
+		if(redraw == undefined) redraw = true;
 		id = parseInt(id);
 		if( isNaN(id) ) return;
 		
@@ -115,8 +116,8 @@ $.widget("ui.designer", {
 					console.log('Error while adding fragment: ' + data[1]);
 			});
 		}
-		
-		this._redraw();
+		if(redraw)
+			this._redraw();
 	},
 	changeName: function(new_name){
 		this.name = new_name;
