@@ -20,9 +20,12 @@ var get_col = function(num){
 function Fragment(id)
 {
 	this.id = id;
+	this.start = 0; //the start angle of the fragment
 	this.center = 0; //the angle of the center of the fragment
+	this.end = 0; //the end angle of the fragment
 	var self = this;
 	var url = '/fragment/get/' + id + '/?value=meta';
+	this.highlight = false;
 	$.ajax({
 	  url: url,
 	  dataType: 'json',
@@ -48,6 +51,7 @@ $.widget("ui.designer", {
 		labelFont: '16px italic Arial',
 		lineColour: 'rgb(100,100,100)',
 		stubLength: 20,
+		clickTime: 250,
 	},
 	_init: function(){
 		console.log('ui.designer._init();');
@@ -57,6 +61,7 @@ $.widget("ui.designer", {
 		console.log('ui.designer._create();');
 		var self = this;
 		this.canvas = this.element[0];
+		this.$canvas = $(this.canvas);
 		this.ctx = this.canvas.getContext('2d');
 		
 		this.fragments = Array();
@@ -80,6 +85,7 @@ $.widget("ui.designer", {
 		
 		this.length = 0;
 		this.name = this.options.name;
+		this.rad_per_bp = 0;
 
 		$.getJSON('fragments/', [], function(data) {
 			if(data[0] != 0)
@@ -95,8 +101,21 @@ $.widget("ui.designer", {
 			self._redraw();
 		});
 
-
 		this._redraw();
+		
+		/* Mouse things*/
+		this.$canvas.mousemove( function(event) { self._mouse_move(event); });
+		this.$canvas.mousedown( function(event) { self._mouse_down(event); });
+		this.$canvas.mouseup( function(event) { self._mouse_up(event); });
+		this.$canvas.mouseleave( function(event) { self._mouse_up(event); });
+		
+		this._mdown = false;
+		this._mdown_time = 0;
+		this._mdown_x = 0;
+		this._mdown_y = 0;
+		
+		this._num_highlit = 0;
+		
 	},
 	addFragment: function(id, tell_server, redraw){
 		if(id == undefined) return;
@@ -108,6 +127,7 @@ $.widget("ui.designer", {
 		var f = new Fragment(id);
 		this.fragments.push(f);
 		this.length = this.length + f.length;
+		this.rad_per_bp = 2 * Math.PI / (this.length);
 		
 		if(tell_server)
 		{
@@ -116,6 +136,7 @@ $.widget("ui.designer", {
 					console.log('Error while adding fragment: ' + data[1]);
 			});
 		}
+		
 		if(redraw)
 			this._redraw();
 	},
@@ -169,15 +190,10 @@ $.widget("ui.designer", {
 			this._draw_blank(0, 2 * Math.PI);
 			return;
 		}
-		var pos = 0;
-		var rad_per_bp = 2 * Math.PI / (this.length);
-		
+				
 		for(var i  in this.fragments)
 		{
-			var f = this.fragments[i];
-			this._draw_fragment(pos, pos + f.length * rad_per_bp, get_col(i));
-			f.center = pos + (f.length * rad_per_bp / 2);
-			pos = pos + f.length * rad_per_bp;
+			this._draw_fragment(i);
 		}
 	},
 	_draw_labels: function(){
@@ -274,17 +290,33 @@ $.widget("ui.designer", {
 		
 		this.ctx.restore();
 	},
-	_draw_fragment: function(start, end, colour){
+	_draw_fragment: function(f_id){
+		var pos = 0;
+		for (var i = 0; i < f_id; i++)
+		{
+			pos = pos + this.fragments[i].length * this.rad_per_bp;
+		}
+		var f = this.fragments[i];
+		f.start = pos;
+		f.end =  pos + f.length * this.rad_per_bp;
+		var colour = get_col(i);
+		
+		f.center = pos + (f.length * this.rad_per_bp / 2);
+		
 		this.ctx.save();
 		this.ctx.strokeStyle = colour;
 		this.ctx.lineWidth = this.p_thickness;
+		if(f.highlight)
+		{
+			this.ctx.globalAlpha = 0.5;
+		}
 		var space = 1.5 / this.p_radius;
 		
-		if(start == end) end = end + 2 * Math.PI;
+		if(f.start == f.end) f.end = f.end + 2 * Math.PI;
 		
 		this.ctx.beginPath();
 		
-		this.ctx.arc(this.cx, this.cy, this.p_radius, start + space, end - space);
+		this.ctx.arc(this.cx, this.cy, this.p_radius, f.start + space, f.end - space);
 		
 		this.ctx.stroke();
 		
@@ -312,7 +344,106 @@ $.widget("ui.designer", {
 		}
 		if((end - p) < angular_length)
 			this.ctx.arc(x,y,radius, p, end);
-	}
+	},
+/* ----------------------------- MOUSE FUNCTIONS --------------------------------------- */
+	_get_xy: function(event) {
+		var offset = this.$canvas.offset();
+		return {x: event.pageX - offset.left, y: event.pageY - offset.top};
+	},
+	_get_rtheta: function(event) {
+		var xy = this._get_xy(event);
+		var x = xy.x - this.cx;
+		var y = xy.y - this.cy;
+		var t = Math.atan2(y, x);
+		if( t < 0) t = 2 * Math.PI + t;
+		return {r: Math.sqrt(x*x + y*y), theta: t};
+	},
+	_get_selected_fragment: function(theta) { //given theta, find which fragment is moused over
+		for(var i in this.fragments)
+		{
+			var f = this.fragments[i];
+			if( (theta > f.start) && (theta < f.end))
+			{
+				return i;
+			}
+		}
+		return -1;
+	},
+	_is_in_plasmid: function(r)
+	{
+		return (r > (this.p_radius - this.p_thickness/2)) && (r < (this.p_radius + this.p_thickness/2));
+	},
+	_mouse_move: function(event){
+		var pos = this._get_rtheta(event);
+		if(this._is_in_plasmid(pos.r))
+		{
+			if(!this._mdown)
+			{
+				var redraw = false;
+				var selected = this._get_selected_fragment(pos.theta);
+				for(i in this.fragments)
+				{
+					if(i == selected)
+					{
+						if(!this.fragments[i].highlight)
+						{
+							this.fragments[i].highlight = true;
+							redraw = true;
+						}
+					}
+					else
+					{
+						if(this.fragments[i].highlight)
+						{
+							this.fragments[i].highlight = false;
+							redraw = true;
+						}
+					}
+				}
+				if(redraw)
+					this._redraw();
+				this._num_highlit = 1;
+			}
+			else
+			{
+				console.log('    _mouse_drag(' + pos.r + ',' + pos.theta + ')');
+			}
+		}
+		else if(this._num_highlit > 0)
+		{
+			for(var i in this.fragments)
+				this.fragments[i].highlight = false;
+			this._num_highlit = 0;
+			this._redraw();
+		}
+	},
+	_mouse_down: function(event){
+		var pos = this._get_rtheta(event);
+		this._mdown_time = event.timeStamp;
+		this._mdown = true;
+		if(this._is_in_plasmid(pos.r))
+		{
+			var i = this._get_selected_fragment(pos.theta);
+			console.log('begin dragging fragments['+i+']');
+		}
+	},
+	_mouse_up: function(event){
+		var pos = this._get_rtheta(event);
+		this._mdown = false;
+		if((event.timeStamp - this._mdown_time) < this.options.clickTime)
+		{
+			if(this._is_in_plasmid(pos.r))
+			{
+				var i = this._get_selected_fragment(pos.theta);
+				console.log('show info on fragments['+i+']');
+			}
+		}
+		else
+		{
+			
+		}
+		
+	},
 	
 });
 
