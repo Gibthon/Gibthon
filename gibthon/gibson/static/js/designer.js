@@ -1,8 +1,8 @@
 (function( $, undefined ) {
 
 var STATE_NORMAL = 0;
-var STATE_REORDER = 0;
-var STATE_ROTATE = 0;
+var STATE_REORDER = 1;
+var STATE_ROTATE = 2;
 
 var cols = [
 	'rgb(255,0,0)',
@@ -26,6 +26,9 @@ function Fragment(id)
 	var self = this;
 	var url = '/fragment/get/' + id + '/?value=meta';
 	this.highlight = false;
+	this.reordering = false;
+	this.handle_angle = 0; //the offset from the center of the fragment where the mouse originally clicked
+	this.reorder_offset = 0;
 	$.ajax({
 	  url: url,
 	  dataType: 'json',
@@ -58,7 +61,8 @@ $.widget("ui.designer", {
 		this._redraw();
 	},
 	_create: function(){
-		console.log('ui.designer._create();');
+		this.state = STATE_NORMAL;
+		
 		var self = this;
 		this.canvas = this.element[0];
 		this.$canvas = $(this.canvas);
@@ -74,6 +78,7 @@ $.widget("ui.designer", {
 		
 		this.p_radius = 0;
 		this.p_thickness = 0;
+		this.outer_radius = 0;
 		
 		this.la_width = 0;//label area width
 		this.ll_up = 0;//max height for label-line to be upwards
@@ -111,8 +116,7 @@ $.widget("ui.designer", {
 		
 		this._mdown = false;
 		this._mdown_time = 0;
-		this._mdown_x = 0;
-		this._mdown_y = 0;
+		this._mdown_pos = {r:0, theta: 0,};
 		
 		this._num_highlit = 0;
 		
@@ -154,6 +158,7 @@ $.widget("ui.designer", {
 		
 		this.p_radius = Math.min(this.width * ( 1 - 2 * this.options.labelAreaWidth), this.height) * 0.4;
 		this.p_thickness = this.p_radius * 0.1;
+		this.outer_radius = this.p_radius + 1.5 * this.p_thickness;
 		
 		this.la_width = this.width * this.options.labelAreaWidth;
 		this.ll_up = this.cy - this.p_radius * 0.7071;
@@ -163,7 +168,9 @@ $.widget("ui.designer", {
 		this.ctx.clearRect(0,0,this.width, this.height);
 		this._draw_title();	
 		this._draw_plasmid();
-		this._draw_labels();
+		
+		if(this.state == STATE_NORMAL)
+			this._draw_labels();
 	},
 	_draw_title: function(){
 		this.ctx.fillStyle = this.options.titleColour;
@@ -299,8 +306,7 @@ $.widget("ui.designer", {
 		var f = this.fragments[i];
 		f.start = pos;
 		f.end =  pos + f.length * this.rad_per_bp;
-		var colour = get_col(i);
-		
+		var colour = get_col(i);		
 		f.center = pos + (f.length * this.rad_per_bp / 2);
 		
 		this.ctx.save();
@@ -314,17 +320,27 @@ $.widget("ui.designer", {
 		
 		if(f.start == f.end) f.end = f.end + 2 * Math.PI;
 		
+		var r = this.p_radius;
+		var s = f.start;
+		var e = f.end;
+		if(f.reordering)
+		{
+			this._draw_blank(f.start, f.end);
+			r = this.outer_radius;
+			s = s + f.reorder_offset;
+			e = e + f.reorder_offset;
+		}
+		
 		this.ctx.beginPath();
-		
-		this.ctx.arc(this.cx, this.cy, this.p_radius, f.start + space, f.end - space);
-		
+		this.ctx.arc(this.cx, this.cy, r, s, e);
 		this.ctx.stroke();
-		
 		this.ctx.restore();
 	},
 	_draw_blank: function(start, end){
 		this.ctx.save();
 		this.ctx.strokeStyle = 'rgb(100,100,100)';
+		this.ctx.lineWidth = 1;
+		this.ctx.globalAlpha = 1.0;
 		if(start == end) end = end + 2 * Math.PI;
 		this._dotted_arc(this.cx, this.cy, this.p_radius - this.p_thickness / 2, start, end);
 		this._dotted_arc(this.cx, this.cy, this.p_radius + this.p_thickness / 2, start, end);
@@ -375,57 +391,86 @@ $.widget("ui.designer", {
 	},
 	_mouse_move: function(event){
 		var pos = this._get_rtheta(event);
-		if(this._is_in_plasmid(pos.r))
+		switch(this.state)
 		{
-			if(!this._mdown)
-			{
-				var redraw = false;
-				var selected = this._get_selected_fragment(pos.theta);
-				for(i in this.fragments)
+			case STATE_NORMAL:
+				if(this._is_in_plasmid(pos.r))
 				{
-					if(i == selected)
+					if(!this._mdown)
 					{
-						if(!this.fragments[i].highlight)
+						var redraw = false;
+						var selected = this._get_selected_fragment(pos.theta);
+						for(i in this.fragments)
 						{
-							this.fragments[i].highlight = true;
-							redraw = true;
+							if(i == selected)
+							{
+								if(!this.fragments[i].highlight)
+								{
+									this.fragments[i].highlight = true;
+									redraw = true;
+								}
+							}
+							else
+							{
+								if(this.fragments[i].highlight)
+								{
+									this.fragments[i].highlight = false;
+									redraw = true;
+								}
+							}
 						}
+						if(redraw)
+							this._redraw();
+						this._num_highlit = 1;
 					}
 					else
 					{
-						if(this.fragments[i].highlight)
+						//if this is too long to be a click
+						if((event.timeStamp - this._mdown_time) > this.options.clickTime)
 						{
-							this.fragments[i].highlight = false;
-							redraw = true;
+							console.log('init reordering');
+							//start reordering
+							var selected = this._get_selected_fragment(this._mdown_pos.theta);
+							if(selected >= 0)
+							{
+								this.state = STATE_REORDER;
+								var f = this.fragments[selected];
+								f.reordering = true;
+								f.handle_angle = this._mdown_pos.theta - f.center;
+								f.reorder_drag = 0;
+								this._redraw();
+							}
 						}
 					}
 				}
-				if(redraw)
+				else if(this._num_highlit > 0)
+				{
+					for(var i in this.fragments)
+						this.fragments[i].highlight = false;
+					this._num_highlit = 0;
 					this._redraw();
-				this._num_highlit = 1;
-			}
-			else
-			{
-				console.log('    _mouse_drag(' + pos.r + ',' + pos.theta + ')');
-			}
+				}
+				break;
+			
+			case STATE_REORDER:
+				//handle dragging
+				for(i in this.fragments)
+				{
+					var f = this.fragments[i];
+					if(f.reordering)
+					{
+						f.reorder_offset = pos.theta - (f.center + f.handle_angle);
+						this._redraw();
+					}
+				}
+				break;
 		}
-		else if(this._num_highlit > 0)
-		{
-			for(var i in this.fragments)
-				this.fragments[i].highlight = false;
-			this._num_highlit = 0;
-			this._redraw();
-		}
+		
 	},
 	_mouse_down: function(event){
-		var pos = this._get_rtheta(event);
+		this._mdown_pos = this._get_rtheta(event);
 		this._mdown_time = event.timeStamp;
 		this._mdown = true;
-		if(this._is_in_plasmid(pos.r))
-		{
-			var i = this._get_selected_fragment(pos.theta);
-			console.log('begin dragging fragments['+i+']');
-		}
 	},
 	_mouse_up: function(event){
 		var pos = this._get_rtheta(event);
@@ -440,7 +485,10 @@ $.widget("ui.designer", {
 		}
 		else
 		{
-			
+			this.state = STATE_NORMAL;
+			for(i in this.fragments)
+				this.fragments[i].reordering = false;
+			this._redraw();
 		}
 		
 	},
