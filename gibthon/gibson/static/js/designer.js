@@ -21,14 +21,43 @@ var get_col = function(){
 	return ret;
 }
 
+var PI2 = 2 * Math.PI;
+
+/*
+ * Determine whether angle is between lower and higher.
+ * if below lower, return -1,
+ * if within return 0
+ * if above higher return 1
+ * */
+var is_in = function(lower, higher, angle)
+{
+	//relative to lower
+	var h = (higher - lower);
+	var a = (angle - lower);
+	//in range 0 - 2*PI
+	while(h < 0) h = h + PI2;
+	while(h > PI2) h = h - PI2;
+	while(a < 0) a = a + PI2;
+	while(a > PI2) a = a - PI2;
+	
+	if(a < h) return 0;
+	
+	if( (a - h) > (PI2 - a) )
+		return -1; //closer to lower
+	return 1; //closer to higher
+}
+
 function Fragment(id)
 {
+	var self = this;
 	this.id = id;
 	this.start = 0; //the start angle of the fragment
-	this.center = 0; //the angle of the center of the fragment
-	this.end = 0; //the end angle of the fragment
+	this.end = 0;
+	this.length = 0;
+	
+	this.center = get_center;
+	
 	this.color = get_col();
-	var self = this;
 	var url = '/fragment/get/' + id + '/?value=meta';
 	this.highlight = false;
 	this.reordering = false;
@@ -47,6 +76,11 @@ function Fragment(id)
 	});
 }
 
+function get_center()
+{
+		return (this.start + this.end) / 2.0;
+};
+
 $.widget("ui.designer", {
 	options: {
 		name: '',
@@ -63,7 +97,7 @@ $.widget("ui.designer", {
 	},
 	_init: function(){
 		console.log('ui.designer._init();');
-		this._redraw();
+		//this._redraw();
 	},
 	_create: function(){
 		this.state = STATE_NORMAL;
@@ -96,6 +130,7 @@ $.widget("ui.designer", {
 		this.length = 0;
 		this.name = this.options.name;
 		this.rad_per_bp = 0;
+		this.next = 0; this.prev = 0;
 
 		$.getJSON('fragments/', [], function(data) {
 			if(data[0] != 0)
@@ -146,11 +181,28 @@ $.widget("ui.designer", {
 			});
 		}
 		
+		this._layout_fragments();
+		
 		if(redraw)
 			this._redraw();
 	},
 	changeName: function(new_name){
 		this.name = new_name;
+		this._redraw();
+	},
+	_swap_fragments: function(a, b) //assume that a is the fragment before b
+	{
+		var fa = this.fragments[a];
+		var fb = this.fragments[b];
+		
+		fb.start = fa.start;
+		fb.end = fb.start + fb.length * this.rad_per_bp;
+		fa.start = fb.end;
+		fa.end = fa.start + fa.length * this.rad_per_bp;
+				
+		this.fragments[a] = fb;
+		this.fragments[b] = fa;
+		
 		this._redraw();
 	},
 	_update_layout: function() {
@@ -219,8 +271,8 @@ $.widget("ui.designer", {
 		for(var i  in this.fragments)
 		{
 			var f = this.fragments[i];
-			var sy = this.cy + this.p_radius * Math.sin(f.center);
-			var sx = this.cx + this.p_radius * Math.cos(f.center);
+			var sy = this.cy + this.p_radius * Math.sin(f.center());
+			var sx = this.cx + this.p_radius * Math.cos(f.center());
 			var ex = 0; var ey = 0;
 			if(sx < this.cx) //label on left
 			{
@@ -302,18 +354,19 @@ $.widget("ui.designer", {
 		
 		this.ctx.restore();
 	},
-	_draw_fragment: function(f_id){
+	_layout_fragments: function() //layout the fragments in their order
+	{
 		var pos = 0;
-		for (var i = 0; i < f_id; i++)
+		for(var f_id in this.fragments)
 		{
-			pos = pos + this.fragments[i].length * this.rad_per_bp;
+			var f = this.fragments[f_id];
+			f.start = pos * this.rad_per_bp;
+			pos = pos + f.length;
+			f.end = pos * this.rad_per_bp;
 		}
-		var f = this.fragments[i];
-		f.start = pos;
-		f.end =  pos + f.length * this.rad_per_bp;
-				
-		f.center = pos + (f.length * this.rad_per_bp / 2);
-		
+	},
+	_draw_fragment: function(f_id){	
+		var f = this.fragments[f_id];
 		this.ctx.save();
 		this.ctx.strokeStyle = f.color;
 		this.ctx.lineWidth = this.p_thickness;
@@ -322,14 +375,13 @@ $.widget("ui.designer", {
 			this.ctx.globalAlpha = 0.5;
 		}
 				
-		if(f.start == f.end) f.end = f.end + 2 * Math.PI;
-		
 		var r = this.p_radius;
 		var s = f.start;
 		var e = f.end;
+//		console.log('Draw Fragment( |' + f.start + '----' + f.desc + '----' + f.end + '|');
 		if(f.reordering)
 		{
-			this._draw_blank(f.start, f.end);
+			this._draw_blank(s, e);
 			r = this.outer_radius;
 			s = f.reorder_pos - (f.length / 2 * this.rad_per_bp);
 			e = f.reorder_pos + (f.length / 2 * this.rad_per_bp);
@@ -382,9 +434,9 @@ $.widget("ui.designer", {
 		for(var i in this.fragments)
 		{
 			var f = this.fragments[i];
-			if( (theta > f.start) && (theta < f.end))
+			if( is_in(f.start, f.end, theta) == 0)
 			{
-				return i;
+				return parseInt(i);
 			}
 		}
 		return -1;
@@ -441,11 +493,14 @@ $.widget("ui.designer", {
 								var f = this.fragments[selected];
 								f.highlight = false;
 								f.reordering = true;
-								f.handle_angle = this._mdown_pos.theta - f.center;
-								f.reorder_pos = f.center;
+								f.handle_angle = this._mdown_pos.theta - f.center();
+								f.reorder_pos = f.center();
 								document.body.style.cursor = 'move';
+								
 								this._redraw();
 							}
+							else
+								console.log('Error initting reordering: selected = ' + selected);
 						}
 					}
 				}
@@ -467,9 +522,28 @@ $.widget("ui.designer", {
 					if(f.reordering)
 					{
 						f.reorder_pos = pos.theta - f.handle_angle;
-						//check for reordering
 						
-						 
+						//check for reordering
+						var n = i + 1;
+						var p = i - 1;
+						if(n >= this.fragments.length) n = 0;
+						if(p < 0) p = this.fragments.length - 1;
+						
+						var next = this.fragments[n].center();
+						var prev = this.fragments[p].center();
+						
+						switch( is_in(prev, next, f.reorder_pos) )
+						{
+							case -1:
+								this._swap_fragments(p, i);
+								break;
+							case 1:
+								this._swap_fragments(i, n);
+								break;
+							default:
+								break;
+						}
+						
 						this._redraw();
 					}
 				}
