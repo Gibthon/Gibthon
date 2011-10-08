@@ -40,7 +40,6 @@ $.widget("ui.fragmentDrag", {
 	_addFragment: function(f)
 	{
 		var desc = f.desc.replace(/'/g, '"');
-		console.log(desc);
 		var $f = $("<div id='frag_" + f.id + "' class='fragment ui-widget ui-state-default ui-corner-all' title='" + desc + "' ><span class='fragment_name'>" + f.name + "</span></div>");
 		this.$fragments.push($f.draggable({ 
 			revert: true,

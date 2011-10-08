@@ -96,7 +96,6 @@ $.widget("ui.designer", {
 		clickTime: 250,
 	},
 	_init: function(){
-		console.log('ui.designer._init();');
 		//this._redraw();
 	},
 	_create: function(){
@@ -138,7 +137,7 @@ $.widget("ui.designer", {
 				console.log('could not get initial fragments: ' + data[1]);
 				return;
 			}
-			console.log('adding initial fragments');
+
 			for(var i in data[1])
 			{
 				self.addFragment(data[1][i], false, false);
@@ -484,7 +483,6 @@ $.widget("ui.designer", {
 						//if this is too long to be a click
 						if((event.timeStamp - this._mdown_time) > this.options.clickTime)
 						{
-							console.log('init reordering');
 							//start reordering
 							var selected = this._get_selected_fragment(this._mdown_pos.theta);
 							if(selected >= 0)
@@ -532,7 +530,7 @@ $.widget("ui.designer", {
 						var next = this.fragments[n].center();
 						var prev = this.fragments[p].center();
 						
-						switch( is_in(prev, next, f.reorder_pos) )
+						switch( is_in(prev, next, pos.theta) )
 						{
 							case -1:
 								this._swap_fragments(p, i);
