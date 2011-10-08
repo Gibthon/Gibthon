@@ -416,6 +416,17 @@ $.widget("ui.designer", {
 		if((end - p) < angular_length)
 			this.ctx.arc(x,y,radius, p, end);
 	},
+	_update_order: function()
+	{
+		var order = new Array();
+		for(i in this.fragments)
+		{
+			order.push(this.fragments[i].id);
+		}
+		$.getJSON('saveOrder/', {'order[]': order,}, function(data) {
+			$('#status').text(data[1].modified);
+		});
+	},
 /* ----------------------------- MOUSE FUNCTIONS --------------------------------------- */
 	_get_xy: function(event) {
 		var offset = this.$canvas.offset();
@@ -565,8 +576,9 @@ $.widget("ui.designer", {
 				console.log('show info on fragments['+i+']');
 			}
 		}
-		else
+		else if(this.state != STATE_NORMAL)
 		{
+			this._update_order();
 			this.state = STATE_NORMAL;
 			document.body.style.cursor = 'default';
 			for(i in this.fragments)

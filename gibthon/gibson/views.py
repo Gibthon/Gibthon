@@ -318,25 +318,24 @@ def fragment_delete(request, cid, cfid):
 		return HttpResponseNotFound()
 
 @login_required
-def save(request, cid):
+def save_order(request, cid):
 	con = get_construct(request.user, cid)
-	if request.method == 'POST' and con:
-		t = loader.get_template('gibson/date.html')
+	if request.method == 'POST':
 		order = request.POST.getlist('order[]')
-		feature_select = request.POST.getlist('feature_select[]')
-		direction = request.POST.getlist('direction[]')
-		for i,cff in enumerate(zip(order,feature_select,direction)):
-			[cfid,fids, d] = cff
-			cf = ConstructFragment.objects.get(pk=cfid)
+	if request.method == 'GET':
+		order = request.GET.getlist('order[]')
+	if con and order:
+		for i,fid in enumerate(order):
+			cf = con.cf.get(fragment__id=fid)
 			cf.order = i
-			[fsid, feid] = fids.split(',')
-			cf.start_feature = Feature.objects.get(pk=fsid)
-			cf.end_feature = Feature.objects.get(pk=feid)
-			cf.direction = d
 			cf.save()
 		con.save()
-		c = RequestContext(request,{'date':con.modified})
-		return HttpResponse(t.render(c))
+		if not request.is_ajax():
+			t = loader.get_template('gibson/date.html')
+			c = RequestContext(request,{'date':con.modified,})
+			return HttpResponse(t.render(c))
+		else:
+			return JsonResponse({'modified': con.last_modified(),});
 	else:
 		return HttpResponseNotFound()
 		
