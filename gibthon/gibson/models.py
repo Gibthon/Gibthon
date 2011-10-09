@@ -377,10 +377,7 @@ class Construct(models.Model):
 	def add_fragment(self, fragment):
 		o = len(self.fragments.all())
 		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction='f', start_feature=fragment.features.all()[0], end_feature=fragment.features.all()[0], start_offset=0, end_offset=0)
-		if cf:
-			return True
-		else:
-			return False
+		return cf
 		
 	def process(self, reset=True, new=True):
 		if new:

@@ -140,7 +140,6 @@ def load_primer(request, cid, pid):
 		
 @login_required
 def primers(request, cid):
-	print "primers %s" % cid
 	con = get_construct(request.user, cid)
 	if con and len(con.primer.all()) == 2*len(con.cf.all()) and len(con.primer.all()) > 0:
 		t = loader.get_template('gibson/primers.html')
@@ -243,7 +242,7 @@ def construct_fragment(request, cid):
 		return HttpResponse(t.render(c))
 	if con and request.is_ajax():
 		cf_list = con.cf.all()
-		frag_list = [cf.fragment.id for cf in cf_list]
+		frag_list = [{'fid':cf.fragment.id, 'cfid': cf.id, 'name':cf.fragment.name, 'desc': cf.fragment.description, 'length':len(cf.fragment.sequence),} for cf in cf_list]
 		return JsonResponse(frag_list)
 		
 	return HttpResponseNotFound()
@@ -294,10 +293,15 @@ def fragment_add(request, cid, fid):
 	if con:
 		f = get_fragment(request.user, fid)
 		if f:
-			con.add_fragment(f)
-			if request.is_ajax():
-				return JsonResponse('OK')
-			return HttpResponseRedirect('/gibthon/%s/' % cid)
+			cf = con.add_fragment(f)
+			if cf:
+				if request.is_ajax():
+					return JsonResponse(cf.id)
+				return HttpResponseRedirect('/gibthon/%s/' % cid)
+			else:
+				if request.is_ajax():
+					return JsonResponse('Could not add fragment %s to construct %s' % (fid, cid))
+				raise Http404
 		else:
 			if request.is_ajax():
 				return JsonResponse('Could not find fragment "%s"' % fid, ERROR)
@@ -319,25 +323,29 @@ def fragment_delete(request, cid, cfid):
 
 @login_required
 def save_order(request, cid):
-	con = get_construct(request.user, cid)
-	if request.method == 'POST':
-		order = request.POST.getlist('order[]')
-	if request.method == 'GET':
-		order = request.GET.getlist('order[]')
-	if con and order:
-		for i,fid in enumerate(order):
-			cf = con.cf.get(fragment__id=fid)
-			cf.order = i
-			cf.save()
-		con.save()
-		if not request.is_ajax():
-			t = loader.get_template('gibson/date.html')
-			c = RequestContext(request,{'date':con.modified,})
-			return HttpResponse(t.render(c))
+	try:
+		con = get_construct(request.user, cid)
+		if request.method == 'POST':
+			order = request.POST.getlist('order[]')
+		if request.method == 'GET':
+			order = request.GET.getlist('order[]')
+		if con and order:
+			for i,cfid in enumerate(order):
+				cf = con.cf.get(id=cfid)
+				cf.order = i
+				cf.save()
+			con.save()
+			if not request.is_ajax():
+				t = loader.get_template('gibson/date.html')
+				c = RequestContext(request,{'date':con.modified,})
+				return HttpResponse(t.render(c))
+			else:
+				return JsonResponse({'modified': con.last_modified(),});
 		else:
-			return JsonResponse({'modified': con.last_modified(),});
-	else:
-		return HttpResponseNotFound()
+			return HttpResponseNotFound()
+	except Exception as e:
+		print 'Error: %s' % (e.message)
+	raise Http404
 		
 @login_required
 def summary(request, cid):

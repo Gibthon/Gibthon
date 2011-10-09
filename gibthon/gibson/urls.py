@@ -31,6 +31,7 @@ urlpatterns = patterns('gibson.views',
 	(r'^(?P<cid>\d+)/process/$', 'process'),
 	(r'^(?P<cid>\d+)/addFragment/(?P<fid>\d+)/$', 'fragment_add'),
 	(r'^(?P<cid>\d+)/saveOrder/$', 'save_order'),
+	(r'^(?P<cid>\d+)/summary/$', 'summary'),
 	(r'^(?P<cid>\d+)/primers/', include(primerpatterns)),
 	(r'^(?P<cid>\d+)/', include(constructpatterns)),
 )

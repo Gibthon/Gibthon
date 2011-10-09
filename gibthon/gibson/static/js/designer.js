@@ -105,39 +105,48 @@ var is_in = function(lower, higher, angle)
 	return 1; //closer to higher
 }
 
-function Fragment(id)
+function Fragment(data)
 {
+	console.log('Fragment(data)');
+	for(i in data)
+		console.log('  data.' + i + ' = ' + data[i]);
+	
 	var self = this;
-	this.id = id;
+	this.id = data.fid;
+	this.cfid = data.cfid;
+	this.name = data.name;
+	this.desc = data.desc;
+	this.length = data.length;
+		
+	/* Layout / Postitioning based */
 	this.start = 0; //the start angle of the fragment
 	this.end = 0;
-	this.length = 0;
-	
-	this.center = get_center;
-	
+	this.center = function() { return (self.start + self.end) / 2.0; };
 	this.color = get_col();
-	var url = '/fragment/get/' + id + '/?value=meta';
+	console.log('Fragment generated colour: ' + this.color);
+	
+	
 	this.highlight = false;
+	
 	this.reordering = false;
 	this.handle_angle = 0; //the offset from the center of the fragment where the mouse originally clicked
 	this.reorder_pos = 0;
-	$.ajax({
-	  url: url,
-	  dataType: 'json',
-	  async: false,
-	  success: function(data)
-	  {
-		  self.name = data[1].name;
-		  self.desc = data[1].desc;
-		  self.length = data[1].length;
-	  }
-	});
+	return this;
 }
 
-function get_center()
+function get_fragment_from_id(id)
 {
-		return (this.start + this.end) / 2.0;
-};
+	var url = '/fragment/get/' + id + '/?value=meta';
+	$.ajax({
+		url: url,
+		dataType: 'json',
+		async: false,
+		success: function(data)
+		{
+		  return new Fragment(data)
+		}
+	});
+}
 
 $.widget("ui.designer", {
 	options: {
@@ -198,8 +207,9 @@ $.widget("ui.designer", {
 
 			for(var i in data[1])
 			{
-				self.addFragment(data[1][i], false, false);
+				self._add_fragment(new Fragment(data[1][i]));
 			}
+			self._layout_fragments();
 			self._redraw();
 		});
 
@@ -225,16 +235,19 @@ $.widget("ui.designer", {
 		id = parseInt(id);
 		if( isNaN(id) ) return;
 		
-		var f = new Fragment(id);
-		this.fragments.push(f);
-		this.length = this.length + f.length;
-		this.rad_per_bp = 2 * Math.PI / (this.length);
+		var f = get_fragment_from_id(id);
+		this._add_fragment(f);
 		
 		if(tell_server)
 		{
 			$.getJSON('addFragment/' + id + '/', [], function(data) {
 				if(data[0] != 0)
 					console.log('Error while adding fragment: ' + data[1]);
+				else
+				{
+					console.log('addFragment: cfid came back as: ' + data[1]);
+					f.cfid = data.cfid;
+				}
 			});
 		}
 		
@@ -246,6 +259,15 @@ $.widget("ui.designer", {
 	changeName: function(new_name){
 		this.name = new_name;
 		this._redraw();
+	},
+	_add_fragment: function(fragment)
+	{
+		if(fragment != undefined)
+		{
+			this.fragments.push(fragment);
+			this.length = this.length + fragment.length;
+			this.rad_per_bp = 2 * Math.PI / (this.length);
+		}
 	},
 	_swap_fragments: function(a, b) //assume that a is the fragment before b
 	{
@@ -479,7 +501,7 @@ $.widget("ui.designer", {
 		var order = new Array();
 		for(i in this.fragments)
 		{
-			order.push(this.fragments[i].id);
+			order.push(this.fragments[i].cfid);
 		}
 		$.getJSON('saveOrder/', {'order[]': order,}, function(data) {
 			$('#status').text(data[1].modified);
