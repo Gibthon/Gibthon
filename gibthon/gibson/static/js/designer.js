@@ -121,9 +121,7 @@ function Fragment(data)
 	this.start = 0; //the start angle of the fragment
 	this.end = 0;
 	this.center = function() { return (self.start + self.end) / 2.0; };
-	this.color = get_col();
-	console.log('Fragment generated colour: ' + this.color);
-	
+	this.color = get_col();	
 	
 	this.highlight = false;
 	
@@ -227,6 +225,16 @@ $.widget("ui.designer", {
 		this._mdown_time = 0;
 		this._mdown_pos = {r:0, theta: 0,};
 		this._mouse_over = -1; //which fragment is the mouse over? -1 = none
+		
+		/*Add the info box*/
+		this.$info = $('' + 
+		'<div class="fragment-info">' + 
+			'<div class="fragment-data ui-corner-all">' +
+				'<h3 id="fragment_name"></h3>' + 
+				'<p id="fragment_desc"></p>' + 
+			'</div>' +
+			'<div class="fragment-pointer"></div>' + 
+		'</div>').insertAfter(this.$canvas);
 		
 	},
 // ------------------------------------------------------------------------------------ PUBLIC API
@@ -537,7 +545,15 @@ $.widget("ui.designer", {
 		this._update = true;
 	},
 	_fragment_click: function(f, pos) { //called when the user clicks on a fragment
-
+		this.$info.find('#fragment_name').text(this.fragments[f].name);
+		this.$info.find('#fragment_desc').text(this.fragments[f].desc);
+		
+		var ang = this.fragments[f].center();
+		var x = this.cx + this.p_radius * Math.cos(ang) - 35;
+		var y = this.cy + this.p_radius * Math.sin(ang) - (this.$info.height() + 16);
+		
+		this.$info.css({'left': x, 'top':y});
+		this.$info.fadeIn(100);
 	},
 	_fragment_init_drag: function(sel, pos) {
 		this.state = STATE_REORDER;

@@ -61,3 +61,25 @@ tr.settings-alt
 	font-weight: bold;
 	cursor: move;
 }
+.fragment-info
+{
+	position: absolute;
+	display: none;
+}
+.fragment-data
+{
+	background-image: url(images/info_bk.png);
+	min-width: 10em;
+	max-width: 20em;
+	min-height: 5em;
+	border: 1px solid #7b7b7b;
+}
+.fragment-pointer
+{
+	width: 31px;
+	height: 16px;
+	background-image: url(images/info_pointer.png);
+	position: absolute;
+	left: 20px;
+	bottom: -15px;
+}
