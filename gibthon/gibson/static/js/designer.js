@@ -105,12 +105,11 @@ var is_in = function(lower, higher, angle)
 	return 1; //closer to higher
 }
 
+/*
+ * Contain all the information needed for fragment display
+ * */
 function Fragment(data)
-{
-	console.log('Fragment(data)');
-	for(i in data)
-		console.log('  data.' + i + ' = ' + data[i]);
-	
+{	
 	var self = this;
 	this.id = data.fid;
 	this.cfid = data.cfid;
@@ -134,6 +133,9 @@ function Fragment(data)
 	return this;
 }
 
+/*
+ * Fetch info on a fragment from the server
+ * */
 function get_fragment_from_id(id)
 {
 	var url = '/fragment/get/' + id + '/?value=meta';
@@ -213,7 +215,7 @@ $.widget("ui.designer", {
 			self._redraw();
 		});
 
-		this._redraw();
+		this._update = true; //should the whole thing be redrawn?
 		
 		/* Mouse things*/
 		this.$canvas.mousemove( function(event) { self._mouse_move(event); });
@@ -224,10 +226,10 @@ $.widget("ui.designer", {
 		this._mdown = false;
 		this._mdown_time = 0;
 		this._mdown_pos = {r:0, theta: 0,};
-		
-		this._num_highlit = 0;
+		this._mouse_over = -1; //which fragment is the mouse over? -1 = none
 		
 	},
+// ------------------------------------------------------------------------------------ PUBLIC API
 	addFragment: function(id, tell_server, redraw){
 		if(id == undefined) return;
 		if(tell_server == undefined) tell_server = true;
@@ -252,7 +254,6 @@ $.widget("ui.designer", {
 		}
 		
 		this._layout_fragments();
-		
 		if(redraw)
 			this._redraw();
 	},
@@ -260,6 +261,10 @@ $.widget("ui.designer", {
 		this.name = new_name;
 		this._redraw();
 	},
+// ---------------------------------------------------------------------------------- PRIVATE API
+/*
+ *  ----------------------------- Fragment manipulation -----------------------------
+ * */
 	_add_fragment: function(fragment)
 	{
 		if(fragment != undefined)
@@ -267,6 +272,7 @@ $.widget("ui.designer", {
 			this.fragments.push(fragment);
 			this.length = this.length + fragment.length;
 			this.rad_per_bp = 2 * Math.PI / (this.length);
+			this._update = true;
 		}
 	},
 	_swap_fragments: function(a, b) //assume that a is the fragment before b
@@ -284,29 +290,31 @@ $.widget("ui.designer", {
 		
 		this._redraw();
 	},
-	_update_layout: function() {
-		this.width = $(this.canvas).width();
-		this.height = $(this.canvas).height();
-		$(this.canvas).attr('height', this.height).attr('width', this.width);
-		
-		this.cx = this.width / 2;
-		this.cy = this.height / 2;
-		
-		this.p_radius = Math.min(this.width * ( 1 - 2 * this.options.labelAreaWidth), this.height) * 0.4;
-		this.p_thickness = this.p_radius * 0.1;
-		this.outer_radius = this.p_radius + 1.5 * this.p_thickness;
-		
-		this.la_width = this.width * this.options.labelAreaWidth;
-		this.ll_up = this.cy - this.p_radius * 0.7071;
-		this.ll_down = this.cy + this.p_radius * 0.7071;
+	_update_order: function(){ //let the server know that the order changed
+		var order = new Array();
+		for(i in this.fragments)
+		{
+			order.push(this.fragments[i].cfid);
+		}
+		$.getJSON('saveOrder/', {'order[]': order,}, function(data) {
+			$('#status').text(data[1].modified);
+		});
 	},
+/*
+ * ----------------------------- Drawing -----------------------------
+ * */
 	_redraw: function(){
-		this.ctx.clearRect(0,0,this.width, this.height);
-		this._draw_title();	
-		this._draw_plasmid();
-		
-		if(this.state == STATE_NORMAL)
-			this._draw_labels();
+		if(this._update)
+		{
+			this.ctx.clearRect(0,0,this.width, this.height);
+			this._draw_title();	
+			this._draw_plasmid();
+			
+			if(this.state == STATE_NORMAL)
+				this._draw_labels();
+				
+			this._update = false;
+		}
 	},
 	_draw_title: function(){
 		this.ctx.fillStyle = this.options.titleColour;
@@ -433,17 +441,6 @@ $.widget("ui.designer", {
 		
 		this.ctx.restore();
 	},
-	_layout_fragments: function() //layout the fragments in their order
-	{
-		var pos = 0;
-		for(var f_id in this.fragments)
-		{
-			var f = this.fragments[f_id];
-			f.start = pos * this.rad_per_bp;
-			pos = pos + f.length;
-			f.end = pos * this.rad_per_bp;
-		}
-	},
 	_draw_fragment: function(f_id){	
 		var f = this.fragments[f_id];
 		this.ctx.save();
@@ -496,18 +493,107 @@ $.widget("ui.designer", {
 		if((end - p) < angular_length)
 			this.ctx.arc(x,y,radius, p, end);
 	},
-	_update_order: function()
+/*
+ * ----------------------------- Layout -----------------------------
+ * */
+	_update_layout: function() {
+		this.width = $(this.canvas).width();
+		this.height = $(this.canvas).height();
+		$(this.canvas).attr('height', this.height).attr('width', this.width);
+		
+		this.cx = this.width / 2;
+		this.cy = this.height / 2;
+		
+		this.p_radius = Math.min(this.width * ( 1 - 2 * this.options.labelAreaWidth), this.height) * 0.4;
+		this.p_thickness = this.p_radius * 0.1;
+		this.outer_radius = this.p_radius + 1.5 * this.p_thickness;
+		
+		this.la_width = this.width * this.options.labelAreaWidth;
+		this.ll_up = this.cy - this.p_radius * 0.7071;
+		this.ll_down = this.cy + this.p_radius * 0.7071;
+	},
+	_layout_fragments: function() //layout the fragments in their order
 	{
-		var order = new Array();
+		var pos = 0;
+		for(var f_id in this.fragments)
+		{
+			var f = this.fragments[f_id];
+			f.start = pos * this.rad_per_bp;
+			pos = pos + f.length;
+			f.end = pos * this.rad_per_bp;
+		}
+	},
+/*
+ * ----------------------------- INTERACTION CALLBACKS -----------------------------
+ * */
+	_fragment_enter: function(f, pos) { //called when the mouse enters a fragment
+		this.fragments[f].highlight = true;
+		this._set_cursor('pointer');
+		this._update = true;
+	},
+	_fragment_leave: function(f, pos) { //called when the mouse leaves a fragment
+		this.fragments[f].highlight = false;
+		this._set_cursor();
+		this._update = true;
+	},
+	_fragment_click: function(f, pos) { //called when the user clicks on a fragment
+
+	},
+	_fragment_init_drag: function(sel, pos) {
+		this.state = STATE_REORDER;
+		var f = this.fragments[sel];
+		f.highlight = false;
+		f.reordering = true;
+		f.handle_angle = this._mdown_pos.theta - f.center();
+		f.reorder_pos = f.center();
+		this._set_cursor('move');
+		this._updated = true;
+	},
+	_fragment_drag: function(pos) {
 		for(i in this.fragments)
 		{
-			order.push(this.fragments[i].cfid);
+			i = parseInt(i);
+			var f = this.fragments[i];
+			if(f.reordering)
+			{
+				f.reorder_pos = pos.theta - f.handle_angle;
+				
+				//check for reordering
+				var n = i + 1;
+				var p = i - 1;
+				if(n >= this.fragments.length) n = 0;
+				if(p < 0) p = this.fragments.length - 1;
+				
+				var next = this.fragments[n].center();
+				var prev = this.fragments[p].center();
+				
+				switch( is_in(prev, next, pos.theta) )
+				{
+					case -1:
+						this._swap_fragments(p, i);
+						break;
+					case 1:
+						this._swap_fragments(i, n);
+						break;
+					default:
+						break;
+				}
+				
+				this._update = true;
+			}
 		}
-		$.getJSON('saveOrder/', {'order[]': order,}, function(data) {
-			$('#status').text(data[1].modified);
-		});
 	},
-/* ----------------------------- MOUSE FUNCTIONS --------------------------------------- */
+	_fragment_end_drag: function(f, pos) {
+		this._update_order();
+		this.state = STATE_NORMAL;
+		this._set_cursor();
+		for(i in this.fragments)
+			this.fragments[i].reordering = false;
+		this._updated = true;
+	},
+/* 
+ * ----------------------------- MOUSE FUNCTIONS -----------------------------
+ * */
 	_get_xy: function(event) {
 		var offset = this.$canvas.offset();
 		return {x: event.pageX - offset.left, y: event.pageY - offset.top};
@@ -520,6 +606,10 @@ $.widget("ui.designer", {
 		if( t < 0) t = 2 * Math.PI + t;
 		return {r: Math.sqrt(x*x + y*y), theta: t};
 	},
+	_set_cursor: function(cursor) {
+		if(cursor == undefined) cursor = 'default';
+		document.body.style.cursor = cursor;
+	},
 	_get_selected_fragment: function(theta) { //given theta, find which fragment is moused over
 		for(var i in this.fragments)
 		{
@@ -531,7 +621,7 @@ $.widget("ui.designer", {
 		}
 		return -1;
 	},
-	_is_in_plasmid: function(r)
+	_is_in_plasmid: function(r) //is the mouse within the fragment?
 	{
 		return (r > (this.p_radius - this.p_thickness/2)) && (r < (this.p_radius + this.p_thickness/2));
 	},
@@ -544,30 +634,15 @@ $.widget("ui.designer", {
 				{
 					if(!this._mdown)
 					{
-						var redraw = false;
-						var selected = this._get_selected_fragment(pos.theta);
-						for(i in this.fragments)
+						//Mouse is not down and the mouse is in a fragment
+						var f = this._get_selected_fragment(pos.theta);
+						if( f < 0 ) throw ('_get_selected_fragment(' + pos.theta + ') returned "' + f + '"');
+						if( this._mouse_over != f )
 						{
-							if(i == selected)
-							{
-								if(!this.fragments[i].highlight)
-								{
-									this.fragments[i].highlight = true;
-									redraw = true;
-								}
-							}
-							else
-							{
-								if(this.fragments[i].highlight)
-								{
-									this.fragments[i].highlight = false;
-									redraw = true;
-								}
-							}
+							if(this._mouse_over >= 0) this._fragment_leave(this._mouse_over);
+							this._mouse_over = f;
+							if(f >= 0) this._fragment_enter(f);
 						}
-						if(redraw)
-							this._redraw();
-						this._num_highlit = 1;
 					}
 					else
 					{
@@ -578,67 +653,26 @@ $.widget("ui.designer", {
 							var selected = this._get_selected_fragment(this._mdown_pos.theta);
 							if(selected >= 0)
 							{
-								this.state = STATE_REORDER;
-								var f = this.fragments[selected];
-								f.highlight = false;
-								f.reordering = true;
-								f.handle_angle = this._mdown_pos.theta - f.center();
-								f.reorder_pos = f.center();
-								document.body.style.cursor = 'move';
-								
-								this._redraw();
+								this._fragment_init_drag(selected);
 							}
 							else
-								console.log('Error initting reordering: selected = ' + selected);
+								throw ('Error initting reordering: selected = ' + selected);
 						}
 					}
 				}
-				else if(this._num_highlit > 0)
+				else if(this._mouse_over >= 0)
 				{
-					for(var i in this.fragments)
-						this.fragments[i].highlight = false;
-					this._num_highlit = 0;
-					this._redraw();
+					this._fragment_leave(this._mouse_over);
+					this._mouse_over = -1;
 				}
 				break;
 			
 			case STATE_REORDER:
 				//handle dragging
-				for(i in this.fragments)
-				{
-					i = parseInt(i);
-					var f = this.fragments[i];
-					if(f.reordering)
-					{
-						f.reorder_pos = pos.theta - f.handle_angle;
-						
-						//check for reordering
-						var n = i + 1;
-						var p = i - 1;
-						if(n >= this.fragments.length) n = 0;
-						if(p < 0) p = this.fragments.length - 1;
-						
-						var next = this.fragments[n].center();
-						var prev = this.fragments[p].center();
-						
-						switch( is_in(prev, next, pos.theta) )
-						{
-							case -1:
-								this._swap_fragments(p, i);
-								break;
-							case 1:
-								this._swap_fragments(i, n);
-								break;
-							default:
-								break;
-						}
-						
-						this._redraw();
-					}
-				}
+				this._fragment_drag(pos);
 				break;
 		}
-		
+		this._redraw();
 	},
 	_mouse_down: function(event){
 		this._mdown_pos = this._get_rtheta(event);
@@ -653,16 +687,13 @@ $.widget("ui.designer", {
 			if(this._is_in_plasmid(pos.r))
 			{
 				var i = this._get_selected_fragment(pos.theta);
-				console.log('show info on fragments['+i+']');
+				if( i < 0 ) throw 'this._get_selected_fragment(' + pos.theta + ') returned ' + i;
+				this._fragment_click(i);
 			}
 		}
 		else if(this.state != STATE_NORMAL)
 		{
-			this._update_order();
-			this.state = STATE_NORMAL;
-			document.body.style.cursor = 'default';
-			for(i in this.fragments)
-				this.fragments[i].reordering = false;
+			this._fragment_end_drag();
 			this._redraw();
 		}
 		
