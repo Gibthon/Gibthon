@@ -70,7 +70,8 @@ def get_meta(g, request):
 	return JsonResponse({	'name': g.name,
 							'desc': g.description,
 							'origin': g.get_origin_display(),
-							'length': len(g.sequence)
+							'length': len(g.sequence),
+							'fid': g.id,
 						})
 
 def get_seq_meta(g, request):

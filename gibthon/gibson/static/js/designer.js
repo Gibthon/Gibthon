@@ -137,15 +137,23 @@ function Fragment(data)
 function get_fragment_from_id(id)
 {
 	var url = '/fragment/get/' + id + '/?value=meta';
+	var f;
 	$.ajax({
 		url: url,
 		dataType: 'json',
 		async: false,
 		success: function(data)
 		{
-		  return new Fragment(data)
+			if(data[0] != 0)
+			{
+				throw 'Error while getting fragment data: ' + data[1];
+			}
+			f = new Fragment(data[1]);
+			for(var z in f)
+			return f;
 		}
 	});
+	return f;
 }
 
 $.widget("ui.designer", {
@@ -227,18 +235,23 @@ $.widget("ui.designer", {
 		this._mouse_over = -1; //which fragment is the mouse over? -1 = none
 		
 		/*Add the info box*/
-		this.$info = $('' + 
-		'<div class="fragment-info">' + 
-			'<div class="fragment-data ui-corner-all">' +
-				'<h3 id="fragment_name"></h3>' + 
-				'<p id="fragment_desc"></p>' + 
-			'</div>' +
-			'<div class="fragment-pointer"></div>' + 
-		'</div>').insertAfter(this.$canvas);
-		
+		this.$info = this.$canvas.next('.fragment-info');
+		this.$info.find('#fragment_clip').button({
+			icons: {primary: 'ui-icon-scissors'},
+			disabled: true,
+		});
+		this.$info.find('#fragment_remove').button({
+			icons: {primary: 'ui-icon-trash'},
+		}).click( function() {
+			var f = parseInt(self.$info.attr('fragment'));
+			self._remove_fragment(f);
+			self.$info.hide();
+			self._redraw();
+		});
 	},
 // ------------------------------------------------------------------------------------ PUBLIC API
 	addFragment: function(id, tell_server, redraw){
+		var self = this;
 		if(id == undefined) return;
 		if(tell_server == undefined) tell_server = true;
 		if(redraw == undefined) redraw = true;
@@ -246,22 +259,21 @@ $.widget("ui.designer", {
 		if( isNaN(id) ) return;
 		
 		var f = get_fragment_from_id(id);
-		this._add_fragment(f);
 		
+		var fid = this._add_fragment(f);
+
 		if(tell_server)
 		{
 			$.getJSON('addFragment/' + id + '/', [], function(data) {
 				if(data[0] != 0)
-					console.log('Error while adding fragment: ' + data[1]);
+					throw ('Error while adding fragment: ' + data[1]);
 				else
 				{
-					console.log('addFragment: cfid came back as: ' + data[1]);
-					f.cfid = data.cfid;
+					self.fragments[fid].cfid = data[1].cfid;
 				}
 			});
 		}
 		
-		this._layout_fragments();
 		if(redraw)
 			this._redraw();
 	},
@@ -281,7 +293,23 @@ $.widget("ui.designer", {
 			this.length = this.length + fragment.length;
 			this.rad_per_bp = 2 * Math.PI / (this.length);
 			this._update = true;
+			this._layout_fragments();
+			return (this.fragments.length -1);
 		}
+		return -1;
+	},
+	_remove_fragment: function(fid){
+		if(fid < 0) return;
+		this.length = this.length - this.fragments[fid].length;
+		this.rad_per_bp = PI2 / (this.length);
+		
+		$.getJSON('removeFragment/' + this.fragments[fid].cfid + '/', function(data) {
+			if(data[0] != 0)
+				alert('Error while removing fragment: ' + data[1]);
+		});
+		this.fragments.splice(fid, 1);
+		this._update = true;
+		this._layout_fragments();
 	},
 	_swap_fragments: function(a, b) //assume that a is the fragment before b
 	{
@@ -462,7 +490,7 @@ $.widget("ui.designer", {
 		var r = this.p_radius;
 		var s = f.start;
 		var e = f.end;
-//		console.log('Draw Fragment( |' + f.start + '----' + f.desc + '----' + f.end + '|');
+
 		if(f.reordering)
 		{
 			this._draw_blank(s, e);
@@ -522,7 +550,9 @@ $.widget("ui.designer", {
 	},
 	_layout_fragments: function() //layout the fragments in their order
 	{
-		var pos = 0;
+		if(this.fragments.length < 1) return;
+		var pos = this.fragments[0].start;
+		
 		for(var f_id in this.fragments)
 		{
 			var f = this.fragments[f_id];
@@ -547,15 +577,20 @@ $.widget("ui.designer", {
 	_fragment_click: function(f, pos) { //called when the user clicks on a fragment
 		this.$info.find('#fragment_name').text(this.fragments[f].name);
 		this.$info.find('#fragment_desc').text(this.fragments[f].desc);
+		this.$info.attr('fragment', f);
 		
 		var ang = this.fragments[f].center();
 		var x = this.cx + this.p_radius * Math.cos(ang) - 35;
 		var y = this.cy + this.p_radius * Math.sin(ang) - (this.$info.height() + 16);
 		
 		this.$info.css({'left': x, 'top':y});
-		this.$info.fadeIn(100);
+		this.$info.show();
+	},
+	_click: function(pos) { //called when a region which isn't a fragment is clicked
+		this.$info.hide();
 	},
 	_fragment_init_drag: function(sel, pos) {
+		this.$info.hide();
 		this.state = STATE_REORDER;
 		var f = this.fragments[sel];
 		f.highlight = false;
@@ -704,7 +739,13 @@ $.widget("ui.designer", {
 			{
 				var i = this._get_selected_fragment(pos.theta);
 				if( i < 0 ) throw 'this._get_selected_fragment(' + pos.theta + ') returned ' + i;
-				this._fragment_click(i);
+				this._fragment_click(i, pos);
+				this._redraw();
+			}
+			else
+			{
+				this._click(pos);
+				this._redraw();
 			}
 		}
 		else if(this.state != STATE_NORMAL)

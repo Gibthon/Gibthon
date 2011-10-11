@@ -296,7 +296,7 @@ def fragment_add(request, cid, fid):
 			cf = con.add_fragment(f)
 			if cf:
 				if request.is_ajax():
-					return JsonResponse(cf.id)
+					return JsonResponse({'fid': fid, 'cfid': cf.id,})
 				return HttpResponseRedirect('/gibthon/%s/' % cid)
 			else:
 				if request.is_ajax():
@@ -314,11 +314,18 @@ def fragment_delete(request, cid, cfid):
 	con = get_construct(request.user, cid)
 	if con:
 		try: cf = ConstructFragment.objects.get(id=cfid)
-		except ObjectDoesNotExist: return HttpResponseNotFound()
+		except ObjectDoesNotExist: 
+			if request.is_ajax():
+				return JsonResponse('No such constructFragment ' + cfid, ERROR)
+			return HttpResponseNotFound()
 		else:
 			cf.delete()
+			if request.is_ajax():
+				return JsonResponse('OK');
 			return HttpResponse("OK")
 	else:
+		if request.is_ajax():
+			return JsonResponse('No such Construct ' + cid, ERROR)
 		return HttpResponseNotFound()
 
 @login_required

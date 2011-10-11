@@ -73,6 +73,7 @@ tr.settings-alt
 	max-width: 20em;
 	min-height: 5em;
 	border: 1px solid #7b7b7b;
+	padding: 0.5em;
 }
 .fragment-pointer
 {
