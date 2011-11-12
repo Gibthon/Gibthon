@@ -279,6 +279,7 @@ $.widget("ui.designer", {
 	},
 	changeName: function(new_name){
 		this.name = new_name;
+		this._update = true;
 		this._redraw();
 	},
 // ---------------------------------------------------------------------------------- PRIVATE API
@@ -346,8 +347,7 @@ $.widget("ui.designer", {
 			this._draw_title();	
 			this._draw_plasmid();
 			
-			if(this.state == STATE_NORMAL)
-				this._draw_labels();
+			this._draw_labels();
 				
 			this._update = false;
 		}
