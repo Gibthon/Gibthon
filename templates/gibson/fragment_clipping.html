@@ -1,0 +1,99 @@
+<div id='clipbox'>
+	<style type="text/css">
+		#clipbox {
+			width:100%;
+		}
+		.clip_save {
+			margin: 0.5em 0.2em;
+		}
+		form.clip_form {
+			margin: 0.5em 0.2em;
+		}
+		.clip_div {
+			float:left;
+			width:50%;
+			padding:0;
+			margin:0;
+			text-align:center;
+		}
+		.clip_split {
+			background-color: lightgrey;
+			width:1px;
+			position:absolute;
+			margin-left:50%;
+			margin-right:50%;
+			height:100%;
+		}
+		.clip_div_contents {
+			text-align:left;
+			display:inline-block;
+		}
+		.clip_options {
+			margin-top: 0.5em;
+		}
+		.clip_radio_opts {
+			padding-left: 3em;
+		}
+		.clip_radio_opts > * {
+			display:inline-block;
+		}
+		.clip_bases:after {
+			content:'bp';
+		}
+	</style>
+	<div class='clip_save'>
+		<button class='clip_save'>Save</button>
+	</div>
+	<form class='clip_form' action='' method='post'>
+		<div style='position:relative;'>
+			<div class='clip_div'>
+				<div class='clip_div_contents'>
+					<h4 class='clip_from_to'>From</h4>
+					<div class='clip_options'>
+						<input type='radio' name='from_type' value='absolute' {%if from_absolute%}checked='true'{%endif%} /> <label for='absolute'>Absolute</label>
+						<div class='clip_radio_opts'>
+							<span class='clip_bases'><input size='5' type='text' name='from_abs' value='0'></input></span>
+						</div>
+						<input type='radio' name='from_type' value='relative' {%if not from_absolute%}checked='true'{%endif%} /> <label for='relative'>Relative to start of</label>
+						<div class='clip_radio_opts'>
+							<select class='clip_feature_select' name='start_feat'>
+								{%for feature in feature_list%}
+								<option value='{{ feature.id }}' >{{ feature.pretty }}</option>
+								{%endfor%}
+							</select>
+							+
+							<span class='clip_bases'><input size='5' type='text' name='from_rel' value='0'></input></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class='clip_split'></div>
+			
+			<div class='clip_div'>
+				<div class='clip_div_contents'>
+					<h4 class='clip_from_to'>To</h4>
+					<div class='clip_options'>
+						<input type='radio' name='to_type' value='absolute' {%if to_absolute%}checked='true'{%endif%} /> <label for='absolute'>Absolute</label>
+						<div class='clip_radio_opts'>
+							<span class='clip_bases'><input size='5' type='text' name='to_abs' value='0'></input></span>
+						</div>
+						<input type='radio' name='to_type' value='relative' {%if not to_absolute%}checked='true'{%endif%} /> <label for='relative'>Relative to end of</label>
+						<div class='clip_radio_opts'>
+							<select class='clip_feature_select' name='end_feat'>
+								{%for feature in feature_list%}
+								<option value='{{ feature.id }}'>{{ feature.pretty }}</option>
+								{%endfor%}
+							</select>
+							+
+							<span class='clip_bases'><input size='5' type='text' name='to_rel' value='0'></input></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div style='clear:both;'></div>
+		</div>
+
+	</form>
+
+</div>

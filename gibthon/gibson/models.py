@@ -246,12 +246,14 @@ class PrimerHalf(models.Model):
 	length = models.PositiveSmallIntegerField()
 	
 	def start(self):
+		"""return the start relative to the fragment's start"""
 		if self.top ^ self.isflap():
 			return self.cfragment.end() - self.length
 		else:
 			return self.cfragment.start()
 	
 	def end(self):
+		"""return end relative to the fragment's start"""
 		if self.top ^ self.isflap():
 			return self.cfragment.end()
 		else:
@@ -263,8 +265,9 @@ class PrimerHalf(models.Model):
 		else: return True
 		
 	def extend(self):
+		"""Extend my length by one while I'm within the fragment"""
 		self.length += 1
-		if self.start() < (self.cfragment.start_feature.start - self.cfragment.start_offset) or self.end() > (self.cfragment.end_feature.end + self.cfragment.end_offset):
+		if self.start() < self.cfragment.start() or self.end() > self.cfragment.end():
 			self.length -= 1
 			return False
 		else:
@@ -316,6 +319,7 @@ class Construct(models.Model):
 	shape = models.CharField(max_length=1, choices=SHAPE_CHOICES)
 	created = models.DateTimeField(auto_now_add=True)
 	modified = models.DateTimeField(auto_now=True)
+	processed = models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return self.name
@@ -376,9 +380,30 @@ class Construct(models.Model):
 		
 	def add_fragment(self, fragment):
 		o = len(self.fragments.all())
-		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction='f', start_feature=fragment.features.all()[0], end_feature=fragment.features.all()[0], start_offset=0, end_offset=0)
+		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction='f', start_feature=None, end_feature=None, start_offset=0, end_offset=0)
+		self.processed = False
+		self.save()
 		return cf
 		
+	def delete_cfragment(self, cfid):
+		try:
+			cf = self.cf.get(id=cfid)
+			cf.delete()
+			self.processed = false
+			self.save()
+			return True
+		except:
+			return False
+	
+	def reorder_cfragments(self, cfids):
+		for i,cfid in enumerate(cfids):
+			cf = self.cf.get(id=cfid)
+			if cf.order != i:
+				cf.order = i
+				cf.save()
+				self.processed = False
+		self.save()
+	
 	def process(self, reset=True, new=True):
 		if new:
 			# delete all existing primers
@@ -442,6 +467,8 @@ class Construct(models.Model):
 			print 'yield ":%d"' % (((2*i)+2)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
+		self.processed = True
+		self.save()
 		yield ':100'		
 
 	def last_modified(self):
@@ -457,10 +484,10 @@ class ConstructFragment(models.Model):
 		('r', 'Reverse'),
 	)
 	direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-	start_feature = models.ForeignKey('fragment.Feature', related_name='start_feature')
-	start_offset = models.IntegerField()
-	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature')
-	end_offset = models.IntegerField()
+	start_feature = models.ForeignKey('fragment.Feature', related_name='start_feature', blank=True, null=True) #if blank, assume relative to fragment not feature
+	start_offset = models.IntegerField() #positive in direction of sequence
+	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature', blank=True, null=True) #if blank, assume relative to fragment not feature
+	end_offset = models.IntegerField() #positive in direction of sequence
 	concentration = models.DecimalField(default=100, max_digits=4, decimal_places=1)
 
 	class Meta:
@@ -493,23 +520,62 @@ class ConstructFragment(models.Model):
 					feat.append(f)
 		return feat
 	
-	def start(self):
+	def start_is_relative(self):
+		if self.start_feature:
+			return True
+		return False
+	
+	def end_is_relative(self):
+		if self.end_feature:
+			return True
+		return False
+	
+	def is_relative(self):
+		return (self.end_feature != None) and (self.start_feature != None)
+		
+	def limit(self, index):
+		"""limit the index so that it is within the sequence"""
+		return sorted([0, index, self.fragment.length() - 1])[1]
+	
+	def start(self): 
+		"""Note that feature indexes are stored in 'python' (0-offset, ends inclusive) not 'biologist' (1-offset, ends IDK)
+		   offsets are positive in the direction of the sequence
+		"""
+		r = 0
 		if self.direction == 'f':
-			return self.start_feature.start - self.start_offset
+			if self.start_feature:
+				r = self.start_feature.start + self.start_offset
+			else: #absolute
+				r = self.start_offset
 		else:
-			return self.fragment.length() - (self.start_feature.end - self.start_offset) + 1
+			if self.start_feature:
+				r = (self.fragment.length() - 1 - self.start_feature.end) + self.start_offset
+			else:
+				r = self.start_offset
+		return self.limit(r)
 	
 	def end(self):
+		"""Note that feature indexes are stored in 'python' (0-offset, ends inclusive) not 'biologist' (1-offset, ends IDK)
+		   offsets are positive in the direction of the sequence
+		"""
+		r = 0
 		if self.direction == 'f':
-			return self.end_feature.end + self.end_offset
+			if self.end_feature:
+				r = self.end_feature.end + self.end_offset
+			else:
+				r = (self.fragment.length() - 1) + self.end_offset
 		else:
-			return self.fragment.length() - (self.end_feature.start + self.end_offset) + 1
+			if self.end_feature:
+				r = self.fragment.length() - 1 - (self.end_feature.start - self.end_offset)
+			else:
+				r = (self.fragment.length() - 1) + self.end_offset
+		return self.limit(r)
 	
 	def sequence(self):
 		seq = self.fragment.sequence
 		if self.direction == 'r':
 			seq = str(reverse_complement(Seq(seq)))
-		return seq[self.start()-1:self.end()]
+		return seq[self.start():self.end()]
 	
 	def tm(self):
 		return ((self.primer_top().stick.tm() + self.primer_bottom().stick.tm())/2)-4

@@ -5,6 +5,9 @@
 			<div id='cdesigner_pad' class='design-content ui-widget-content ui-corner-all' style='padding:5px;'>
 				<div style="height:600px;position:relative;">
 					<canvas id="cdesigner" style="display:block; height:100%; width:100%;"></canvas>
+					
+					<div id="fragment_clipping" style='display:none;'></div>
+					
 					<div class="fragment-info">
 						<div class="fragment-data ui-corner-all">
 							<h3 id="fragment_name"></h3>
@@ -51,7 +54,6 @@ $(window).ready( function() {
 	}).droppable({
 		drop: function(event, ui) {
 			var id = ui.draggable.attr('id').replace('frag_', '');
-			console.log('Dropping: ' + id);
 			$(this).designer('addFragment', id);			
 		}
 	});

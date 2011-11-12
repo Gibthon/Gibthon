@@ -234,11 +234,22 @@ $.widget("ui.designer", {
 		this._mdown_pos = {r:0, theta: 0,};
 		this._mouse_over = -1; //which fragment is the mouse over? -1 = none
 		
+		/* add the clipping dialog*/
+		this.$clipping = this.$canvas.siblings('#fragment_clipping');
+		this.$clipping.dialog({ autoOpen: false, title: 'Clipping', modal: true, resizable: false});
+		
 		/*Add the info box*/
-		this.$info = this.$canvas.next('.fragment-info');
+		this.$info = this.$canvas.siblings('.fragment-info');
 		this.$info.find('#fragment_clip').button({
 			icons: {primary: 'ui-icon-scissors'},
-			disabled: true,
+		}).click( function() {
+			var fid = parseInt(self.$info.attr('fragment'));
+			var cfid = self.fragments[fid].cfid;
+			self.$clipping.load('clipping/' + cfid + '/', function() {
+				self.$clipping.dialog({'width': Math.max($(window).width() * 0.5, 500)});
+				self.$clipping.dialog('open');
+			});
+			self.$info.hide();
 		});
 		this.$info.find('#fragment_remove').button({
 			icons: {primary: 'ui-icon-trash'},
@@ -248,6 +259,8 @@ $.widget("ui.designer", {
 			self.$info.hide();
 			self._redraw();
 		});
+		
+		
 	},
 // ------------------------------------------------------------------------------------ PUBLIC API
 	addFragment: function(id, tell_server, redraw){

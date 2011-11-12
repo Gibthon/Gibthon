@@ -141,7 +141,7 @@ def load_primer(request, cid, pid):
 @login_required
 def primers(request, cid):
 	con = get_construct(request.user, cid)
-	if con and len(con.primer.all()) == 2*len(con.cf.all()) and len(con.primer.all()) > 0:
+	if con and con.processed:
 		t = loader.get_template('gibson/primers.html')
 		c = RequestContext(request, {
 			'construct': con,
@@ -242,7 +242,7 @@ def construct_fragment(request, cid):
 		return HttpResponse(t.render(c))
 	if con and request.is_ajax():
 		cf_list = con.cf.all()
-		frag_list = [{'fid':cf.fragment.id, 'cfid': cf.id, 'name':cf.fragment.name, 'desc': cf.fragment.description, 'length':len(cf.fragment.sequence),} for cf in cf_list]
+		frag_list = [{'fid':cf.fragment.id, 'cfid': cf.id, 'name':cf.fragment.name, 'desc': cf.fragment.description, 'length':abs(cf.end()-cf.start()),} for cf in cf_list]
 		return JsonResponse(frag_list)
 		
 	return HttpResponseNotFound()
@@ -257,6 +257,26 @@ def construct_delete(request, cid):
 		return HttpResponseRedirect('/gibthon')
 	else:
 		return HttpResponseNotFound()
+
+@login_required
+def fragment_clipping(request, cid, cfid):
+	con = get_construct(request.user, cid)
+	if con:
+		try:
+			cf = con.cf.get(id=cfid)
+		except:
+			return JsonResponse('Could not find ConstructFragment(%s)' % cfid, ERROR)
+		if request.method == 'GET':
+			t = loader.get_template('gibson/fragment_clipping.html')
+			c = RequestContext(request, {
+				'feature_list': cf.fragment.features.all(),
+				'from_absolute': not cf.start_is_relative(),
+				'to_absolute': not cf.end_is_relative(),
+				'length': cf.fragment.length(),
+			})
+			return HttpResponse(t.render(c))
+		else: #edit the clipping
+			return JsonResponse('Not Implemented', ERROR)
 
 @login_required
 def fragment_viewer(request, cid, fid):
@@ -313,16 +333,10 @@ def fragment_add(request, cid, fid):
 def fragment_delete(request, cid, cfid):
 	con = get_construct(request.user, cid)
 	if con:
-		try: cf = ConstructFragment.objects.get(id=cfid)
-		except ObjectDoesNotExist: 
-			if request.is_ajax():
-				return JsonResponse('No such constructFragment ' + cfid, ERROR)
-			return HttpResponseNotFound()
-		else:
-			cf.delete()
-			if request.is_ajax():
-				return JsonResponse('OK');
-			return HttpResponse("OK")
+		con.delete_cfragment(cfid)
+		if request.is_ajax():
+			return JsonResponse('OK');
+		return HttpResponse("OK")
 	else:
 		if request.is_ajax():
 			return JsonResponse('No such Construct ' + cid, ERROR)
@@ -337,11 +351,7 @@ def save_order(request, cid):
 		if request.method == 'GET':
 			order = request.GET.getlist('order[]')
 		if con and order:
-			for i,cfid in enumerate(order):
-				cf = con.cf.get(id=cfid)
-				cf.order = i
-				cf.save()
-			con.save()
+			con.reorder_cfragments(order)
 			if not request.is_ajax():
 				t = loader.get_template('gibson/date.html')
 				c = RequestContext(request,{'date':con.modified,})
