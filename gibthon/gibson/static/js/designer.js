@@ -245,7 +245,9 @@ $.widget("ui.designer", {
 		}).click( function() {
 			var fid = parseInt(self.$info.attr('fragment'));
 			var cfid = self.fragments[fid].cfid;
+			console.log('load("clipping/' + cfid + '/", function(responseText, textStatus, XMLHttpRequest) {...});');
 			self.$clipping.load('clipping/' + cfid + '/', function() {
+				console.log('hello!');
 				self.$clipping.dialog({'width': Math.max($(window).width() * 0.5, 500)});
 				self.$clipping.dialog('open');
 			});

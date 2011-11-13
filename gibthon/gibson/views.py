@@ -259,6 +259,72 @@ def construct_delete(request, cid):
 		return HttpResponseNotFound()
 
 @login_required
+def apply_clipping(request, cid, cfid):
+	con = get_construct(request.user, cid)
+	if con:
+		try:
+			cf = con.cf.get(id=cfid)
+		except:
+			return JsonResponse('Could not find ConstructFragment(%s)' % cfid, ERROR)
+		
+		try:
+			f_type = request.POST['from_type'].lower()
+			t_type = request.POST['to_type'].lower()
+		
+			if f_type == 'absolute':
+				start = int(request.POST['from_abs'])
+				if start < 0 or start > cf.fragment.length() - 1:
+					raise ValueError('"start" must be within range [0:%i]' % cf.fragment.length() -1)
+				if cf.start_offset != start or cf.start_feature != None:
+					cf.start_offset = start
+					cf.start_feature = None
+					con.processed = False
+			elif f_type == 'relative':
+				start = int(request.POST['from_rel'])
+				start_fid = int(request.POST['start_feat'])
+				print "available ids are %s" % [feat.id for feat in cf.fragment.features.all()] 
+				start_feature = cf.fragment.features.get(id=start_fid)
+				if cf.start_offset != start or cf.start_feature != start_feature:
+					cf.start_offset = start
+					cf.start_feature = start_feature
+					con.processed = False
+			else:
+				raise ValueError('"f_type" must be "absolute" or "relative"')
+				
+			
+			if t_type == 'absolute':
+				end = int(request.POST['to_abs'])
+				if end < 0 or end > cf.fragment.length() - 1:
+					raise ValueError('"end" must be within range [0:%i]' % cf.fragment.length() -1)
+				if cf.end_offset != end or cf.end_feature != None:
+					cf.end_offset = end
+					cf.end_feature = None
+					con.processed = False
+			elif t_type == 'relative':
+				end = int(request.POST['to_rel'])
+				end_fid = int(request.POST['end_feat'])
+				end_feature = cf.fragment.features.get(id=end_fid)
+				if cf.end_offset != end or cf.end_feature != end_feature:
+					cf.end_offset = end
+					cf.end_feature = end_feature
+					con.processed = False
+			else:
+				raise ValueError('"t_type" must be "absolute" or "relative"')		
+					
+			
+		except KeyError as e:
+			return JsonResponse('Value required for "%s"' % e.message, ERROR)
+		except ValueError as e:
+			return JsonResponse('ValueError: %s' % e.message, ERROR)
+		except ObjectDoesNotExist as e:
+			return JsonResponse('DoesNotExist: %s (%s)' % (e.message, start_fid), ERROR)
+		
+		cf.save()
+		con.save()
+		return JsonResponse('OK')
+	raise Http404
+
+@login_required
 def fragment_clipping(request, cid, cfid):
 	con = get_construct(request.user, cid)
 	if con:
@@ -266,17 +332,25 @@ def fragment_clipping(request, cid, cfid):
 			cf = con.cf.get(id=cfid)
 		except:
 			return JsonResponse('Could not find ConstructFragment(%s)' % cfid, ERROR)
-		if request.method == 'GET':
-			t = loader.get_template('gibson/fragment_clipping.html')
-			c = RequestContext(request, {
-				'feature_list': cf.fragment.features.all(),
-				'from_absolute': not cf.start_is_relative(),
-				'to_absolute': not cf.end_is_relative(),
-				'length': cf.fragment.length(),
-			})
-			return HttpResponse(t.render(c))
-		else: #edit the clipping
-			return JsonResponse('Not Implemented', ERROR)
+		t = loader.get_template('gibson/fragment_clipping.html')
+		d = {
+			'feature_list': cf.fragment.features.all(),
+			'cfid': cfid,
+			'from_absolute': not cf.start_is_relative(),
+			'to_absolute': not cf.end_is_relative(),
+			'length': cf.fragment.length(),
+			'max': cf.fragment.length() - 1,
+			}
+		if cf.start_is_relative():
+			d['start_feat'] = cf.start_feature.id
+		d['start_offset'] = cf.start_offset
+		if cf.end_is_relative():
+			d['end_feat'] = cf.end_feature.id
+		d['end_offset'] = cf.end_offset
+		
+		c = RequestContext(request, d)
+		return HttpResponse(t.render(c))
+	raise Http404
 
 @login_required
 def fragment_viewer(request, cid, fid):
