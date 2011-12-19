@@ -233,9 +233,7 @@ class Feature(models.Model):
 	class Meta:
 		ordering = ['start']
 	
-	def add(feature, g, origin):
-		#if (origin == "BB"): #but parts are 1-offset based!
-		#	feature.location.start.position += 1
+	def add(feature, g, origin=None):
 		if (feature.location.end.position == 0):
 			return
 		f = Feature(type=feature.type, start=feature.location.start.position, end=feature.location.end.position,
