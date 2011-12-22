@@ -28,7 +28,7 @@ $.widget("ui.formExtender", {
 		this.$el = $(this.element[0]);
 		
 	//intialise the elements	
-		this.$copy = this.$el.find('#extender-copy').detach(); //remove from the dom - it'll only cause trouble
+		this.$copy = this.$el.find('#extender-copy').detach();
 		this.$target = this.$el.find('.extender-target');
 		
 		this.$el.find('button.extender-add').button({
@@ -83,9 +83,12 @@ $.widget("ui.formExtender", {
 		});
 		this.$el.find('button.extender-add').button(fn);
 	},
-	_add: function(event){
+	Add: function(values) {this._add(undefined, values);},
+	_add: function(event, values){
 		var self=this;
-		var $clone = this.$copy.clone().addClass('extender-item');
+		console.log('this.$copy.attr("id") = ' + this.$copy.attr("id"));
+		var $clone = this.$copy.clone();
+		$clone.addClass('extender-item').attr('id', '');
 		
 		if(this.options.unique)
 		{
@@ -101,6 +104,16 @@ $.widget("ui.formExtender", {
 		}).click( function(event) {
 			self._remove(event);
 		});
+		
+		if(values != undefined)
+		{
+			$clone.find('.extender-value').each( function(i, v) {
+				if(i < values.length)
+				{
+					$(v).text(values[i]);
+				}
+			});
+		}
 		
 		this._trigger('beforeAdd', event, $clone);
 		
@@ -140,6 +153,7 @@ var httppat = /^http:\/\//i;
 
 $.widget("ui.magicForm", {
 	options: {
+		submit_on_save: true, //whether to submit the form on save, or whether to allow the save handler to do it
 		save: function(ev, data) {}, //called on save
 		cancel: function() {},//called on cancel
 		edit: function() {},
@@ -151,6 +165,7 @@ $.widget("ui.magicForm", {
 		this.$form = $(this.element[0]);
 		this.action = this.$form.attr('action');
 		this.method = this.$form.attr('method');
+		//this.$form.attr('onsubmit', 'return false');
 		if((this.method == '') || (this.method == undefined))
 			this.method = 'GET'
 		
@@ -158,10 +173,10 @@ $.widget("ui.magicForm", {
 		this.save_opts = {'label': 'Save', 'icons': {'primary': 'ui-icon-disk',},}
 		this.$button = this.$form.find('button.magic-button')
 			.button(this.edit_opts)
-			.click( function() {self._edit();});
+			.click( function() {return self._edit();});
 		this.$button_cancel = this.$form.find('button.magic-button-cancel')
 			.button({label: 'Cancel', icons: {primary: 'ui-icon-cancel'}, disabled: true,})
-			.click( function() {self._cancel();});
+			.click( function() {return self._cancel();});
 			
 		this.$form.find('.magic-item').each( function() {
 			var $text = $(this).find('.magic-text');
@@ -203,16 +218,17 @@ $.widget("ui.magicForm", {
 		});
 		this.$button.button('option', this.save_opts)
 			.unbind('click')
-			.click( function() {self._save();});
+			.click( function() {return self._save();});
 		this.$button_cancel.button('enable');
 		this._trigger('edit');
+		return false;
 	},
 	_cancel: function()
 	{
 		var self = this;
 		this.$button.button('option', this.edit_opts)
 			.unbind('click')
-			.click( function() {self._edit();});
+			.click( function() {return self._edit();});
 		this.$button_cancel.button('disable');
 		
 		this.$form.find('.magic-item').each( function() {
@@ -223,17 +239,26 @@ $.widget("ui.magicForm", {
 			$text.show();
 		});
 		this._trigger('cancel');
+		return false;
 	},
 	_save: function()
 	{
 		var self = this;
-		$.ajax({
-			url: this.action,
-			dataType: 'json',
-			data: this.$form.serialize(),
-			type: this.method,
-			success: function(data) {self._data(data);},
-		});
+		if(this.options.submit_on_save)
+		{
+			$.ajax({
+				url: this.action,
+				dataType: 'json',
+				data: this.$form.serialize(),
+				type: this.method,
+				success: function(data) {self._data(data);},
+			});
+		}
+		else
+		{
+			self._data([0, undefined]);
+		}
+		return false;
 	},
 	_cancel: function()
 	{
@@ -285,7 +310,10 @@ $.widget("ui.magicForm", {
 				var $input = $item.find('.magic-input');
 				var $text = $item.find('.magic-text');
 				//set the text
-				var val = data[1].fields[$input.attr('name')];
+				var val = '';
+				if( data[1] != undefined)
+					val = data[1].fields[$input.attr('name')];
+				else val = $input.val();
 				if(val == undefined) val = '';
 				if(httppat.test(val))
 				{
@@ -301,6 +329,7 @@ $.widget("ui.magicForm", {
 			});
 			this._trigger('save', undefined, data);
 		}
+		return false;
 	},
 });
 

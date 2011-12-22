@@ -12,11 +12,15 @@
  * set_meta(fid, metadata, func success())
  * 		set the metadata of a particular fragment
  * 
- * get_feats(fid, func success([features]))
- * 		get a particular fragment's features
+ * get_feats(fid, func success(data))
+ * 		get a particular fragment's features, data.feats, its length is data.length and data.alpha is dictionary containing
+ * 		the alphabet
  * 
  * set_feats(fid, features, func success())
  * 		set a particular fragment's features
+ * 
+ * get_length(fid)
+ * 		return the length of the sequence
  * 
  * get_sequence(fid, start, length, func success(sequence))
  * 		returns a string containing a section of the sequence, starting at start and of length length
@@ -55,7 +59,6 @@
  * 
  * sequence:
  * 		.seq			: A simple string containing the whole sequence
- *		.alpha			: 'Dictionary' containing all possible nucleotides as keys, and all complements as values
  * 		.complement()	: Return the sequence's complement
  * 		.rcomplement()	: Return the sequence's reverse complement
  * 		.reverse()		: Return the sequence in reverse
@@ -71,21 +74,54 @@
 
 var PRE = '/fragment/api/'
 
+var alphabet = {
+	'A': 'T',
+	'B': 'V',
+	'C': 'G',
+	'D': 'H',
+	'G': 'C',
+	'H': 'D',
+	'K': 'M',
+	'M': 'K',
+	'N': 'N',
+	'R': 'Y',
+	'S': 'S',
+	'T': 'A',
+	'V': 'B',
+	'W': 'W',
+	'Y': 'R',
+	'a': 't',
+	'b': 'v',
+	'c': 'g',
+	'd': 'h',
+	'g': 'c',
+	'h': 'd',
+	'k': 'm',
+	'm': 'k',
+	'n': 'n',
+	'r': 'y',
+	's': 's',
+	't': 'a',
+	'v': 'b',
+	'w': 'w',
+	'y': 'r',
+}
+
 // =========================== Other Functions
-var complement(s, a)
+var complement = function(s, a)
 {
 	for(var i = 0; i < s.length; i = i + 1)
 		s[i] = a[s[i]];
 	return s;
 }
 
-var rcomplement(s, a)
+var rcomplement = function(s, a)
 {
 	return complement(s.split("").reverse().join(""));
 }
 
 // ============================Constructors
-var Metadata(fid, name, desc, refs, annots, origin, length)
+function Metadata(fid, name, desc, refs, annots, origin, length)
 {
 	this.fid = fid;
 	this.name = name;
@@ -96,7 +132,7 @@ var Metadata(fid, name, desc, refs, annots, origin, length)
 	this.length = length;
 }
 
-var Reference(title, authors, journal, medline_id, pubmed_id)
+function Reference(title, authors, journal, medline_id, pubmed_id)
 {
 	this.title = title;
 	this.authors = authors;
@@ -105,7 +141,12 @@ var Reference(title, authors, journal, medline_id, pubmed_id)
 	this.pubmed_id = pubmed_id;
 }
 
-var Feature(start, end, strand, type, id, qualifiers)
+function Annotation(key, value)
+{
+	return [key, value];
+}
+
+function Feature(start, end, strand, type, id, qualifiers)
 {
 	this.start = start;
 	this.end = end;
@@ -117,30 +158,29 @@ var Feature(start, end, strand, type, id, qualifiers)
 	if(this.start > end) this.strand = -1;
 }
  
-var Qualifier(name, value)
+function Qualifier(name, value)
 {
 	this.name = name;
 	this.value = value;
 }
 
-var Alphabet(s, a)
+function Sequence(s)
 {
 	self = this;
 	this.seq = s;
-	this.a = a;
-	this.complement = function() {return complement(self.seq, self.a);}
-	this.rcomplement = function() {return rcomplement(self.seq, self.a);}
+	this.complement = function() {return complement(self.seq, alphabet);}
+	this.rcomplement = function() {return rcomplement(self.seq, alphabet);}
 	this.reverse = function() {return self.seq.split("").reverse().join("");}
 }
 // ========================================================= AJAX things
-var handle_error(action, msg)
+function handle_error(action, msg)
 {
 	var s = "Error while " + action + ": " + msg;
 	//alert(s);
 	console.error(s);
 }
 
-var make_request(u, d, act, cb)
+function make_request(u, d, act, cb)
 {
 	$.ajax({
 		url: u,
@@ -149,17 +189,17 @@ var make_request(u, d, act, cb)
 		type:'POST',
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			handle_error(act, "Ajax request failed, status: '" + textStatus + "', error: '" + errorThrown + "'"
-		}
+			handle_error(act, "Ajax request failed, status: '" + textStatus + "', error: '" + errorThrown + "'");
+		},
 		success: function(data) 
 		{
-			if(data[1] != 0)
+			if(data[0] != 0)
 			{
-				handle_error(act, data[0]);
+				handle_error(act, data[1]);
 				return;
 			}
-			cb(data[0]);
-		}
+			cb(data[1]);
+		},
 	});
 }
 
@@ -177,7 +217,7 @@ var get_meta = function(fid, success)
 
 var set_meta = function(fid, metadata, success)
 {
-	make_request(PRE + fid + '/setMeta/', {'meta':metadata,}, "saving metadata for '" + fid +"'", success);
+	make_request(PRE + fid + '/setMeta/', JSON.stringify(metadata), "saving metadata for '" + fid +"'", success);
 }
 
 var get_feats = function(fid, success)
@@ -187,7 +227,12 @@ var get_feats = function(fid, success)
 
 var set_feats = function(fid, features, success)
 {
-	make_request(PRE + fid + '/setFeats/', {'features':features,}, "saving features for '" + fid +"'", success);
+	make_request(PRE + fid + '/setFeats/', JSON.stringify(features), "saving features for '" + fid +"'", success);
+}
+
+var get_length = function(fid, success)
+{
+	make_request(PRE + fid + '/getLength/', undefined, "getting length for '" + fid +"'", success);
 }
 
 var get_sequence = function(fid, start, length, success)

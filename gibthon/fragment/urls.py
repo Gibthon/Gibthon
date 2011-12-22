@@ -16,12 +16,13 @@ importpatterns = patterns('gibthon.fragment.importfragment',
 )
 
 apipatterns = patterns( 'fragment.api',
-	(r'^listAll/$', 'api.list_fragments'),
-	(r'^(\d+)/getMeta/$', 'api.get_meta'),
-	(r'^(\d+)/setMeta/$', 'api.save_meta'),
-	(r'^(\d+)/getFeats/$', 'api.get_feats'),
-	(r'^(\d+)/setFeats/$', 'api.set_feats'),
-	(r'^(\d+)/getSeq/$', 'api.get_seq'),
+	(r'^listAll/$', 'list_fragments'),
+	(r'^(\d+)/getMeta/$', 'get_meta'),
+	(r'^(\d+)/setMeta/$', 'set_meta'),
+	(r'^(\d+)/getFeats/$', 'get_features'),
+	(r'^(\d+)/setFeats/$', 'set_features'),
+	(r'^(\d+)/getSeq/$', 'get_sequence'),
+	(r'^(\d+)/getLength/$', 'get_length'),
 )
 
 urlpatterns = patterns('fragment',

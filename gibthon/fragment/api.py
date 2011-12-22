@@ -61,7 +61,7 @@ def get_gene(usr, fid):
 def read_meta(g):
 	"""Return JSON-ready metadata about a fragment"""
 	refs = []
-	for r in g.references:
+	for r in g.references.all():
 		refs.append( {
 			'title': r.title,
 			'authors': r.authors,
@@ -69,11 +69,14 @@ def read_meta(g):
 			'medline_id': r.medline_id,
 			'pubmed_id': r.pubmed_id,
 		})
+	annots = {}
+	for a in g.annotations.all():
+		annots[a.key] = a.value
 
 	return {	'name': g.name,
 				'desc': g.description,
 				'refs': refs,
-				'annots': g.annotations.items(),
+				'annots': annots,
 				'origin': g.get_origin_display(),
 				'length': len(g.sequence)
 	}
@@ -180,10 +183,11 @@ def set_meta(request, fid):
 	if request.method == 'POST':
 		try:
 			g = get_gene(request.user, fid)
-			meta = request.POST.get('meta')
+			meta = request.POST
+			print request.POST
 			if meta:
 				write_meta(g, meta)
-				return JsonResponse('Done') 
+				return JsonResponse( read_meta(g))
 			return JsonResponse("No metadata supplied.", ERROR)			
 		except ObjectDoesNotExist:
 			return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
@@ -193,7 +197,11 @@ def set_meta(request, fid):
 def get_features(request, fid):
 	"""Get a fragment's features"""
 	g = get_gene(request.user, fid)
-	return JsonResponse(read_features(g))
+	return JsonResponse({
+		'feats': read_features(g),
+		'alpha': get_alphabet(),
+		'length': len(g.sequence),
+	})
 
 @login_required
 def set_features(request, fid):
@@ -211,6 +219,11 @@ def set_features(request, fid):
 	raise Http404
 
 @login_required
+def get_length(request, fid):
+	g = get_gene(request.user, fid)
+	return JsonResponse(len(g.seq))
+
+@login_required
 def get_sequence(request, fid):
 	"""return a section of the sequence"""
 	try:
@@ -222,10 +235,12 @@ def get_sequence(request, fid):
 	except ValueError:
 		return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
 	g = get_gene(request.user, fid)
-	return JsonResponse({
-		'sequence':g.sequence[offset : offset+length],
-		'alpha': get_alphabet(),
-	})
+	if length <= 0:
+		return JsonResponse({
+			'sequence':g.sequence[offset:],
+			'alpha': get_alphabet(),
+		})
+	return JsonResponse(g.sequence[offset : offset+length])
 
 # Editing of sequence data not yet supported
 #def set_sequence(request, fid):
