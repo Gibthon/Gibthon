@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 
+import simplejson as json
 from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 
 ## Helpful functions
@@ -89,14 +90,17 @@ def write_meta(g, meta):
 	if meta.has_key('refs'):
 		#clear out previous references
 		Reference.remove(g)
-		Reference.add(meta['refs'])
+		Reference.add(g, meta['refs'])
 	if meta.has_key('annots'):
 		#clear out previous annotations
 		Annotation.remove(g)
 		for (key, value) in meta['annots']:
 			Annotation.add(g, key, value)
-	g.save()	
-
+	try:
+		g.save()
+	except Exception as e:
+		print "raised exception of type %s: %s" % (type(e), e)
+	
 def read_features(g):
 	"""Read all the features of a fragment"""
 	data = []
@@ -183,11 +187,10 @@ def set_meta(request, fid):
 	if request.method == 'POST':
 		try:
 			g = get_gene(request.user, fid)
-			meta = request.POST
-			print request.POST
+			meta = json.loads(request.raw_post_data)
 			if meta:
 				write_meta(g, meta)
-				return JsonResponse( read_meta(g))
+				return get_meta(request, fid)
 			return JsonResponse("No metadata supplied.", ERROR)			
 		except ObjectDoesNotExist:
 			return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)

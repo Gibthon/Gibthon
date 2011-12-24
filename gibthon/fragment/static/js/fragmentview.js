@@ -60,6 +60,10 @@ $.widget("ui.fragmentMeta", {
 			unique: true,
 			disabled: true,
 			addInitial: false,
+			beforeAdd: function(e, $el)
+			{
+				$el.find('.magic-item').each( function() {self.$form.magicForm('SetState', $(this));});
+			},
 			add: function(e, $el) {
 				self._remark();
 			},
@@ -110,7 +114,7 @@ $.widget("ui.fragmentMeta", {
 		var self = this;
 		
 		//clear any previous metadata
-		//self.$annotation.html('');
+		self.$annotation.html('');
 		self.$ref.html('')
 		
 		//Display name & description

@@ -86,7 +86,6 @@ $.widget("ui.formExtender", {
 	Add: function(values) {this._add(undefined, values);},
 	_add: function(event, values){
 		var self=this;
-		console.log('this.$copy.attr("id") = ' + this.$copy.attr("id"));
 		var $clone = this.$copy.clone();
 		$clone.addClass('extender-item').attr('id', '');
 		
@@ -107,10 +106,10 @@ $.widget("ui.formExtender", {
 		
 		if(values != undefined)
 		{
-			$clone.find('.extender-value').each( function(i, v) {
+			$clone.find('.magic-input').each( function(i, v) {
 				if(i < values.length)
 				{
-					$(v).text(values[i]);
+					$(v).val(values[i]);
 				}
 			});
 		}
@@ -165,7 +164,7 @@ $.widget("ui.magicForm", {
 		this.$form = $(this.element[0]);
 		this.action = this.$form.attr('action');
 		this.method = this.$form.attr('method');
-		//this.$form.attr('onsubmit', 'return false');
+		this.state = 'default';
 		if((this.method == '') || (this.method == undefined))
 			this.method = 'GET'
 		
@@ -207,14 +206,10 @@ $.widget("ui.magicForm", {
 	_edit: function()
 	{
 		var self = this;
+		this.state = 'editable';
 		this.$form.find('.magic-item').each( function() {
-			var $item = $(this);
-			var $input = $item.find('.magic-input');
-			var $text = $item.find('.magic-text');
-			//set the value
-			$input.val($text.text());
-			$text.hide();
-			$input.show();
+			self._set_editable($(this));
+			
 		});
 		this.$button.button('option', this.save_opts)
 			.unbind('click')
@@ -223,27 +218,10 @@ $.widget("ui.magicForm", {
 		this._trigger('edit');
 		return false;
 	},
-	_cancel: function()
-	{
-		var self = this;
-		this.$button.button('option', this.edit_opts)
-			.unbind('click')
-			.click( function() {return self._edit();});
-		this.$button_cancel.button('disable');
-		
-		this.$form.find('.magic-item').each( function() {
-			var $item = $(this);
-			var $input = $item.find('.magic-input');
-			var $text = $item.find('.magic-text');
-			$input.hide();
-			$text.show();
-		});
-		this._trigger('cancel');
-		return false;
-	},
 	_save: function()
 	{
 		var self = this;
+		self.state = 'default';
 		if(this.options.submit_on_save)
 		{
 			$.ajax({
@@ -264,18 +242,17 @@ $.widget("ui.magicForm", {
 	{
 		var self = this;
 		//hide the errors
-		this.$form.find('.magic-error').each(function() {$(this).slideUp('slow');});
+		self.state = 'default';
 		this.$form.find('.magic-item').each( function() {
-			var $item = $(this);
-			var $input = $item.find('.magic-input');
-			var $text = $item.find('.magic-text');
-			//show the text again
-			$input.fadeOut('fast', function() {$text.fadeIn('fast');});
+			self._set_default($(this));
+			
 		});
 		this.$button.button('option', this.edit_opts)
 			.unbind('click')
 			.click( function() {self._edit();});
-		this.$cancel_btn.button('disable');
+		this.$button_cancel.button('disable');
+		this._trigger('cancel');
+		return false;
 	},
 	_data: function(data)
 	{
@@ -308,28 +285,74 @@ $.widget("ui.magicForm", {
 			this.$form.find('.magic-item').each( function() {
 				var $item = $(this);
 				var $input = $item.find('.magic-input');
-				var $text = $item.find('.magic-text');
+				
 				//set the text
 				var val = '';
 				if( data[1] != undefined)
-					val = data[1].fields[$input.attr('name')];
-				else val = $input.val();
-				if(val == undefined) val = '';
-				if(httppat.test(val))
 				{
-					val = "<a href='" + val + "'>" + val + "</a>";
-					$text.html(val);
+					val = data[1].fields[$input.attr('name')];
+					if(val == undefined) val = '';
+					self._set_default($item, val);
 				}
-				else
-					$text.text(val)
+				else 
+					self._set_default($item);
 				
-				//show the text
-				$input.hide();
-				$text.show();
 			});
 			this._trigger('save', undefined, data);
 		}
 		return false;
+	},
+	SetState: function($item)
+	{
+		if(!$item.hasClass('magic-item'))
+		{
+			console.log('magicForm.SetState given bogus item');
+			return;
+		}
+		switch(this.state)
+		{
+			case 'default':
+				this._set_default($item);
+				break;
+			case 'editable':
+				this._set_editable($item);
+				break;
+			default:
+				return;
+		}
+	},
+	_set_editable: function($item)
+	{
+		var $input = $item.find('.magic-input');
+		var $text = $item.find('.magic-text');
+		//set the value
+		$input.val($text.text());
+		$text.hide();
+		$input.show();
+	},
+	_set_default: function($item, value)
+	{
+		var $input = $item.find('.magic-input');
+		var $text = $item.find('.magic-text');
+		
+		
+		if(value != undefined)
+		{
+			if(httppat.test(value))
+			{
+				val = "<a href='" + value + "'>" + value + "</a>";
+				$text.html(value);
+			}
+			else
+				$text.text(value)
+		}
+		else
+			$text.text($input.val());
+		
+		$item.find('.magic-error').slideUp('slow');
+		//show the text again
+		$input.hide();
+		$text.show();
 	},
 });
 
