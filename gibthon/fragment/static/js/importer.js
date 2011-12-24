@@ -118,7 +118,7 @@ $.widget("ui.importer", {
 			icons: {primary: 'ui-icon-gear'},
 		}).click(function() {
 			self.updated = true;
-			$new.find('#extender-copy input').each(function() {
+			$new.find('div.extender-item input').each(function() {
 				var name = $(this).val();
 				var $state = $(this).siblings('.status');
 				if($state.hasClass('status-ok')) //we've already imported this one!
