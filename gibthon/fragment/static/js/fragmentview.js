@@ -37,86 +37,45 @@ $.widget("ui.fragmentMeta", {
 		this.$form = this.$el.find('form');
 		this.$ref = this.$el.find('#ref_div');
 		
+		self.$form.magicForm({
+			edit: function() {
+				self.was_visible = self.visible;
+				self.show();
+				self.$annot_div.formExtender('enable');
+			},
+			cancel: function() {
+				if(!self.was_visible) self.hide();
+				self.$annot_div.formExtender('disable');
+			},
+			submit_on_save: false,
+			save: function() {
+				if(!self.was_visible) self.hide();
+				self.$annot_div.formExtender('disable');
+				
+				var meta = self.getMeta();
+				set_meta(self.options.id, meta, function(meta) {self._display_metadata(meta);});
+			},
+		});
+		self.$annot_div.formExtender({
+			unique: true,
+			disabled: true,
+			addInitial: false,
+			beforeAdd: function(e, $el)
+			{
+				$el.find('.magic-item').each( function() {self.$form.magicForm('SetState', $(this));});
+			},
+			add: function(e, $el) {
+				self._remark();
+			},
+			remove: function(e, $el) {
+				self._remark();
+			},
+		});
+		
+		get_meta(self.options.id, function(m) {self._display_metadata(m);});
+		
 		this.visible = false;
-		this.was_visible = false;
-		
-		//fetch name and origin
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'meta',}, function(data) {
-			if(data[0] == 0)
-			{
-				self.$name.text(data[1].name);
-				self.$desc.text(data[1].desc);
-				self.$origin.text(data[1].length + "bp, " + data[1].origin);
-			}
-			else
-			{
-				console.log(data[1] + ", while getting meta.");
-			}
-		});
-		
-		//fetch annotations
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'annotations',}, function(data) {
-			if(data[0] == 0)
-			{
-				var odd = false;
-				for (key in data[1])
-				{
-					self.$annotation.append(self._make_annotation(key, data[1][key], odd));
-					odd = !odd;
-				}
-				self.$form.magicForm({
-					edit: function() {
-						self.was_visible = self.visible;
-						self.show();
-						self.$annot_div.formExtender('enable');
-					},
-					cancel: function() {
-						if(!self.was_visible) self.hide();
-						self.$annot_div.formExtender('disable');
-					},
-					save: function() {
-						if(!self.was_visible) self.hide();
-						self.$annot_div.formExtender('disable');
-					},
-				});
-				self.$annot_div.formExtender({
-					unique: true,
-					disabled: true,
-					addInitial: false,
-					add: function(e, $el) {
-						self._remark();
-					},
-					remove: function(e, $el) {
-						self._remark();
-					},
-				})
-			}
-			else
-			{
-				console.log(data[1] + ", while getting annotations.");
-			}
-		});
-		
-		//fetch references
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'refs',}, function(data) {
-			if(data[0] == 0)
-			{
-				for (key in data[1])
-				{
-					self.$ref.append(self._make_reference(data[1][key]));
-				}
-				$('.ref-search-btn').button({
-												icons: {
-													primary: 'ui-icon-search'
-														},
-												label: 'Search',
-												});
-			}
-			else
-			{
-				console.log(data[1] + ", while getting references.");
-			}
-		});
+		this.was_visible = false;			
 	},
 	show: function() {
 		var self = this;
@@ -151,17 +110,52 @@ $.widget("ui.fragmentMeta", {
 			odd = !odd;
 		});
 	},
-	_make_annotation: function(key, value_list, alt) {
+	_display_metadata: function(meta) {
+		var self = this;
+		
+		//clear any previous metadata
+		self.$annotation.html('');
+		self.$ref.html('')
+		
+		//Display name & description
+		self.$name.text(meta.name);
+		self.$desc.text(meta.desc);
+		self.$origin.text(meta.length + "bp, " + meta.origin);
+				
+		//Display Annotations
+		var odd = false;
+		for (key in meta.annots)
+		{
+			self.$annot_div.formExtender('Add', [key, meta.annots[key]]);
+			odd = !odd;
+		}
+		
+		//Display References
+		for (r in meta.refs)
+		{
+			self.$ref.append(self._make_reference(meta.refs[r]));
+		}
+		$('.ref-search-btn').button({
+			icons: {primary: 'ui-icon-search'},
+			label: 'Search',
+		});
+	},
+	_make_annotation: function(key, v, alt) {
 		var cls = 'tr';
 		if(alt == true)
 			cls = 'tr-alt';
 		var value = '';
-		for (i in value_list)
+		if(v.constructor == Array) //if v is an array
 		{
-			value = value + value_list[i];
-			if(i != value_list.length -1)
-				value = value + ", ";
+			for (i in value_list)
+			{
+				value = value + value_list[i];
+				if(i != value_list.length -1)
+					value = value + ", ";
+			}
 		}
+		else
+			value = v;
 		
 		if(httppat.test(value))
 		{
@@ -181,15 +175,29 @@ $.widget("ui.fragmentMeta", {
 		"</tr>";
 		return ret;
 	},
+	getAnnots: function()
+	{
+		var self = this;
+		var ret = [];
+		
+		$.each(self.$annotation.find('tr'), function(i, val){
+			var v = $(val);
+			ret.push( 
+				new Annotation(
+					v.find('#annot_key span').text(), 
+					v.find('#annot_value span').text()
+				)
+			);
+		});
+		return ret;
+	},
 	_make_reference: function(ref)
 	{
 		var ret = '' +
 		'<div class="ref">' +
 		'	<div class="ref-title-wrap">' +
 		'		<div class="ref-title-div">' +
-		'			<h4 class="ref-title">' +
-		'				' + ref.title +
-		'			</h4>' +
+		'			<h4 class="ref-title">' + ref.title + '</h4>' +
 		'		</div>' +
 		'		<div class="ref-search-div">' +
 		'			<button class="ref-search-btn" onclick="window.open(\'http://www.google.com?q=' + ref.title + '\',\'_blank\');"></button>' +
@@ -207,11 +215,11 @@ $.widget("ui.fragmentMeta", {
 		
 		if(ref.medline_id != "")
 		{
-			ret = ret + '<h6 class="ref-link">Meline ID: ' + ref.medline_id + '</h6>';
+			ret = ret + '<h6 class="ref-mline ref-link">Meline ID: ' + ref.medline_id + '</h6>';
 		}
 		if(ref.pubmed_id != "")
 		{
-			ret = ret + '<h6 class="ref-link">PubMed ID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/' + 
+			ret = ret + '<h6 class="ref-pmed ref-link">PubMed ID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/' + 
 					ref.pubmed_id + '" target="_blank">' + ref.pubmed_id + '</a></h6>';
 		}
 		ret = ret + 
@@ -219,6 +227,37 @@ $.widget("ui.fragmentMeta", {
 		'	</div>' +
 		'</div>';
 		return ret;
+	},
+	getRefs: function()
+	{
+		var self = this;
+		var ret = [];
+		
+		$.each(self.$ref.find('div.ref'), function(i, val){
+			var v = $(val);
+			ret.push( 
+				new Reference(
+					v.find('.ref-title').text(), 
+					v.find('.ref-authors').text(),
+					v.find('.ref-journal').text(),
+					v.find('.ref-mline').text(),
+					v.find('.ref-pmed').text()
+				)
+			);
+		});
+		return ret;
+	},
+	getMeta: function() {
+		var self = this;
+		//get metadata
+		var meta = new Metadata(
+			self.options.id, 
+			self.$name.text(), 
+			self.$desc.text(), 
+			self.getRefs(), 
+			self.getAnnots()
+		);
+		return meta;
 	},
 });
 
@@ -300,21 +339,16 @@ $.widget("ui.fragmentSequence", {
 	},
 	_get_seq_meta: function(){
 		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq_meta',}, function(data) {
-			if(data[0] != 0)
-			{
-				console.log(data[1] + " while getting sequence metadata");
-				return;
-			}
-			self.len = data[1].len;
-			self.$len.text(data[1].len);
+		get_feats( this.options.id , function(d) {
+			self.len = d.length;
+			self.$len.text(d.length);
 			if(self.len > 2000) //if we should load progressively 
 			{
 				self.$loader.slideDown(100);
 			}
 			
-			self.features = data[1].feats;
-			self.alphabet = data[1].alpha;
+			self.features = d.feats;
+			self.alphabet = alphabet;
 			self.alphabet[' '] = ' ';
 			
 			self._get_seq(0);
@@ -322,13 +356,9 @@ $.widget("ui.fragmentSequence", {
 	},
 	_get_seq: function(offset){
 		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq', 'offset': offset}, function(data) {
-			if(data[0] != 0)
-			{
-				console.log(data[1] + " while getting seq");
-				return;
-			}
-			self.seq = self.seq + data[1];
+		get_sequence( self.options.id, offset, undefined, function(seq) {
+			
+			self.seq = self.seq + seq;
 			var flush = false;//should we flush all the sequence?
 			if(self.seq.length < self.len)//is there more data to come?
 			{
