@@ -18,8 +18,15 @@ constructpatterns = patterns('gibson.designer',
 	(r'^$', 'designer'),
 	(r'^design/$', 'design_tab'),
 	(r'^settings/$', 'construct_settings'),
-	(r'^saveMeta/$', 'update_meta'),
+)
+
+apipatterns = patterns('gibson.api',
 	(r'^saveSettings/$', 'update_settings'),
+	(r'^saveMeta/$', 'save_meta'),
+	(r'^getInfo/$', 'get_info'),
+	(r'^addFragment/(?P<fid>\d+)/$', 'fragment_add'),
+	(r'^removeFragment/(?P<cfid>\d+)/$', 'fragment_delete'),
+	(r'^saveOrder/$', 'save_order'),
 )
 
 urlpatterns = patterns('gibson.views',
@@ -29,13 +36,11 @@ urlpatterns = patterns('gibson.views',
 	(r'^(?P<cid>\d+)/delete/$', 'construct_delete'),
 	(r'^(?P<cid>\d+)/fragments/$', 'construct_fragment'),
 	(r'^(?P<cid>\d+)/process/$', 'process'),
-	(r'^(?P<cid>\d+)/addFragment/(?P<fid>\d+)/$', 'fragment_add'),
-	(r'^(?P<cid>\d+)/removeFragment/(?P<cfid>\d+)/$', 'fragment_delete'),
 	(r'^(?P<cid>\d+)/clipping/(?P<cfid>\d+)/$', 'fragment_clipping'),
 	(r'^(?P<cid>\d+)/clipping/(?P<cfid>\d+)/apply/$', 'apply_clipping'),
-	(r'^(?P<cid>\d+)/saveOrder/$', 'save_order'),
 	(r'^(?P<cid>\d+)/summary/$', 'summary'),
 	(r'^(?P<cid>\d+)/primers/', include(primerpatterns)),
+	(r'^api/(?P<cid>\d+)/', include(apipatterns)),
 	(r'^(?P<cid>\d+)/', include(constructpatterns)),
 )
 

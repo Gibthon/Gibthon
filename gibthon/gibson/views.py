@@ -57,39 +57,6 @@ def download(request, cid):
 		return HttpResponseNotFound()
 
 @login_required
-def construct_settings(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		if request.method == 'POST':
-			form = SettingsForm(request.POST, instance=con.settings)
-			if form.is_valid():
-				form.save()
-				return HttpResponse()
-		t = loader.get_template('gibson/settings.html')
-		s = con.settings
-		c = RequestContext(request, {
-			'settings':s,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def settings_edit(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		t = loader.get_template('gibson/settings_edit.html')
-		f = SettingsForm(instance=con.settings)
-		f.is_valid()
-		c = RequestContext(request, {
-			'construct':con,
-			'form':f,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-		
-@login_required
 def primer(request, cid, pid):
 	con = get_construct(request.user, cid)
 	if con:
@@ -380,64 +347,7 @@ def fragment_browse(request, cid):
 		return HttpResponse(t.render(c))
 	else:
 		return HttpResponseNotFound()
-	
-@login_required
-def fragment_add(request, cid, fid):
-	con = get_construct(request.user, cid)
-	if con:
-		f = get_fragment(request.user, fid)
-		if f:
-			cf = con.add_fragment(f)
-			if cf:
-				if request.is_ajax():
-					return JsonResponse({'fid': fid, 'cfid': cf.id,})
-				return HttpResponseRedirect('/gibthon/%s/' % cid)
-			else:
-				if request.is_ajax():
-					return JsonResponse('Could not add fragment %s to construct %s' % (fid, cid))
-				raise Http404
-		else:
-			if request.is_ajax():
-				return JsonResponse('Could not find fragment "%s"' % fid, ERROR)
-			return HttpResponseNotFound()
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def fragment_delete(request, cid, cfid):
-	con = get_construct(request.user, cid)
-	if con:
-		con.delete_cfragment(cfid)
-		if request.is_ajax():
-			return JsonResponse('OK');
-		return HttpResponse("OK")
-	else:
-		if request.is_ajax():
-			return JsonResponse('No such Construct ' + cid, ERROR)
-		return HttpResponseNotFound()
-
-@login_required
-def save_order(request, cid):
-	try:
-		con = get_construct(request.user, cid)
-		if request.method == 'POST':
-			order = request.POST.getlist('order[]')
-		if request.method == 'GET':
-			order = request.GET.getlist('order[]')
-		if con and order:
-			con.reorder_cfragments(order)
-			if not request.is_ajax():
-				t = loader.get_template('gibson/date.html')
-				c = RequestContext(request,{'date':con.modified,})
-				return HttpResponse(t.render(c))
-			else:
-				return JsonResponse({'modified': con.last_modified(),});
-		else:
-			return HttpResponseNotFound()
-	except Exception as e:
-		print 'Error: %s' % (e.message)
-	raise Http404
-		
+			
 @login_required
 def summary(request, cid):
 	con = get_construct(request.user, cid)
