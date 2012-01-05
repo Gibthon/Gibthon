@@ -17,6 +17,7 @@ importpatterns = patterns('gibthon.fragment.importfragment',
 
 apipatterns = patterns( 'fragment.api',
 	(r'^listAll/$', 'list_fragments'),
+	(r'^getMeta/$', 'get_multi_meta'),
 	(r'^(\d+)/getMeta/$', 'get_meta'),
 	(r'^(\d+)/setMeta/$', 'set_meta'),
 	(r'^(\d+)/getFeats/$', 'get_features'),

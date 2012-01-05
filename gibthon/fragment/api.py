@@ -181,6 +181,19 @@ def get_meta(request, fid):
 	return JsonResponse( read_meta(g))
 
 @login_required
+def get_multi_meta(request):
+	"""return metadata for several fragments"""
+	fids = request.POST.getlist('fids[]')
+	if fids:
+		r = {}
+		for fid in fids:
+			g = get_gene(request.user, fid)
+			if g:
+				r[fid] = read_meta(g)
+		return JsonResponse(r)
+	raise Http404
+
+@login_required
 def set_meta(request, fid):
 	"""Update a fragment's metadata"""
   

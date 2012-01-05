@@ -25,7 +25,7 @@ apipatterns = patterns('gibson.api',
 	(r'^saveMeta/$', 'save_meta'),
 	(r'^getInfo/$', 'get_info'),
 	(r'^addFragment/(?P<fid>\d+)/$', 'fragment_add'),
-	(r'^removeFragment/(?P<cfid>\d+)/$', 'fragment_delete'),
+	(r'^rmFragment/(?P<cfid>\d+)/$', 'fragment_remove'),
 	(r'^saveOrder/$', 'save_order'),
 )
 

@@ -215,6 +215,12 @@ var get_meta = function(fid, success)
 	make_request(PRE + fid + '/getMeta/', undefined, "getting metadata for '" + fid +"'", success);
 }
 
+var get_multi_meta = function(fids, success)
+{
+	var d = JSON.stringify({'fids[]': fids,});
+	make_request(PRE + '/getMeta/', d, "getting metadata for '" + fids +"'", success);
+}
+
 var set_meta = function(fid, metadata, success)
 {
 	make_request(PRE + fid + '/setMeta/', JSON.stringify(metadata), "saving metadata for '" + fid +"'", success);

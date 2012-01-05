@@ -54,8 +54,8 @@ def get_info(request, cid):
 			'name': c.name,
 			'desc': c.description,
 			'length': c.length(),
-			'fragments[]': [f.id for f in c.fragments],
-			'created': fragment.last_modified(),
+			'fragments[]': [cf.fragment for cf in c.cf.all()],
+			'created': c.last_modified(),
 		}
 		return JsonResponse(ret)
 	except ObjectDoesNotExist:
@@ -66,17 +66,16 @@ def get_info(request, cid):
 def fragment_add(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
+		fid = request.POST.get('fid')
+		if not fid:
+			return JsonResponse("No fragment id provided", ERROR)
 		f = get_fragment(request.user, fid)
 		if f:
 			cf = con.add_fragment(f)
 			if cf:
-				if request.is_ajax():
-					return JsonResponse({'fid': fid, 'cfid': cf.id,})
-				return HttpResponseRedirect('/gibthon/%s/' % cid)
+				return JsonResponse({'fid': fid, 'cfid': cf.id,})
 			else:
-				if request.is_ajax():
-					return JsonResponse('Could not add fragment %s to construct %s' % (fid, cid))
-				raise Http404
+				return JsonResponse('Could not add fragment %s to construct %s' % (fid, cid))
 		else:
 			if request.is_ajax():
 				return JsonResponse('Could not find fragment "%s"' % fid, ERROR)
@@ -85,26 +84,47 @@ def fragment_add(request, cid):
 		return HttpResponseNotFound()
 
 @login_required
-def fragment_delete(request, cid, cfid):
+def fragment_remove(request, cid):
 	con = get_construct(request.user, cid)
+	fid = request.POST.get('fid')
+	if not fid:
+		return JsonResponse('No fragment ID specified', ERROR)
 	if con:
-		con.delete_cfragment(cfid)
-		if request.is_ajax():
-			return JsonResponse('OK');
-		return HttpResponse("OK")
+		try:
+			f = con.cf.get(fragment=fid)
+			con.delete_cfragment(f.cf.id)
+		except ObjectDoesNotExist as e:
+			return JsonResponse('No such fragment "%s" associated with construct "%s".' % (fid, cid))
+		
+		return JsonResponse('OK');
 	else:
-		if request.is_ajax():
-			return JsonResponse('No such Construct ' + cid, ERROR)
-		return HttpResponseNotFound()
+		return JsonResponse('No such Construct ' + cid, ERROR)
+
+directions = {1:'f', -1:'r',}
 
 @login_required
 def save_order(request, cid):
 	try:
 		con = get_construct(request.user, cid)
-		if request.method == 'POST':
-			order = request.POST.getlist('order[]')
-		if con and order:
-			con.reorder_cfragments(order)
+		order = request.POST.getlist('order[]')
+		direction = request.POST.getlist('direction[]')
+		if not order:
+			return JsonResponse('No order provided.', ERROR)
+		if len(order) != len(con.cf.all()):
+			return JsonResponse('Only %s fragment ids provided, %s required.' % (len(order), len(con.cf.all())), ERROR)
+		if not direction:
+			direction = [0]*len(order)
+		if len(direction) != len(order):
+			return JsonResponse('len(direction) = %s != len(order) = %s' % (len(direction), len(order)))
+		
+		if con:
+			t_dir = []
+			for d in direction:
+				if d in directions.keys():
+					t_dir.append(directions[d])
+				else:
+					t_dir.append(' ')
+			con.reorder_cfragments(order, t_dir)
 			return JsonResponse({'modified': con.last_modified(),});
 		else:
 			return HttpResponseNotFound()

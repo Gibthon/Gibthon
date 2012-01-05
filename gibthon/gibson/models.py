@@ -388,18 +388,24 @@ class Construct(models.Model):
 	def delete_cfragment(self, cfid):
 		try:
 			cf = self.cf.get(id=cfid)
+			order = cf.order
 			cf.delete()
-			self.processed = false
+			self.processed = False
+			for cf in self.cf.filter(order__gt=order):
+				cf.order -= 1
+				cf.save()
 			self.save()
 			return True
 		except:
 			return False
 	
-	def reorder_cfragments(self, cfids):
+	def reorder_cfragments(self, cfids, directions):
 		for i,cfid in enumerate(cfids):
 			cf = self.cf.get(id=cfid)
 			if cf.order != i:
 				cf.order = i
+				if directions[i] in ('f', 'r',):
+					cf.direction = directions[i]
 				cf.save()
 				self.processed = False
 		self.save()
