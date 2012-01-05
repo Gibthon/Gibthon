@@ -16,6 +16,7 @@ var UI_BG_FILL = "rgb(100,100,100)";
 var UI_BG_STROKE = "rgb(20,20,20)";
 var UI_FG_FILL = "#DFEFFC";
 var UI_FG_STROKE = "#C5DBEC"
+var UI_TEXT = Graphics.getRGB(60,60,60);
 
 var library;
 var slider;
@@ -32,8 +33,8 @@ var init_designer = function(){
 	_calc_size();
 	
 	//Build object hirachy and set initial positions
-	var hnd = new Shape(_build_handle());
-	stop = new Shape(_build_stopper());
+	var hnd = _build_handle();
+	stop = _build_stopper();
 	stop.x = self.LIB_HANDLE_WIDTH;
 	var slider = new Container();
 	slider.addChild(hnd);
@@ -81,15 +82,25 @@ var _build_handle = function()
 {
 	var g = new Graphics();
 	g.setStrokeStyle(1);
-	g.beginFill(UI_BG_FILL);
-	g.beginStroke(UI_BG_STROKE);
+	g.beginFill(Graphics.getRGB(0,0,0,0.8));
 	g.drawRect(LIB_HANDLE_WIDTH, 8, LIB_PANEL_OPEN, bounds.height - 16);
 	
 	g.beginFill(UI_FG_FILL);
 	g.beginStroke(UI_FG_STROKE);
 	g.drawRoundRectComplex( 0, 0, LIB_HANDLE_WIDTH, bounds.height, 4, 0, 0, 4);
 	
-	return g;
+	var s = new Shape(g);	
+	
+	var t = new Text('Library', '14px bold Arial', UI_TEXT);
+	t.rotation = -90;
+	t.x = LIB_HANDLE_WIDTH - 5;
+	t.y = bounds.height * 0.2; 
+	
+	var c = new Container();
+	c.addChild(s);
+	c.addChild(t);
+	
+	return c;
 };
 var _build_stopper = function()
 {
@@ -98,5 +109,5 @@ var _build_stopper = function()
 	g.beginFill(UI_FG_FILL);
 	g.beginStroke(UI_FG_STROKE);
 	g.drawRoundRectComplex( 0, 0, LIB_STOPPER_WIDTH, bounds.height, 0, 4, 4, 0);
-	return g;
+	return new Shape(g);
 };
