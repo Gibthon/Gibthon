@@ -35,6 +35,13 @@ var UI_TEXT 				= Graphics.getRGB(46,110,158);
 var UI_TEXT_HL 				= Graphics.getRGB(29,89,135);
 var UI_TEXT_SL 				= Graphics.getRGB(225,112,9);
 
+var state = 'd';
+/*
+ * d - default
+ * dr - drag
+ * 
+ * */
+
 var library;
 var slider;
 var stop;
@@ -42,8 +49,8 @@ var itemPanel;
 var $c;
 //stage is only updated if an animation is playing
 var anim = 0;
-var clearAnim = function() {anim=anim-1;};
 var setAnim = function() {anim=anim+1;};
+var clearAnim = function() {setTimeout('anim=anim-1;', 500);};
 
 var init_designer = function(){	
 	$c = $('#cdesigner');
@@ -92,10 +99,9 @@ var tick = function()
 var _calc_size = function(){
 	bounds.width = canvas.width;
 	bounds.height = canvas.height;
-	LIB_PANEL_CLOSED = bounds.width - LIB_HANDLE_WIDTH - LIB_STOPPER_WIDTH;
-	LIB_PANEL_OPEN = 0.618 * bounds.width;
+	LIB_PANEL_CLOSED = Math.floor(bounds.width - LIB_HANDLE_WIDTH - LIB_STOPPER_WIDTH);
+	LIB_PANEL_OPEN = Math.floor(0.618 * bounds.width);
 	LIB_SLIDER_OPEN = LIB_PANEL_OPEN - LIB_PANEL_CLOSED;
-	console.log(bounds.width + 'x' + bounds.height);
 };
 
 var show_items = function(metadata)
@@ -134,9 +140,10 @@ var _build_handle = function()
 	
 	var s = new Shape(g);	
 	
-	var t = new Text('Library', '700 13.33px Lucida Grande,Lucida Sans,Arial,sans-serif', UI_TEXT);
+	var t = new Text('Library', '700 13.33px Lucida Grande,Lucida Sans,Arial,sans-serif', UI_FG_FILL);
 	t.rotation = -90;
-	t.x = LIB_HANDLE_WIDTH - 5;
+	t.textBaseline = 'middle';
+	t.x = LIB_HANDLE_WIDTH / 2.0;
 	t.y = bounds.height * 0.2; 
 	
 	var c = new Container();
@@ -211,6 +218,11 @@ var _redraw_item = function(item, state)
 // Mouse things --------------------------
 var _on_mouse_move = function(e)
 {
+	if(!stage.mouseInBounds)
+	{
+		_closeLib();
+		return;
+	}
 	//should the library be opened?
 	if(!library.open && e.stageX > LIB_PANEL_CLOSED)
 		_openLib();
@@ -294,6 +306,7 @@ var i_drag;
 var _begin_item_drag = function(it)
 {
 	_closeLib();
+	state = 'dr';
 	i_drag = it.clone(true);
 	i_drag.width = it.width;
 	i_drag.height = it.height;
