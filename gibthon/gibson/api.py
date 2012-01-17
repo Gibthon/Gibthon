@@ -4,6 +4,7 @@ from gibthon.jsonresponses import JsonResponse, ERROR
 from gibson.views import get_construct
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 @login_required
 def save_meta(request, cid):
@@ -49,12 +50,25 @@ def update_settings(request, cid):
 def get_info(request, cid):
 	"""Get information about a construct"""
 	try:
-		c = get_construct(cid)
+		c = get_construct(request.user, cid)
+		cfs = []
+		for cf in c.cf.all():
+			d = 1
+			if cf.direction == 'r':
+				d = -1
+			cfs.append({
+				'fid': cf.construct.id,
+				'direction': d,
+				's_feat': cf.start_feature.id,
+				's_offset': cf.start_offset,
+				'e_feat': cf.end_feature.id,
+				'e_offset': cf.end_offset,
+			});
 		ret = {
 			'name': c.name,
 			'desc': c.description,
 			'length': c.length(),
-			'fragments[]': [cf.fragment for cf in c.cf.all()],
+			'cfs': cfs,
 			'created': c.last_modified(),
 		}
 		return JsonResponse(ret)

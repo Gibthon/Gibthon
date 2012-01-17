@@ -1,6 +1,6 @@
 var canvas;
 var stage;
-
+var meta = null;
 
 //Declare layout values
 //constants
@@ -11,7 +11,7 @@ var LIB_ITEM_SPACING = 4;
 
 var FRAG_W = 25;
 var FRAG_W_2 = FRAG_W / 2.0;
-var FRAG_ARROW = 5.0;
+var FRAG_ARROW = 10.0;
 
 //variable
 var bounds = new Rectangle();
@@ -39,173 +39,18 @@ var UI_TEXT 				= Graphics.getRGB(46,110,158);
 var UI_TEXT_HL 				= Graphics.getRGB(29,89,135);
 var UI_TEXT_SL 				= Graphics.getRGB(225,112,9);
 
-/*
- * Fragment - inherits display object and represents a fragment which is in view
- *  
- * */
-Fragment.prototype = new Shape();
-Fragment.prototype.constructor = Fragment;
-function Fragment(metadata)
-{
-	var self = this;
-	Shape.call(this, new Graphics);
-	this.meta = metadata;
-	this.size = 0;//in degrees
-	//this.rotation
-	this.regX = 0; this.regY = 0;
-	this.radius = 0;
-	this.dragging = false;
-	this.mouseOver = false;
-	this.area = 'rm'; //or ccw or cw
-	this.fill = UI_FG_FILL;
-	this.stroke = UI_FG_STROKE;
-	
-	this.lower = function() {return this.rotation - this.size/2.0;};
-	this.higher = function() {return this.rotation + this.size/2.0;};
-	
-	var anim = 0; //the number of animations currently going on, controls whether to redraw
-	
-	this.setAnim = function(){anim = anim+1;}
-	this.clearAnim = function(){anim=anim-1; if(anim==0) self.redraw();}
-	
-	// -------------- Transitions
-	this.setArea = function(a) 
-	{
-		if(self.area == a) return;
-		self.area = a;
-		switch(a)
-		{
-			case 'cw':
-				self.x = 0; self.y = 0;
-				self.radius = CW_R;
-				break;
-			case 'ccw':
-				self.x = 0; self.y = 0;
-				self.radius = CCW_R;
-				break;			
-		}
-		if(self.dragging)
-			self.radius = self.radius + DRAG_R;
-	};
-	this.setRadius = function(s) 
-	{
-		var target = {radius: Math.abs(s)};
-		var tween = Tween.get(self)
-			.call(setAnim).call(self.setAnim)
-			.to(target, 250, Ease.quartOut)
-			.call(self.clearAnim).call(clearAnim);
-	};
-	this.setRotation = function(a) {
-		var r = bound_angle(a - this.rotation); //r is the distance and direction of shortest rotation
-		
-		var target = {rotation: this.rotation + r};
-		var tween = Tween.get(self)
-			.call(setAnim)
-			.to(target, 250, Ease.quartOut)
-			call(clearAnim).call('self.rotation = bound_angle(a);');
-	};
-	this.setSize = function(s)
-	{
-		var target = {size: Math.abs(s),};
-		var tween = Tween.get(self)
-			.call(setAnim).call(self.setAnim)
-			.to(target, 250, Ease.quartOut)
-			.call(self.clearAnim).call(clearAnim).call('self.rotation = bound_angle(a);');
-	};
-	this.setSizeBP = function(t) //t is total length of construct
-	{
-		this.setSize( 360.0 * (t / self.meta.length));
-	}
-	this.setDragging = function(d) //d = dragging
-	{
-		if(self.dragging == d) return;
-		if(d)
-		{
-			self.setRadius(self.radius + DRAG_R);
-		}
-		else
-		{
-			self.setRadius(self.radius - DRAG_R);
-		}
-		self.dragging = d;
-	}
-	// -------------- end Transitions
-	
-	this.onMouseMove = function(x,y)
-	{
-		var ht = self.hitTest(x,y);
-		if(ht && !self.mouseOver)
-		{
-			self.mouseOver = true;
-			self.alpha = 0.8;
-			_set_cursor('move');
-		}
-		if(!ht && self.mouseOver)
-		{
-			self.mouseOver = false;
-			self.alpha = 1.0;
-			_set_cursor('auto');
-		}
-	};
-	
-	this.onDrag = function(l) //l = local position
-	{
-		//console.log('  Fragment.onDrag ('+l.x+', '+l.y+') area: ' + self.area);
-		switch(self.area)
-		{
-			case 'rm':
-				self.x = l.x;
-				self.y = l.y;
-				break;
-			case 'cw':
-			case 'ccw':
-				self.rotation = l.toRadial().t;
-				break;
-		}
-		//console.log('  -- x,y = ('+self.x+', '+self.y+') -- r,a = ('+self.radius+', '+self.rotation+')');
-		stage.update();
-	}
-	
-	
-	var _draw_frag = function(g, d) // d = direction E [1,-1], 1 -> CW, -1 -> CCW
-	{
-		g.moveToRA(self.radius-FRAG_W_2, -s2) //left inner
-		 .lineToRA(self.radius, -s2 + d * FRAG_ARROW) //left center
-		 .lineToRA(self.radius+FRAG_W_2, -s2) //left outer
-		 .arc(0,0,self.radius+FRAG_W_2, -s2, s2, false) //outer edge
-		 .lineTo(self.radius, s2 + d * FRAG_ARROW) //right center
-		 .lineTo(self.radius-FRAG_W_2, s2) //right inner
-		 .arc(0,0,self.radius-FRAG_W_2, s2, -s2, true); //inner edge
-	}
-	
-	this.redraw = function()
-	{
-		console.log('Frag.redraw()');
-		var g = self.graphics.clear();
-		g.setStrokeStyle(1);
-		g.beginFill(self.fill)
-		 .beginStroke(self.stroke);
-		var s2 = self.size / 2.0;
-		switch(self.area)
-		{
-			case 'rm':
-				g.rect(-FRAG_W * 3, -FRAG_W * .5, FRAG_W * 6, FRAG_W * .5);
-				break;
-			case 'cw':
-				_draw_frag(g, +1);
-				break;
-			case 'ccw':
-				_draw_frag(g, -1);
-				break;
-		}
-	};
-	this.tick = function()
-	{
-		if(anim > 0)
-			self.redraw();
-	}
-	this.redraw();
-};
+var BLACK = Graphics.getRGB(0,0,0);
+
+var UI_FONT_LG = '700 24px Lucida Grande,Lucida Sans,Arial,sans-serif';
+var UI_FONT_M = '500 12px Lucida Grande,Lucida Sans,Arial,sans-serif';
+var UI_FONT_SM = '300 10px Lucida Grande,Lucida Sans,Arial,sans-serif';
+
+//Areas:
+var CW = 0;
+var CCW = 1;
+var RM = 2;
+
+var a2s = function(a) {switch(a){case CW: return 'cw'; case CCW: return 'ccw'; case RM: return 'rm'; default: return 'unknown';}}
 
 /*
  * Item - a fragment as it appears in the library
@@ -454,187 +299,568 @@ function Library(x,y,w,h, slide)
 }; //end Library def
 
 /*
+ * Fragment - inherits display object and represents a fragment which is in view in the Designer
+ *  
+ * */
+Fragment.prototype = new Shape();
+Fragment.prototype.constructor = Fragment;
+function Fragment(metadata, _area, w, r)
+{
+	var self = this;
+	Shape.call(this, new Graphics);
+	
+	if(_area == undefined) _area = RM;
+	if(w == undefined) w = 20;
+	if(r == undefined) r = 450;
+		
+	this.meta = metadata;
+	this.length = 0;//in degrees
+	this.width = w;
+	this.regX = 0; this.regY = 0;
+	this.radius = r;
+	this.mouseOver = false;
+	this.area = _area; //or ccw or cw
+	this.fill = UI_BG_FILL;
+	this.stroke = Graphics.getRGB(255,255,255);
+	this.drag = false;
+	
+	this.center = function() {return this.rotation + this.length/2.0;};
+	this.end = function() {return this.rotation + this.length;};
+	
+	var anim = 0; //the number of animations currently going on, controls whether to redraw
+	
+	this.setAnim = function(){anim = anim+1;}
+	this.clearAnim = function(){anim=anim-1; if(anim==0) self.redraw();}
+	
+	// -------------- Transitions
+	this.setArea = function(a) 
+	{
+		if(self.area == a) return;
+		self.area = a;
+		switch(a)
+		{
+			case CW:
+				self.x = 0; self.y = 0;
+				break;
+			case CCW:
+				self.x = 0; self.y = 0;
+				break;			
+		}
+		self.redraw();
+	};
+	
+	this.animate = function(t) //animate length, rotation, radius or total_length
+	{
+		var done = function() {};
+		if(t.rotation != undefined)
+		{
+			var r = bound_angle(t.rotation - this.rotation); //r is the distance and direction of shortest rotation
+			t.rotation = this.rotation + r;
+			done = function() {self.rotation = bound_angle(t.rotation);};
+		}
+
+		if(t.total_length != undefined)
+		{
+			t.length = 360.0 * (self.meta.length / t.total_length);
+			t.total_length = undefined;
+		}
+		var r = (t.length != undefined) || (t.radius != undefined);
+		var tween = Tween.get(self).call(setAnim);
+		if(r)
+			tween.call(self.setAnim);
+		tween.to(t, 250, Ease.quartOut)
+		if(r)
+			tween.call(self.clearAnim)
+		tween.call(clearAnim).call(done);
+	};
+
+	// -------------- end Transitions
+	
+	this.onMouseMove = function(r)
+	{
+		var ht = rcontains(r);
+		if(ht && !self.mouseOver)
+		{
+			self.mouseOver = true;
+			self.alpha = 0.8;
+			_set_cursor('move');
+			stage.update();
+		}
+		if(!ht && self.mouseOver)
+		{
+			self.mouseOver = false;
+			self.alpha = 1.0;
+			_set_cursor('auto');
+			stage.update();
+		}
+		return self.mouseOver;
+	};
+	
+	var rcontains = function(r) //does the fragment contain the radial point r
+	{
+		if( (r.r > self.radius + self.width / 2.0) || (r.r < self.radius - self.width / 2.0))
+		{
+			return false;
+		}
+		return a_contains(self.rotation, self.end(), r.a);
+	}	
+	var _draw_frag = function(g, d) // d = direction E [1,-1], 1 -> CW, -1 -> CCW
+	{
+		var w2 = self.width / 2.0;
+		var l = self.length / _R2D;
+		var a = FRAG_ARROW / self.radius;
+		g.moveToRA(self.radius - w2, 0) //left inner
+		 .lineToRA(self.radius, d * a) //left center
+		 .lineToRA(self.radius + w2, 0) //left outer
+		 .arc(0,0,self.radius + w2, 0, l, false) //outer edge
+		 .lineToRA(self.radius +w2, l ) //right outer
+		 .lineToRA(self.radius, l + d * a) //right center
+		 .lineToRA(self.radius-w2, l) //right inner
+		 .arc(0,0,self.radius - w2, l, 0, true) //inner edge
+		 .closePath();
+	}
+	
+	this.redraw = function()
+	{
+		var g = self.graphics.clear();
+		g.setStrokeStyle(1)
+		 .beginFill(self.fill)
+		 .beginStroke(self.stroke);
+
+		switch(self.area)
+		{
+			case RM:
+				g.rect(-self.width * 3, -self.width * .5, self.width * 6, self.width * .5);
+				break;
+			case CW:
+				_draw_frag(g, +1);
+				break;
+			case CCW:
+				_draw_frag(g, -1);
+				break;
+		}
+		
+	};
+	this.tick = function()
+	{
+		if(anim > 0)
+			self.redraw();
+	}
+	this.redraw();
+};
+
+/*
+ * 
+ * 
  * Designer - the main construct designer
  *  
  * */
 Designer.prototype = new Container();
 Designer.prototype.constructor = Designer;
-function Designer(x,y,w,h) //x,y,w,h, metadata
+function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 {
 	var self = this;
 	Container.call(this);
+/*
+ * Designer Variables
+ * */
+ 
+	/*
+	 * Designer - construct properties
+	 * */
+	this.name = '';
+	this.len = 0;
+	this.cid = cid;
 	
-	// ------------ Layout variables
-	this.x = x; this.y = y; this.width = w; this.height = h;
-	this.c = new Point((x+w) / 2.0, (y+h) / 2.0);
-	CW_R = Math.min(h,w) * 0.5;
-	CCW_R = Math.min(h,w) * 0.2;
-	var ccw_limit = CCW_R + 1.5*FRAG_W;
-	var cw_limit = CW_R + 1.5*FRAG_W;
+	/*
+	 * Designer layout and sizing variables
+	 * */
+	var c = new Point(w*0.5,h*0.5);
+	var radius = Math.min(w,h) * 0.35; //the base radius of the plasmid
+	var fragw = radius * 0.1;
+	var delta = radius * 0.15;
+	var title_font = UI_FONT_LG;
+	var len_font = UI_FONT_M;
+	var drag = false; //is a fragment being dragged
+	var selected = null; //which fragment is selected
 	
-	// --- display 
-	var dzfill = Graphics.getRGB(60,60,60);
-	var dz = {'rm':null, 'cw':null, 'ccw':null,}; //Dropzones
-	var fr; //fragments
-	var length = 0;
+	/*
+	 * Designer Display Objects
+	 * */
+	var name_t, len_t;
+	var fc = new Container(); //fragment container
+/*
+ * Designer Functions
+ * */
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PUBLIC++++++++++
+	this.setName = function(n) //set the plasmid's name
+	{
+		self.name = n;
+		name_t.text = n;
+		stage.update();
+	};
+	
+	this.addFragment = function(e,m) //add a fragment
+	{
+		var f = new Fragment(m,RM,fragw);
+		var p = self.globalToLocal(e.stageX,e.stageY);
 		
-	// other vars
-	var drag = null; //the element being dragged, null if none
-	var active_dz = '';
+		f.x = p.x;
+		f.y = p.y;
+		f.drag = true;
+		drag = true;
+
+		e.onMouseMove = function(e) {self.dragFragment(e, f);};
+		e.onMouseUp   = function(e) {self.dropFragment(e, f);};
+		
+		self.addChild(f);
+	};
 	
-	// Public methods
+	this.dragFragment = function(e, f) //fragment moved
+	{
+		var p = fc.globalToLocal(e.stageX,e.stageY);
+		var rp = p.toRadial();
+		
+		var a_ = _get_area(rp);
+		if(a_ != f.area)
+		{
+			//if we're joining the construct
+			if(f.area == RM)
+			{
+				_join(f, rp.a);
+			}
+			if(a_ == RM)
+			{
+				_leave(f);
+			}
+			if(a_ == CW)
+				f.radius = radius + delta + fragw;
+			if(a_ == CCW)
+				f.radius = radius - delta - fragw;
+				
+			f.setArea(a_);
+		}
+		
+		if(f.area == RM)
+		{
+			f.x = p.x + c.x;
+			f.y = p.y + c.y;
+		}
+		else
+		{
+			f.rotation = rp.a + f._mo - f.length / 2.0;
+			
+			//Check if we crossed any fragments
+			if(fc.getNumChildren() > 2 && !a_contains(f._p, f._n, f.center()))
+			{
+				var i = fc.getChildIndex(f);
+				var i_ = i;
+				var u = i;
+				// if we're nearest the previous fragment
+				if(Math.abs(shortest_angle(rp.a,f._p)) < Math.abs(shortest_angle(rp.a,f._n)))
+				{
+					i_ = b(i - 1);
+					u = b(i + 1);
+				}
+				else
+				{
+					i_ = b(i + 1);
+					u = b(i - 1);
+				}
+					
+				//switch the fragments
+				fc.removeChildAt(i);
+				fc.addChildAt(f, i_);
+				f._i = i_;
+				_update_layout(u);
+			}
+		}
+		stage.update();		
+	}
 	
-	this.initialFragments = function(m) //m = metadata from server
-	{};
-	this.addFragment = function(e, m) //m = metadata from library, e = mouseEvent
+	this.dropFragment = function(e, f) //fragment dropped
 	{
-		var f = new Fragment(m);
-		f.size = 360 * (m.length / (m.length * length));
-		f.dragging = true;
-		drag = f;
-		_set_active_dz('rm');
-		e.onMouseMove = self.onFragDrag;
-		e.onMouseUp = self.onFragDrop;
-		fr.addChild(f);
-		stage.update();
-	};
-	this.onFragDrag = function(e)
-	{
-		//console.log('designer.onFragDrag('+e.stageX+', '+e.stageY+')');
-		drag.onDrag(fr.globalToLocal(e.stageX, e.stageY));//tell the fragment that we moved
-		var d = _get_dz_under(e.mouseX, e.mouseY); 
-		if(d != active_dz) //have we changed area?
+		_set_cursor();
+		f.drag = false;
+		drag = false;
+		if(f.area == RM)
 		{
-			_set_active_dz(d);
-			drag.setArea(d);
+			self.removeChild(f);
+			stage.update();
+			console.log(_dbg_str());
+			return;
 		}
-	};
-	this.onFragDrop = function(e)
-	{
-		console.log('onFragDrop: ' + active_dz);
-		switch(active_dz)
+		var i = fc.getChildIndex(f);
+		t = {rotation: fc.getChildAt(b(i-1)).end(),};
+		if(f.area == CW)
 		{
-			case 'rm':
-				fr.removeChild(drag);
-				drag = null;
-				break;
-			default:
-				drag.setDragging(false);
-				drag = null;
-				break;
+			t.radius = radius + delta;
 		}
-		_set_cursor('auto');
-		e.onMouseMove = null;
-		e.onMouseUp = null;
-		dz[active_dz].fadeOut();
-		stage.update();
-	};
+		if(f.area == CCW)
+		{
+			t.radius = radius - delta;
+		}
+		console.log(_dbg_str());
+		
+		f.animate(t);
+	}
+	
 	this.onMouseMove = function(e)
 	{
-		if(drag == null)
+		if(!drag)
 		{
-			var l = fr.globalToLocal(e.stageX, e.stageY); 
-			for(var f = 0; f < fr.getNumChildren(); f = f+1)
+			var r = fc.globalToLocal(e.stageX,e.stageY).toRadial();
+			selected = null;
+			for(var i = 0; i < fc.getNumChildren(); i = i + 1)
 			{
-				self.fr.getChildAt(f).onMouseMove(l.x,l.y);
+				if(fc.getChildAt(i).onMouseMove(r))
+					selected = i;
 			}
 		}
 	};
+	
 	this.onMouseDown = function(e)
-	{};
-	
-	// Private methods
-	var _init = function() 
 	{
-		console.log('designer._init() ' + ccw_limit + ' < ' + cw_limit);
-		var d = new Container();
-		dz.rm = new Shape(new Graphics());
-		dz.cw = new Shape(new Graphics());
-		dz.ccw = new Shape(new Graphics());
-		d.addChild(dz.rm);
-		d.addChild(dz.cw);
-		d.addChild(dz.ccw);
-		
-		fr = new Container();
-		fr.x = self.c.x;
-		fr.y = self.c.y;
-		
-		self.addChild(d);
-		self.addChild(fr);
-		
-		_draw_dz();
-	};
-	var _draw_dz = function() //draw all three drop zones
-	{
-		var c = self.c;
-		//Remove zone
-		dz.rm.graphics.clear()
-		 .beginFill(dzfill)
-		 .drawRoundRect(x,y,w,h,4)
-		 .beginFill(Graphics.getRGB(255,255,255))
-		 .drawCircle(c.x,c.y,cw_limit);
-		dz.rm.alpha = 0.0;
-		
-		//clockwise zone
-		dz.cw.graphics.clear()
-		 .beginFill(dzfill)
-		 .drawCircle(c.x,c.y,cw_limit)
-		 .beginFill(Graphics.getRGB(255,255,255))
-		 .drawCircle(c.x,c.y,ccw_limit);
-		dz.cw.alpha = 0.0;
-		
-		//counter-clockwise zone
-		dz.ccw.graphics.clear()
-		 .beginFill(dzfill)
-		 .drawCircle(c.x,c.y,ccw_limit);
-		dz.ccw.alpha = 0.0;
+		if(selected != null)
+		{
+			f = fc.getChildAt(selected);
+			r = fc.globalToLocal(e.stageX,e.stageY).toRadial();
+			t = {};
+			f.drag = true;
+			drag = true;
+			f._p = fc.getChildAt(b(selected - 1)).center();
+			f._n = fc.getChildAt(b(selected + 1)).center();
+			f._mo = bound_angle(f.center() - r.a);
+			
+			if(f.area == CW)
+				t.radius = radius + delta + fragw;
+			if(f.area == CCW)
+				t.radius = radius - delta - fragw;
+				
+			f.animate(t);
+			
+			e.onMouseMove = function(e) {self.dragFragment(e,f);};
+			e.onMouseUp = function(e) {self.dropFragment(e,f);};
+		}
 	}
-	var _set_active_dz = function(d) //set dropzone d ['rm', 'cw', 'ccw'] as active
+	
+	// -----------------------------------------------------------PRIVATE---------
+	var _join = function(f, a) //add fragment f to the construct at angle a and remove from self
 	{
-		if(active_dz == d) return;
-		console.log('_set_active_dz("'+ d + '")');
-		try
-		{
-			dz[active_dz].fadeOut(250);
-		}
-		catch(e) {};
-		dz[d].fadeIn(250);
-		if(active_dz == 'rm')
-		{
-			_set_length(length + drag.meta.length);
-		}
-		if(d == 'rm')
-		{
-			_set_length(length - drag.meta.length);
-		}
-		active_dz = d;
+		f._i = _closest_gap(a);
+		f._mo = 0; //mouse offset
+		self.removeChild(f);
+		fc.addChildAt(f, f._i);
+		f.length = 360 * (f.meta.length / (self.len + f.meta.length));
+		_set_len(self.len + f.meta.length);
+		
+		//_update_layout(f._i, fc.getChildAt(b(f._i - 1)).end() - (f.length / 2.0) );
+		_update_layout(b(f._i-1));
+	}
+	
+	var _leave = function(f) //remove fragment f to the construct and add to self
+	{
+		var g = fc.getChildIndex(f);
+		f._i = undefined;
+		f._mo = undefined;
+		fc.removeChildAt(g);
+		f.rotation = 0;
+		self.addChild(f);
+		_set_len(self.len - f.meta.length);
+		g = b(g-1);
+		_update_layout(g);
+	}
+	
+	var b = function(j)//make sure j is within fc array bounds
+	{
+		if(j < 0) j = j + fc.getNumChildren();
+		return j % fc.getNumChildren();
 	};
-	var _set_length = function(l)
+	
+	var _closest_gap = function(a) //return the index of the fragment after closest gap to the angle given
 	{
-		if(l < 0) return;
-		length = l;
-		if(l>0)
+		var n = fc.getNumChildren();
+		if(n == 0) return 0;
+		a = bound_angle(a);
+		
+		/* -- I can do better...
+		// 'static' var i is the initial guess
+		if ( typeof _closest_gap.i == 'undefined' ) {
+			_closest_gap.i = 0;
+		}
+		* */
+		
+		//var i = b(_closest_gap.i);
+		
+		//find the closest
+		var d = 360;
+		var c = -1;
+		
+		for(var i = 0; i < n; i = i + 1)
 		{
-			for(var i = 0; i < fr.getNumChildren(); i = i +1)
+			var d_ = Math.abs(shortest_angle(a, fc.getChildAt(i).rotation));
+			if(d_ < d)
 			{
-				fr.getChildAt(i).setLengthBP(l);
+				d = d_;
+				c = i;
 			}
 		}
-	};
-	var _get_dz_under = function(x,y) //return dropzone under x,y as string
+
+		return c;
+		
+	}
+	
+	var _update_layout = function(s, a) //layout the fragments tip to tail. start with index s at angle a
 	{
-		var d = self.c.distXY(x,y);
-		if(d < self.ccw_limit)
-			return 'ccw';
-		if(d < self.cw_limit)
-			return 'cw';
-		else
-			return 'rm';
+		var n = fc.getNumChildren();
+		if(n == 0) return;
+		if(s==undefined) s = 0;
+		if(a==undefined) a = fc.getChildAt(s).rotation;
+		s = b(s);
+		a = bound_angle(a);
+		
+		var c = a;
+		var d = -1;
+		var targets = new Array();
+		for(var i = 0; i < n; i = i + 1)
+		{
+			var f = fc.getChildAt(b(i + s));
+			var l = 360.0 * (f.meta.length / self.len);
+			if(!f.drag)
+			{
+				var t = {};
+				var a = false;
+				if(f.rotation != c && n > 1)
+				{
+					a = true;
+					t.rotation = c;
+				}
+				
+				if(f.length != l)
+				{
+					a = true;
+					t.length = l;
+				}
+				if(a) f.animate(t);
+				t.length = l;
+				t.rotation = c;
+				targets.push(t);
+			}
+			else
+			{
+				d = i;
+				targets.push({});
+			}
+			c = bound_angle(c + l);
+		}
+		if(d>=0 && n > 2)
+		{
+			var f = fc.getChildAt(b(d+s));
+			var nxt = b(d+1);
+			var pre = b(d-1);
+			f._n = targets[nxt].rotation + targets[nxt].length / 2.0;
+			f._p = targets[pre].rotation + targets[pre].length / 2.0;
+		}
+	}
+	
+	var _get_area = function(r) //return the area based on radial point r
+	{
+		if(r.r < radius) return CCW;
+		if(r.r < radius + delta + 3 * fragw) return CW;
+		return RM;
+	}
+	
+	var _set_len = function(l) //set the length and update all the fragments
+	{
+		self.len = Math.abs(parseInt(l));
+		len_t.text = self.len + ' bp';
+	}
+	
+	var _dbg_str = function()
+	{
+		var s = 'Designer: ';
+		for(var i = 0; i < fc.getNumChildren(); i = i + 1)
+		{
+			var c = fc.getChildAt(i);
+			s = s +'\n  ' + i + ') ' + c.meta.name + ' ['+c.meta.length+'] ';
+		}
+		return s;
+	}
+	
+	var _init = function(m)
+	{
+		self.name = m.name;
+		self.len = 0;
+	//initiate the fragments
+		for(var i in m.cfs)
+		{
+			var d = '';
+			if(m.cfs[i] > 0) d = CW;
+			else if (m.cfs[i] < 0) d = CCW;
+			else d = undefined;
+			
+			fc.addChild(
+				new Fragment(meta[m.cfs[i].fid],d,fragw,radius + d * delta)
+			);
+			self.len = self.len + meta[m.cfs[i].fid].length;
+		}
+		
+	//draw name and length
+		//setup the text
+		name_t = new Text(self.name, title_font, BLACK);
+		len_t = new Text(self.len + ' bp', len_font, BLACK);
+		name_t.textAlign = 'center';
+		len_t.textAlign = 'center';
+		name_t.textBaseline = 'middle';
+		len_t.textBaseline = 'middle';
+		len_t.y = 25;
+		name_t.maxWidth = 2*radius - 10; //CHANGE ME!
+		len_t.maxWidth = 2*radius - 10; //CHANGE ME!
+		
+		//draw the plasmid
+		var g = new Graphics();
+		g.setStrokeStyle(1)
+		 .beginStroke(BLACK)
+		 .drawCircle(0,0,radius);
+		var s = new Shape(g);
+		
+		//crate the container, set to center
+		var con = new Container();
+		con.x = c.x; 
+		con.y = c.y;
+		
+		//add children
+		con.addChild(s);
+		con.addChild(len_t);
+		con.addChild(name_t);
+		
+		fc.x = c.x;
+		fc.y = c.y;
+		
+		self.addChild(con);
+		self.addChild(fc);
+		
+		_set_len(self.len);
+		_update_layout();
+		stage.update();
 	};
 	
-	_init();
+	cd_get_info(_init, this.cid);
 };
 
+/*
+ * 
+ * 
+ * 
+ * 
+ *  Initiation 
+ * 
+ *
+ *
+ *
+ *
+ *
+ */
 
 
 var library;
@@ -646,33 +872,50 @@ var anim = 0;
 var setAnim = function() {anim=anim+1;};
 var clearAnim = function() {anim=anim-1; if(anim == 0) stage.update();};
 
-var init_designer = function(){	
+var init_designer = function(cid){
+	console.log('cid: ' + cid);	
 	$c = $('#cdesigner');
-	$c.prop('width', $c.width());
-	$c.prop('height', $c.height());
+	var w = $c.width();
+	var h = (7.0 / 16.0) * w;
+	$c.height(h);
+	$c.prop('width', w);
+	$c.prop('height', h);
+	
+	
 	canvas = document.getElementById('cdesigner');
 	stage = new Stage(canvas);
-	//stage.enableMouseOver(25);
 	
+	list_fragments(function(m) {continue_init(m,cid);});
 	_calc_size();
 	
-	
 	library = new Library(LIB_X,LIB_Y,LIB_W,LIB_H,LIB_SLIDE);
-	designer = new Designer(0,0,LIB_X - 2, bounds.height);
 	library.onSelect = function(e, m)
 	{
 		console.log('Selected: ' + m.name);
 		designer.addFragment(e,m);
 	}
+
+	Ticker.setFPS(25);
+	Ticker.addListener(this);
+	
+	stage.update();
+};
+var continue_init = function(m, cid)
+{
+	console.log('continue_init');
+	library.addItems(m);
+	meta = {};
+	for(var i in m)
+	{
+		meta[m[i].fid] = m[i];
+	}
+	designer = new Designer(0,0,LIB_X - 2, bounds.height, cid);
 	stage.addChild(designer);
 	stage.addChild(library);
 	
 	stage.onMouseMove = _on_mouse_move;
 	stage.onPress = _on_press;
-	Ticker.setFPS(25);
-	Ticker.addListener(this);
 	
-	list_fragments(show_items);
 	stage.update();
 };
 var tick = function()
@@ -690,11 +933,6 @@ var _calc_size = function(){
 	LIB_H = bounds.height;
 };
 
-var show_items = function(metadata)
-{
-	library.addItems(metadata);
-	stage.update();
-};
 
 // Mouse things --------------------------
 var _on_mouse_move = function(e)
@@ -754,13 +992,19 @@ pp.toRadial = function()
 var gp = Graphics.prototype;
 gp.moveToRA = function(r,a)
 {
-	var p = ra2xy(r,a);
+	var p = ra2xy(r,a * _R2D);
 	return this.moveTo(p.x,p.y);
 }
 gp.lineToRA = function(r,a)
 {
-	var p = ra2xy(r,a);
+	var p = ra2xy(r,a * _R2D);
 	return this.lineTo(p.x,p.y);
+}
+gp.arcToRA = function(r, a1, a2)
+{
+	var p1 = ra2xy(r,a1);
+	var p2 = ra2xy(r,a2);
+	return this.arcTo(p1.x,p1.y,p2.x,p2.y,r);
 }
 var xy2ra = function(x,y)
 {
@@ -772,11 +1016,10 @@ var ra2xy = function(r,a)
 	return {x: r*Math.cos(t),y: r*Math.sin(t),};
 }
 
-var shortest_angle = function(a,b) //return the shortest distance between the two
+var sign = function(a) {if(a==0) return 0; return (a / Math.abs(a));};
+var shortest_angle = function(a,b) //return the shortest distance from a to b
 {
-	return Math.min(
-					Math.abs(a-b), 
-					Math.abs(360+b - a));
+	return bound_angle(b-a);
 }
 var bound_angle = function(a) //make a within [-180, 180]
 {
@@ -784,16 +1027,22 @@ var bound_angle = function(a) //make a within [-180, 180]
 	if(a < -180) return a + 360;
 	return a;
 };
-
+var a_contains = function(l,h,a) //is angle a in the segment defined by moving clockwise from l to h?
+{
+	var h_ = h; var a_ = a;
+	if(h_ < l) h_ = h_ + 360;
+	if(a_ < l) a_ = a_ + 360;
+	return (a_ - l) < (h_ - l);
+}
 var dop = DisplayObject.prototype;
 dop.fadeIn = function(t) //fade in in time t
 {
-	console.log('fadeIn');
+	//console.log('fadeIn');
 	this.fade(t, 1.0);
 };
 dop.fadeOut = function(t) //fade in in time t
 {
-	console.log('fadeOut');
+	//console.log('fadeOut');
 	this.fade(t, 0.0);
 };
 dop.fade = function(t, a) //fade to alpha a in in time t

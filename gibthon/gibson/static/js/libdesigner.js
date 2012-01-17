@@ -9,12 +9,21 @@
 * 		cd_reorder_fragment(cb, cid, [fids], [directions] = unchanged)
 * 
 * 		cd_get_info(cb, cid)
-* 			{name, desc, length, [fids]}
+* 			{name, desc, length, cfs=Array[construct fragment]}
 * 
 * 		cd_set_info(cb, cid, name, desc)
 * 
 */
-
+/*
+ * construct fragment:
+ * 		- fid
+ * 		- direction [1,-1]
+ * 		- s_feat: start feature, null or feature ID
+ * 		- s_offset: start offset, integer
+ * 		- e_feat: end feature
+ * 		- e_offset: end
+ * 
+ * */
 var CD_BASE_URL = '/gibthon/api/'
 
 var cd_add_fragment = function(cb, cid, fid, position)
