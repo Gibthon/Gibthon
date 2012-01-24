@@ -21,12 +21,18 @@
 /*
  * construct fragment:
  * 		d = json data
- * 		f = fragment, fetched from server if undefined or wrong
+ * 		frag = fragment, fetched from server if undefined or wrong
  * 
  * */
 
-function ConstructFragment(d, frag)
-{
+function ConstructFragment(d, f)
+{/*
+	console.log('ConstructFragment(d, frag)');
+	for(var i in d)
+		console.log('  d.'+i+' = '+d[i]);
+	*/
+	if(d == undefined) d = {};
+	
 	this.id = d.cfid;
 	this.strand = d.direction;
 	this.s_offset = d.s_offset;
@@ -34,16 +40,17 @@ function ConstructFragment(d, frag)
 	this.e_offset = d.e_offset;
 	this.e_feat = d.e_feat;
 	this.order = d.order;
-	var f = frag;
-	if(f == undefined || f.id != d.fid)
+	if(f == undefined || f.fid != d.fid)
 	{
 		get_meta(d.fid, function(d) {
 			f = new Fragment(d);
 		});
 	}
 	this.isValid = function() {return f != undefined;};
-	this.startPos() = function()
+	this.startPos = function()
 	{
+		if(this.id == undefined) return 0;
+		//console.log('startPos: s_feat: '+this.s_feat+' s_offset: '+this.s_offset);
 		if(this.s_feat > 0)
 		{
 			var sf = f.getFeatById(this.s_feat);
@@ -52,17 +59,18 @@ function ConstructFragment(d, frag)
 		}
 		return this.s_offset;
 	};
-	this.endPos() = function()
+	this.endPos = function()
 	{
+		if(this.id == undefined) return f.length;
 		if(this.e_feat > 0)
 		{
 			var ef = f.getFeatById(this.e_feat);
 			if(ef != null)
 				return this.e_offset + ef.end;
 		}
-		return this.s_offset;
+		return f.length - this.s_offset;
 	};
-	this.length() = function()
+	this.length = function()
 	{
 		return Math.abs(this.endPos() - this.startPos());
 	};
@@ -81,8 +89,8 @@ var cd_add_fragment = function(cb, cid, fid, position)
 var cd_rm_fragment = function(cb, cid, cfid)
 {
 	make_request(	CD_BASE_URL + cid + '/rmFragment/', 
-					JSON.stringify({'cfid': cfid}), 
-					'Removing ConstrictFragment "' + cfid + '"', 
+					JSON.stringify({'cfid': cfid,}), 
+					'Removing ConstructFragment "' + cfid + '"', 
 					cb);
 }
 

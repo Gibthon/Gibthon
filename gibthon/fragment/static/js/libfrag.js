@@ -131,6 +131,7 @@ function Fragment(d) // d = json from server
 	var self = this;
 	this.name = d.name;
 	this.fid = d.fid;
+	this.id = d.fid;
 	this.desc = d.desc;
 	this.refs = new Array();
 	for(var i in d.refs)
@@ -152,7 +153,7 @@ function Fragment(d) // d = json from server
 	
 	this.seq = null;
 	
-	this.getFeatById(id)
+	this.getFeatById = function(id)
 	{
 		for(var i in self.feats)
 		{

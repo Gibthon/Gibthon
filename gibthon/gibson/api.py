@@ -1,6 +1,8 @@
 import simplejson as json
 from gibthon.jsonresponses import JsonResponse, ERROR
 
+from fragment.models import *
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from gibson.views import get_construct
 from fragment.views import get_fragment
 
@@ -135,26 +137,21 @@ directions = {1:'f', -1:'r',}
 
 @login_required
 def save_order(request, cid):
-	try:
-		con = get_construct(request.user, cid)
-		post = json.loads(request.raw_post_data)
-		order = post.getlist('d[]')
-		if not order:
-			return JsonResponse('No order provided.', ERROR)
-		if len(order) != len(con.cf.all()):
-			return JsonResponse('Only %s ConstructFragments provided, %s required.' % (len(order), len(con.cf.all())), ERROR)
-		
-		if con:
-			dirs = []
-			for d in order['direction']:
-				if d in directions.keys():
-					dirs.append(directions[d])
-				else:
-					dirs.append(' ')
-			con.reorder_cfragments(order['cfids'], dirs)
-			return JsonResponse({'modified': con.last_modified(),});
-		else:
-			return HttpResponseNotFound()
-	except Exception as e:
-		print 'Error: %s' % (e.message)
-	raise Http404
+	con = get_construct(request.user, cid)
+	post = json.loads(request.raw_post_data)
+	order = post.get('d[]')
+	if not order:
+		return JsonResponse('No order provided.', ERROR)
+	if len(order['cfid']) != len(con.cf.all()):
+		return JsonResponse('Only %s ConstructFragments provided, %s required.' % (len(order['cfid']), len(con.cf.all())), ERROR)
+	if len(order['direction']) != len(con.cf.all()):
+		return JsonResponse('Only %s directions provided, %s required.' % (len(order['direction']), len(con.cf.all())), ERROR)
+	
+	if con:
+		dirs = []
+		for d in order['direction']:
+			dirs.append(directions.get(d, ' '))
+		con.reorder_cfragments(order['cfid'], dirs)
+		return JsonResponse({'modified': con.last_modified(),});
+	else:
+		return HttpResponseNotFound()

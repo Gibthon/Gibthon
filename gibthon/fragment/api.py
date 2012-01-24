@@ -87,7 +87,7 @@ def read_meta(g):
 			'qualifiers': [],			
 		}
 		for q in f.qualifiers.all():
-			feat['qualifiers'].append({'name': q.name, 'value':q.value,})
+			feat['qualifiers'].append({'name': q.name, 'value':q.data,})
 		feats.append(feat)
 
 	return {	'name': g.name,
