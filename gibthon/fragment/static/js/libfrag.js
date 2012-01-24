@@ -121,6 +121,82 @@ var rcomplement = function(s, a)
 }
 
 // ============================Constructors
+
+
+/*
+ * Represents a fragment and associated metadata 
+ * */
+function Fragment(d) // d = json from server
+{
+	var self = this;
+	this.name = d.name;
+	this.fid = d.fid;
+	this.desc = d.desc;
+	this.refs = new Array();
+	for(var i in d.refs)
+	{
+		this.refs.push(new Reference(d.refs[i]));
+	}
+	this.annots = new Array();
+	for(var i in d.annots)
+	{
+		this.annots.push([i, d.annots[i]]);
+	}
+	this.feats = new Array();
+	for(var i in d.feats)
+	{
+		this.feats.push(new Feature(d.feats[i]));
+	}
+	this.origin = d.origin;
+	this.length = d.length;
+	
+	this.seq = null;
+	
+	this.getFeatById(id)
+	{
+		for(var i in self.feats)
+		{
+			if(self.feats[i].id == id)
+				return self.feats[i];
+		}
+		return null;
+	}
+		
+}
+
+function Reference(d)
+{
+	this.title = d.title;
+	this.authors = d.authors;
+	this.journal = d.journal;
+	this.medline_id = d.medline_id;
+	this.pubmed_id = d.pubmed_id;
+}
+
+function Feature(d)
+{
+	this.start = d.start;
+	this.end = d.end;
+	this.strand = d.strand;
+	this.type = d.type;
+	this.id = d.id;
+	this.strand = d.strand;
+	this.qualifiers = new Array();
+	for(var i in d.qualifiers)
+	{
+		this.qualifiers.push(new Qualifier(d.qualifiers[i]));
+	}
+}
+
+function Qualifier(d)
+{
+	this.name = d.name;
+	this.value = d.value;
+}
+
+/*
+ * 		Constructors depreciated from here on in
+ * */
 function Metadata(fid, name, desc, refs, annots, origin, length)
 {
 	this.fid = fid;
@@ -130,38 +206,6 @@ function Metadata(fid, name, desc, refs, annots, origin, length)
 	this.annots = annots;
 	this.origin = origin;
 	this.length = length;
-}
-
-function Reference(title, authors, journal, medline_id, pubmed_id)
-{
-	this.title = title;
-	this.authors = authors;
-	this.journal = journal;
-	this.medline_id = medline_id;
-	this.pubmed_id = pubmed_id;
-}
-
-function Annotation(key, value)
-{
-	return [key, value];
-}
-
-function Feature(start, end, strand, type, id, qualifiers)
-{
-	this.start = start;
-	this.end = end;
-	this.strand = strand;
-	this.type = type;
-	this.id = id;
-	this.qualifiers = qualifiers;
-	if(this.start < end) this.strand = 1;
-	if(this.start > end) this.strand = -1;
-}
- 
-function Qualifier(name, value)
-{
-	this.name = name;
-	this.value = value;
 }
 
 function Sequence(s)

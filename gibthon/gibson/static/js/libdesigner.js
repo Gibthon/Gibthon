@@ -20,17 +20,54 @@
 */
 /*
  * construct fragment:
- * 		- cfid
- * 		- fid
- * 		- order
- * 		- direction [1,-1]
- * 		- s_feat: start feature, null or feature ID
- * 		- s_offset: start offset, integer
- * 		- e_feat: end feature
- * 		- e_offset: end
+ * 		d = json data
+ * 		f = fragment, fetched from server if undefined or wrong
  * 
  * */
- 
+
+function ConstructFragment(d, frag)
+{
+	this.id = d.cfid;
+	this.strand = d.direction;
+	this.s_offset = d.s_offset;
+	this.s_feat = d.s_feat;
+	this.e_offset = d.e_offset;
+	this.e_feat = d.e_feat;
+	this.order = d.order;
+	var f = frag;
+	if(f == undefined || f.id != d.fid)
+	{
+		get_meta(d.fid, function(d) {
+			f = new Fragment(d);
+		});
+	}
+	this.isValid = function() {return f != undefined;};
+	this.startPos() = function()
+	{
+		if(this.s_feat > 0)
+		{
+			var sf = f.getFeatById(this.s_feat);
+			if(sf != null)
+				return this.s_offset + sf.start;
+		}
+		return this.s_offset;
+	};
+	this.endPos() = function()
+	{
+		if(this.e_feat > 0)
+		{
+			var ef = f.getFeatById(this.e_feat);
+			if(ef != null)
+				return this.e_offset + ef.end;
+		}
+		return this.s_offset;
+	};
+	this.length() = function()
+	{
+		return Math.abs(this.endPos() - this.startPos());
+	};
+}
+
 var CD_BASE_URL = '/gibthon/api/'
 
 var cd_add_fragment = function(cb, cid, fid, position)

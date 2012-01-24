@@ -73,6 +73,22 @@ def read_meta(g):
 	annots = {}
 	for a in g.annotations.all():
 		annots[a.key] = a.value
+	feats = []	
+	for f in g.features.all():
+		d = 1
+		if f.direction == 'r':
+			d = -1
+		feat =  {
+			'id': f.id,
+			'type': f.type,
+			'start': f.start,
+			'end': f.end,
+			'strand': d,
+			'qualifiers': [],			
+		}
+		for q in f.qualifiers.all():
+			feat['qualifiers'].append({'name': q.name, 'value':q.value,})
+		feats.append(feat)
 
 	return {	'name': g.name,
 				'fid': g.id,
@@ -80,7 +96,8 @@ def read_meta(g):
 				'refs': refs,
 				'annots': annots,
 				'origin': g.get_origin_display(),
-				'length': len(g.sequence)
+				'length': len(g.sequence),
+				'feats': feats,
 	}
 	
 def write_meta(g, meta):
