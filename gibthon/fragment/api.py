@@ -75,6 +75,7 @@ def read_meta(g):
 		annots[a.key] = a.value
 
 	return {	'name': g.name,
+				'fid': g.id,
 				'desc': g.description,
 				'refs': refs,
 				'annots': annots,

@@ -304,25 +304,27 @@ function Library(x,y,w,h, slide)
  * */
 Fragment.prototype = new Shape();
 Fragment.prototype.constructor = Fragment;
-function Fragment(metadata, _area, w, r)
+function Fragment(metadata, cf, _area)
 {
 	var self = this;
 	Shape.call(this, new Graphics);
 	
 	if(_area == undefined) _area = RM;
-	if(w == undefined) w = 20;
-	if(r == undefined) r = 450;
 		
-	this.meta = metadata;
+	this.meta = metadata; //fragment metadata
+	this.cf = cf; //ConstructFragment
+	
+	// Display things
 	this.length = 0;//in degrees
-	this.width = w;
+	this.width = FRAG_W;
 	this.regX = 0; this.regY = 0;
-	this.radius = r;
+	this.radius = 50;
 	this.mouseOver = false;
 	this.area = _area; //or ccw or cw
 	this.fill = UI_BG_FILL;
 	this.stroke = Graphics.getRGB(255,255,255);
 	this.drag = false;
+	this.on_server = false; //does the server know about me?
 	
 	this.center = function() {return this.rotation + this.length/2.0;};
 	this.end = function() {return this.rotation + this.length;};
@@ -502,7 +504,8 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	
 	this.addFragment = function(e,m) //add a fragment
 	{
-		var f = new Fragment(m,RM,fragw);
+		console.log('addFragment(e,m) m.fid = ' + m.fid);
+		var f = new Fragment(m,undefined,RM);
 		var p = self.globalToLocal(e.stageX,e.stageY);
 		
 		f.x = p.x;
@@ -588,10 +591,16 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			self.removeChild(f);
 			stage.update();
 			console.log(_dbg_str());
+			if(!f.on_server)
+			{
+				cd_rm_fragment(function() {}, self.cid, f.cf.cfid);
+			}
 			return;
 		}
-		var i = fc.getChildIndex(f);
-		t = {rotation: fc.getChildAt(b(i-1)).end(),};
+		f.order = fc.getChildIndex(f);
+		t = {};
+		if(fc.getNumChildren() > 1)
+			t.rotation = fc.getChildAt(b(i-1)).end();
 		if(f.area == CW)
 		{
 			t.radius = radius + delta;
@@ -603,6 +612,34 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		console.log(_dbg_str());
 		
 		f.animate(t);
+		
+		//let the server know what's going on
+		if(!f.on_server)
+		{
+			cd_add_fragment(function(cf) {f.cf = cf;},
+							self.cid,
+							f.meta.fid,
+							f.order);
+			f.on_server = true;
+		}
+		else
+		{
+			cf = new Array();
+			d = new Array();
+			for(var i = 0; i < fc.getNumChildren(); i = i + 1)
+			{
+				cf.push(fc.getChildAt(i).cf.cfid);
+				if(cf.area == CW)
+				{
+					d.push(1);
+				}
+				else
+				{
+					d.push(-1);
+				}
+			}
+			cd_reorder_fragments(function() {}, {'cfid': cf, 'direction': d,});
+		}
 	}
 	
 	this.onMouseMove = function(e)
@@ -795,13 +832,15 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		for(var i in m.cfs)
 		{
 			var d = '';
-			if(m.cfs[i] > 0) d = CW;
-			else if (m.cfs[i] < 0) d = CCW;
+			if(m.cfs[i].direction > 0) d = CW;
+			else if (m.cfs[i].direction < 0) d = CCW;
 			else d = undefined;
+			console.log('new Fragment(meta['+m.cfs[i].fid+'],m.cfs['+i+'],'+a2s(d)+');');
 			
-			fc.addChild(
-				new Fragment(meta[m.cfs[i].fid],d,fragw,radius + d * delta)
-			);
+			var f = new Fragment(meta[m.cfs[i].fid],m.cfs[i],d);
+			f.on_server = true;
+			fc.addChild(f);
+			f.redraw();
 			self.len = self.len + meta[m.cfs[i].fid].length;
 		}
 		
@@ -891,7 +930,7 @@ var init_designer = function(cid){
 	library = new Library(LIB_X,LIB_Y,LIB_W,LIB_H,LIB_SLIDE);
 	library.onSelect = function(e, m)
 	{
-		console.log('Selected: ' + m.name);
+		console.log('Selected: ' + m.name + ' -> ' + m.fid);
 		designer.addFragment(e,m);
 	}
 

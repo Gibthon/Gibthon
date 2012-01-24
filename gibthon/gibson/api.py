@@ -2,9 +2,34 @@ import simplejson as json
 from gibthon.jsonresponses import JsonResponse, ERROR
 
 from gibson.views import get_construct
+from fragment.views import get_fragment
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
+
+def cf2dict(cf):
+	"""
+		Convert a ConstructFragment to a dictionary suitable for JSON encoding
+	"""
+	ret = {	'cfid': cf.id,
+			'fid': cf.fragment.id,
+			'order': cf.order,
+			'direction': 1,
+			's_feat': -1,
+			's_offset': cf.start_offset,
+			'e_feat': -1,
+			'e_offset': cf.end_offset,
+		}
+	if cf.direction == 'r':
+		ret['direction'] = -1
+
+	if cf.start_feature:
+		ret['s_feat'] = cf.start_feature.id
+	if cf.end_feature:
+		ret['e_feat'] = cf.end_feature.id
+	
+	return ret
+			
 
 @login_required
 def save_meta(request, cid):
@@ -53,17 +78,7 @@ def get_info(request, cid):
 		c = get_construct(request.user, cid)
 		cfs = []
 		for cf in c.cf.all():
-			d = 1
-			if cf.direction == 'r':
-				d = -1
-			cfs.append({
-				'fid': cf.construct.id,
-				'direction': d,
-				's_feat': cf.start_feature.id,
-				's_offset': cf.start_offset,
-				'e_feat': cf.end_feature.id,
-				'e_offset': cf.end_offset,
-			});
+			cfs.append(cf2dict(cf));
 		ret = {
 			'name': c.name,
 			'desc': c.description,
@@ -80,14 +95,16 @@ def get_info(request, cid):
 def fragment_add(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
-		fid = request.POST.get('fid')
+		post = json.loads(request.raw_post_data)
+		fid = post.get('fid')
+		
 		if not fid:
 			return JsonResponse("No fragment id provided", ERROR)
 		f = get_fragment(request.user, fid)
 		if f:
 			cf = con.add_fragment(f)
 			if cf:
-				return JsonResponse({'fid': fid, 'cfid': cf.id,})
+				return JsonResponse(cf2dict(cf))
 			else:
 				return JsonResponse('Could not add fragment %s to construct %s' % (fid, cid))
 		else:
@@ -100,15 +117,15 @@ def fragment_add(request, cid):
 @login_required
 def fragment_remove(request, cid):
 	con = get_construct(request.user, cid)
-	fid = request.POST.get('fid')
-	if not fid:
-		return JsonResponse('No fragment ID specified', ERROR)
+	post = json.loads(request.raw_post_data)
+	cfid = post.get('cfid')
+	if not cfid:
+		return JsonResponse('No ConstructFragment ID specified', ERROR)
 	if con:
 		try:
-			f = con.cf.get(fragment=fid)
-			con.delete_cfragment(f.cf.id)
+			con.delete_cfragment(cfid)
 		except ObjectDoesNotExist as e:
-			return JsonResponse('No such fragment "%s" associated with construct "%s".' % (fid, cid))
+			return JsonResponse('No such fragment "%s" associated with construct "%s".' % (cfid, cid))
 		
 		return JsonResponse('OK');
 	else:
@@ -120,25 +137,21 @@ directions = {1:'f', -1:'r',}
 def save_order(request, cid):
 	try:
 		con = get_construct(request.user, cid)
-		order = request.POST.getlist('order[]')
-		direction = request.POST.getlist('direction[]')
+		post = json.loads(request.raw_post_data)
+		order = post.getlist('d[]')
 		if not order:
 			return JsonResponse('No order provided.', ERROR)
 		if len(order) != len(con.cf.all()):
-			return JsonResponse('Only %s fragment ids provided, %s required.' % (len(order), len(con.cf.all())), ERROR)
-		if not direction:
-			direction = [0]*len(order)
-		if len(direction) != len(order):
-			return JsonResponse('len(direction) = %s != len(order) = %s' % (len(direction), len(order)))
+			return JsonResponse('Only %s ConstructFragments provided, %s required.' % (len(order), len(con.cf.all())), ERROR)
 		
 		if con:
-			t_dir = []
-			for d in direction:
+			dirs = []
+			for d in order['direction']:
 				if d in directions.keys():
-					t_dir.append(directions[d])
+					dirs.append(directions[d])
 				else:
-					t_dir.append(' ')
-			con.reorder_cfragments(order, t_dir)
+					dirs.append(' ')
+			con.reorder_cfragments(order['cfids'], dirs)
 			return JsonResponse({'modified': con.last_modified(),});
 		else:
 			return HttpResponseNotFound()

@@ -597,4 +597,4 @@ class ConstructFragment(models.Model):
 	
 	def __unicode__(self):
 		return self.construct.name + ' : ' + self.fragment.name + ' (' + str(self.order) + ')'
-	
+
