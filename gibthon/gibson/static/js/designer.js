@@ -49,8 +49,8 @@ var get_next_color = function()
 {
 	if(get_next_color.i == undefined)
 		get_next_color.i = Math.floor(Math.random() * 256);
-	get_next_color.i = (14 + get_next_color.i) % 255;
-	var r = Graphics.getHSL(get_next_color.i,60,60);
+	get_next_color.i = (75 + get_next_color.i) % 255;
+	var r = Graphics.getHSL(get_next_color.i,80,40);
 	return r;
 }
 
@@ -369,28 +369,30 @@ function DisplayFragment(f, cf)
 		self.redraw();
 	};
 	
-	this.setDrag = function(d, a)//a is angle for end drag
+	this.setDrag = function(d, a, cb)//a is angle for end drag
 	{
 		if(d == this.drag) return;
 		if(d) _start_drag();
-		else _end_drag(a);
+		else _end_drag(a, cb);
 	};
 	
-	var _start_drag = function()
+	var _start_drag = function(cb)
 	{
 		if(self.area == CW) self.radius = F.radii[CW] + F.delta;
 		if(self.area == CCW) self.radius = F.radii[CCW] - F.delta;
 		self.drag = true;
+		self.redraw();
+		if(cb != undefined) cb();
 	};
 	
-	var _end_drag = function(a)
+	var _end_drag = function(a, cb)
 	{
 		var t = {'radius': F.radii[self.area],'rotation':a,};
-		self.animate(t);
+		self.animate(t, cb);
 		self.drag = false;
 	};
 	
-	this.animate = function(t) //animate angle, rotation, radius or total_length
+	this.animate = function(t, cb) //animate angle, rotation, radius or total_length
 	{
 		if(t.rotation != undefined)
 		{
@@ -412,6 +414,7 @@ function DisplayFragment(f, cf)
 		tween.to(t, 250, Ease.quartOut)
 		if(r) tween.call(self.clearAnim)
 		tween.call(clearAnim).call(done);
+		if(cb != undefined) tween.call(cb);
 	};
 
 	this.onMouseMove = function(r)
@@ -505,71 +508,69 @@ function Label(df)
 	this.textHeight = 8;
 	this.df = df;
 	
-	var text = new Text(UI_FONT_SM, df.f.name, UI_TEXT);
+	var _radius = 0;
+	var angle = 0;
+	var sign = 0;
+	
+	var tc = new Container();
 	var line = new Shape(new Graphics);
 	
-	self.addChild(text);
+	self.addChild(tc);
 	self.addChild(line);
 	
-	this.draw = function (h, x, w) //h - spot height
+	this.redraw = function () 
 	{
-		console.log('label.draw('+h+')');
-		var p_ = ra2xy(df.radius, df.middle());
-		var p = this.df.localToLocal(p_.x, p_.y, self);
-		var g = line.graphics.clear();
-		
-		var s_x = 0;
-		if(parent.left)
+		//only redraw if things have changed
+		if(changed())
 		{
-			s_x = x + w;
-			text.x = s_x - F.width;
-			text.textAlign = 'right';
+			angle = this.redraw_name();
+			_radius = this.radius;
 		}
-		else
-		{
-			s_x = x;
-			text.x = s_x + F.width;
-			text.textAlign = 'left';
-		}
-		
-		draw_spot(g,p.x,p.y,F.width/2.0,df.color);
-		draw_spot(g,s_x,h,F.width/2.0,df.color);
-		
-		
-		text.textBaseline = 'middle';
-		text.x = h;
-		
-		//draw the lines...
-		
+		tc.rotation = bound_angle(this.df.middle() + angle);
 	}
 	
-	var draw_spot = function(g,x,y,r,c) //x,y,radius, colour
+	var changed = function()
 	{
-		console.log('  draw_spot = function(g,'+x+', '+y+', '+r+', '+c+')');
-		g.setStrokeStyle(1);
-		g.beginStroke(BLACK);
-		g.beginFill(c);
-		g.drawCircle(x,y,r);
+		var s = -1;
+		if(bound_angle(self.df.middle()) > 0)
+			s = 1;
+		if(s != sign)
+		{
+			sign = s;
+			return true;
+		}
+		if(self.df.radius != _radius)
+		{
+			_radius = self.df.radius;
+			return true;
+		}
+		return false;
 	}
 	
-};
-
-/*
- * 
- * 
- * LabelContainer
- *  
- * */
-LabelContainer.prototype = new Container();
-LabelContainer.prototype.constructor = Designer;
-function LabelContainer(x,w,l) //x width left
-{
-	var self = this;
-	Container.call(this);
-	
-	this.x = x;
-	this.width = w;
-	this.left = l;
+	this.redraw_name = function()
+	{
+		var n = this.df.f.name;
+		
+		tc.removeAllChildren();
+		tc.rotation = 0;
+		var r = this.df.radius;
+		if(this.df.area == CW) r = r + 20;
+		else r = r - 20;
+		var a = 0;
+		for(var i = 0; i < n.length; i = i + 1)
+		{
+			var t = new Text(n[i], UI_FONT_SM, BLACK);
+			t.textBaseline = 'middle';
+			t.y = 0;
+			t.x = 0;
+			t.regY = - sign * r;
+			t.rotation = a;
+			a = a - sign * (t.getMeasuredWidth() + 0.5)/ r * _R2D;
+			tc.addChild(t);
+		}
+		var rot = - sign * 90;
+		return - a / 2.0 + rot;
+	}	
 };
 
 /*
@@ -584,6 +585,8 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 {
 	var self = this;
 	Container.call(this);
+	
+	console.log('Designer - ('+x+', '+y+')'+w+'x'+h);
 /*
  * Designer Variables
  * */
@@ -617,11 +620,9 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	var name_t, len_t;
 	var fc = new Container(); //fragment container
 	
-	//Create the Label Containers
-	var lw = w / 5.0;
-	var label_l = new LabelContainer(0, lw, true);
-	var label_r = new LabelContainer(w - lw, lw, false);
-	var labels = new Array();
+	var labels = new Container();
+	labels.x = c.x;
+	labels.y = c.y;
 /*
  * Designer Functions
  * */
@@ -722,7 +723,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			return;
 		}
 		var o = fc.getChildIndex(f);
-		f.setDrag(false, fc.getChildAt(b(o-1)).end());
+		f.setDrag(false, fc.getChildAt(b(o-1)).end(), function() {_update_labels();});
 		
 		//let the server know what's going on
 		if(f.cf.id == undefined)
@@ -752,7 +753,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			}
 		}
 		cd_reorder_fragments(function() {}, self.cid,{'cfid': cf, 'direction': d,});
-		
 	}
 	
 	this.onMouseMove = function(e)
@@ -778,17 +778,24 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			t = {};
 			
 			drag = true;
+			labels.visible = false;
 
 			f._p = fc.getChildAt(b(selected - 1)).middle();
 			f._n = fc.getChildAt(b(selected + 1)).middle();
 			f._mo = bound_angle(f.middle() - r.a);
 			
-			f.setDrag(true);
+			f.setDrag(true, function() {stage.update()});
 			
 			e.onMouseMove = function(e) {self.dragFragment(e,f);};
 			e.onMouseUp = function(e) {self.dropFragment(e,f);};
 		}
-	}
+	};
+	
+	this.construct2Local = function(r,t,target) //translate to global coords
+	{
+		var p = ra2xy(r, t);
+		return fc.localToLocal(p.x,p.y,target);
+	}; 
 	
 	// -----------------------------------------------------------PRIVATE---------
 	//add DisplayFragment f to the construct at angle a and remove from self
@@ -801,7 +808,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		df.angle = 360 * (df.cf.length() / (self.len + df.cf.length()));
 				
 		_set_len(self.len + df.cf.length());
-		labels.push(new Label(df));
+		labels.addChild(new Label(df));
 		
 		_update_layout(b(i-1));
 	}
@@ -817,11 +824,11 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		
 		g = b(g-1);
 		
-		for(var i in labels)
+		for(var i = 0; i < labels.getNumChildren(); i = i + 1)
 		{
-			if(labels[i].df.cf.id == f.cf.id)
+			if(labels.getChildAt(i).df.cf.id == f.cf.id)
 			{
-				labels.splice(i,1);
+				labels.removeChildAt(i);
 				break;
 			}
 		}
@@ -925,32 +932,16 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	
 	var _update_labels = function()
 	{
-		label_l.removeAllChildren();
-		label_r.removeAllChildren();
-		for(var i in labels)
+		if(drag)
 		{
-			var p = Math.cos(labels[i].df.middle());
-			if(p > 0)
-				label_r.addChild(labels[i]);
-			else
-				label_l.addChild(labels[i]);
+			labels.visible = false;
+			return;
 		}
-		var s = function(a,b) {return ra2xy(a.df.radius, a.df.middle()).x < ra2xy(b.df.radius, b.df.middle()).x;};
-		label_r.sortChildren(s);
-		label_l.sortChildren(s);
-		
-		var _arrange_labels = function(l)
+		labels.visible = true;
+		for(var i = 0; i < labels.getNumChildren(); i = i + 1)
 		{
-			var h = 20;
-			for(var i = 0; i < l.getNumChildren(); i = i+1)
-			{
-				l.getChildAt(i).draw(h, l.x, lw);
-				h = h + 20;
-			}
+			labels.getChildAt(i).redraw();
 		}
-		
-		_arrange_labels(label_r);
-		_arrange_labels(label_l);
 		
 		stage.update();
 	}
@@ -1012,8 +1003,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		con.addChild(s);
 		con.addChild(len_t);
 		con.addChild(name_t);
-		con.addChild(label_l);
-		con.addChild(label_r);
 		
 		fc.x = c.x;
 		fc.y = c.y;
@@ -1060,13 +1049,14 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			console.log('Adding Fragment #' + i +': f.name ('+cf.length()+'bp)');
 			var df = new DisplayFragment(f,cf);
 			fc.addChild(df);
-			labels.push(new Label(df));
+			labels.addChild(new Label(df));
 			self.len = self.len + cf.length();
 		}
 		
 		
 		self.addChild(con);
 		self.addChild(fc);
+		self.addChild(labels);
 		
 		_set_len(self.len);
 		_update_layout();
@@ -1137,7 +1127,7 @@ var continue_init = function(m, cid)
 	{
 		meta[m[i].fid] = m[i];
 	}
-	designer = new Designer(0,0,LIB_X - 2, bounds.height, cid);
+	designer = new Designer(0,0,LIB_X, bounds.height, cid);
 	stage.addChild(designer);
 	stage.addChild(library);
 	
