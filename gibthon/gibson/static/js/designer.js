@@ -347,9 +347,9 @@ function Label(text, radius, font, color)
 		var x = Math.sin(a / _R2D);
 		var _s = s;
 		if(x > 0)
-			_s = 1;
-		if(x < 0)
 			_s = -1;
+		if(x < 0)
+			_s = 1;
 		if(s != _s)
 		{
 			s = _s;
@@ -407,7 +407,7 @@ function Label(text, radius, font, color)
 			l.rotation = a;
 			a = a + (s * (l.getMeasuredWidth() + 0.5)/ r) * _R2D;
 		}
-		c.rotation = bound_angle(- a / 2.0 + 90);
+		c.rotation = bound_angle(- a / 2.0 + s * 90);
 		self.uncache();
 		var _r = r + 10;
 		self.cache(-_r,-_r, 2 * _r, 2 * _r);
@@ -482,7 +482,9 @@ function DisplayFragment(f, cf)
 		if(cf.strand == 1) this.area = CW;
 		else this.area = CCW;
 	}
+	
 	this.angle = 0; //in degrees
+	
 	this.radius = F.radii[this.area];
 	
 	this.mouseOver = false;
@@ -531,6 +533,7 @@ function DisplayFragment(f, cf)
 	{
 		self.angle = a;
 		l.rotation = a / 2.0;
+		l.updateRotation(self.middle());
 	}
 	this.getAngle = function() {return angle;}
 	
@@ -695,7 +698,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	var self = this;
 	Container.call(this);
 	
-	console.log('Designer - ('+x+', '+y+')'+w+'x'+h);
 /*
  * Designer Variables
  * */
@@ -760,6 +762,19 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		
 		self.addChild(f);
 	};
+	
+	this.removeFragment = function(df)
+	{
+		var g = df.cf.order;
+		
+		fc.removeFragAt(g);
+		_set_len(self.len - df.cf.length());
+		
+		cd_rm_fragment(function() {}, self.cid, df.cf.id);
+		
+		g = b(g-1);
+		_update_layout(g);
+	}
 	
 	this.dragFragment = function(e, f) //fragment moved
 	{
@@ -839,7 +854,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		//let the server know what's going on
 		if(f.cf.id == undefined)
 		{
-			console.log('adding fragment "'+f.f.name+'" to server at ' + f.f.order);
 			cd_add_fragment(function(cf) {f.cf = new ConstructFragment(cf);},
 							self.cid,
 							f.f.fid,
@@ -884,22 +898,40 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	{
 		if(selected != null)
 		{
-			f = fc.getChildAt(selected);
-			r = fc.globalToLocal(e.stageX,e.stageY).toRadial();
-			t = {};
-			
-			drag = true;
-
-			f._p = fc.getChildAt(b(selected - 1)).middle();
-			f._n = fc.getChildAt(b(selected + 1)).middle();
-			f._mo = bound_angle(f.middle() - r.a);
-			
-			f.setDrag(true, function() {stage.update()});
-			
-			e.onMouseMove = function(e) {self.dragFragment(e,f);};
-			e.onMouseUp = function(e) {self.dropFragment(e,f);};
+			var s = selected;
+			var t = setTimeout(function() {self.onMouseDrag(e,s);}, 250);
+			e.onMouseUp = function() {clearTimeout(t); self.onMouseClick(e,s);};
 		}
 	};
+	
+	//a click to the fragment at s
+	this.onMouseClick = function(e, s)
+	{
+		var df = fc.getChildAt(s);
+		var loc = ra2xy(df.radius, df.middle());
+		var g = fc.localToGlobal(loc.x, loc.y);
+		show_info(df, g.x,g.y);
+	}
+	
+	//begins dragging the fragment at s
+	this.onMouseDrag = function(e, s)
+	{
+		e.onMouseUp = function() {};
+		var f = fc.getChildAt(s);
+		var r = fc.globalToLocal(e.stageX,e.stageY).toRadial();
+		var t = {};
+		
+		drag = true;
+
+		f._p = fc.getChildAt(b(s - 1)).middle();
+		f._n = fc.getChildAt(b(s + 1)).middle();
+		f._mo = bound_angle(f.middle() - r.a);
+		
+		f.setDrag(true);
+		
+		e.onMouseMove = function(e) {self.dragFragment(e,f);};
+		e.onMouseUp = function(e) {self.dropFragment(e,f);};
+	}
 	
 	this.construct2Local = function(r,t,target) //translate to global coords
 	{
@@ -922,14 +954,14 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		_update_layout(b(i-1));
 	}
 	
-	var _leave = function(f) //remove fragment f to the construct and add to self
+	var _leave = function(df) //remove fragment f to the construct and add to self
 	{
-		var g = f.cf.order;
-		f._mo = undefined;
+		var g = df.cf.order;
+		df._mo = undefined;
 		fc.removeFragAt(g);
-		f.rotation = 0;
-		self.addChild(f);
-		_set_len(self.len - f.cf.length());
+		df.rotation = 0;
+		self.addChild(df);
+		_set_len(self.len - df.cf.length());
 		
 		g = b(g-1);
 		
@@ -978,7 +1010,11 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	var _update_layout = function(s, a) //layout the fragments tip to tail. start with index s at angle a
 	{
 		var n = fc.getNumChildren();
-		if(n == 0) return;
+		if(n == 0) 
+		{
+			stage.update();
+			return;
+		}
 		if(s==undefined) s = 0;
 
 		s = b(s);
@@ -1107,6 +1143,10 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 				this.getChildAt(j).cf.order = j;
 			}
 		};
+		fc.removeFrag = function(df)
+		{
+			this.removeFragAt(this.getChildIndex(df));
+		}
 		fc.swap = function(i, j) //swap the order of the DisplayFragments at i and j
 		{
 			if(i == j) return;
@@ -1128,7 +1168,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		{
 			var f = meta[m.cfs[i].fid];
 			var cf = new ConstructFragment(m.cfs[i], f);
-			console.log('Adding Fragment #' + i +': '+f.name+' ('+cf.length()+'bp)');
 			var df = new DisplayFragment(f,cf);
 			fc.addChild(df);
 			self.len = self.len + cf.length();
@@ -1164,14 +1203,16 @@ var library;
 var designer;
 
 var $c;
+var $info;
+
 //stage is only updated if an animation is playing
 var anim = 0;
 var setAnim = function() {anim=anim+1;};
 var clearAnim = function() {anim=anim-1; if(anim == 0) stage.update();};
 
 var init_designer = function(cid){
-	console.log('cid: ' + cid);	
 	$c = $('#cdesigner');
+	init_info();
 	var w = $c.width();
 	var h = (7.0 / 16.0) * w;
 	$c.height(h);
@@ -1188,7 +1229,6 @@ var init_designer = function(cid){
 	library = new Library(LIB_X,LIB_Y,LIB_W,LIB_H,LIB_SLIDE);
 	library.onSelect = function(e, m)
 	{
-		console.log('Selected: ' + m.name + ' -> ' + m.fid);
 		designer.addFragment(e,m);
 	}
 
@@ -1199,7 +1239,6 @@ var init_designer = function(cid){
 };
 var continue_init = function(m, cid)
 {
-	console.log('continue_init');
 	library.addItems(m);
 	meta = {};
 	for(var i in m)
@@ -1230,6 +1269,46 @@ var _calc_size = function(){
 	LIB_H = bounds.height;
 };
 
+
+// --------------------------------------Info window
+var init_info = function()
+{
+	$info = $('.fragment-info');
+	
+	//setup the buttons
+	$info.find('#fragment_remove')
+		.button({label: 'Remove', icons: {primary:'ui-icon-trash',},})
+		.click(function() {hide_info()});
+
+	$info.find('#fragment_clip')
+		.button({label: 'Clipping', icons: {primary:'ui-icon-scissors'}, disabled:true,})
+		.click(function() {});
+}
+
+var show_info = function(df, x, y)
+{
+	//set the title and description
+	$info.find('#fragment_name').text(df.f.name);
+	$info.find('#fragment_desc').text(df.f.desc);
+	
+	//set position
+	$info.css({position: 'absolute', zindex:100, left:x - 37, top:y - $info.height(),});
+	$info.css({display:'block',});
+	
+	//set remove callback
+	$info.find('#fragment_remove')
+		.unbind('click')
+		.click(function() {hide_info();designer.removeFragment(df);});
+	
+	//binding to click means it gets triggered immediately
+	$c.mousedown(hide_info);
+}
+
+var hide_info = function()
+{
+	$info.css({display:'none',});
+	$c.unbind('mousedown', hide_info);
+}
 
 // Mouse things --------------------------
 var _on_mouse_move = function(e)

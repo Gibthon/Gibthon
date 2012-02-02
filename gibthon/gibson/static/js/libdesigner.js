@@ -26,11 +26,7 @@
  * */
 
 function ConstructFragment(d, f)
-{/*
-	console.log('ConstructFragment(d, frag)');
-	for(var i in d)
-		console.log('  d.'+i+' = '+d[i]);
-	*/
+{	
 	if(d == undefined) d = {};
 	
 	this.id = d.cfid;
@@ -40,7 +36,8 @@ function ConstructFragment(d, f)
 	this.e_offset = d.e_offset;
 	this.e_feat = d.e_feat;
 	this.order = d.order;
-	if(f == undefined || f.fid != d.fid)
+	
+	if(((f == undefined) || (f.fid != d.fid)) && (d.fid != undefined))
 	{
 		get_meta(d.fid, function(d) {
 			f = new Fragment(d);
