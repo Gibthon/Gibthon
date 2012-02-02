@@ -587,21 +587,15 @@ function DisplayFragment(f, cf)
 		self.drag = false;
 	};
 	
-	this.animate = function(t, cb) //animate angle, rotation, radius or total_length
+	this.animate = function(t, cb) //animate angle, rotation or radius
 	{
 		if(t.rotation != undefined)
 		{
 			var r = bound_angle(t.rotation - this.rotation); //r is the distance and direction of shortest rotation
 			t.rotation = this.rotation + r;
 		}
-		//make sure that the rotation is bound at the end of the animation
+		//make sure that the rotation is bound at the end of the animation, and make sure the label keeps up
 		var done = function() {self.rotation = bound_angle(self.rotation); self.setAngle( self.angle );};
-
-		if(t.total_length != undefined)
-		{
-			t.angle = 360.0 * (self.cf.length() / t.total_length);
-			t.total_length = undefined;
-		}
 		
 		//r: whether we need to redraw at each frame
 		var r = (t.angle != undefined) || (t.radius != undefined);
@@ -773,6 +767,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		cd_rm_fragment(function() {}, self.cid, df.cf.id);
 		
 		g = b(g-1);
+		console.log('update_layout because a fragment was removed');
 		_update_layout(g);
 	}
 	
@@ -807,8 +802,9 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			f.rotation = rp.a + f._mo - f.angle / 2.0;
 			
 			//Check if we crossed any fragments
-			if(fc.getNumChildren() > 2 && !a_contains(f._p, f._n, f.middle()))
+			if(fc.getNumChildren() > 2 && !a_contains(f._p, f._n, f.middle()) && (anim <= 0))
 			{
+				console.log('Crossed: a_contains('+f._p+', '+f._n+', '+f.middle()+') = false');
 				var i = fc.getChildIndex(f);
 				var i_ = i;
 				var u = i;
@@ -826,6 +822,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 					
 				//switch the fragments
 				fc.swap(i,i_);
+				console.log('update layout because fragment '+i+' swapped with '+i_);
 				_update_layout(u);
 			}
 		}
@@ -951,6 +948,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 				
 		_set_len(self.len + df.cf.length());
 		
+		console.log('update layout because a fragmen joined');
 		_update_layout(b(i-1));
 	}
 	
@@ -965,6 +963,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		
 		g = b(g-1);
 		
+		console.log('update layout because a fragment left');
 		_update_layout(g);
 	}
 	
@@ -1022,31 +1021,37 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		if(a==undefined) a = fc.getChildAt(s).rotation;
 		a = bound_angle(a);
 		
+		//calculate the effective length
+		var min = self.len * 5.0 / 360.0;
+		var el = 0;
+		var len = new Array();
+		for(var i = 0; i < n; i = i + 1)
+		{
+			var l = fc.getChildAt(i).cf.length();
+			if(l > min)
+				el = el + l;
+			else
+				el = el + min;
+			len.push(l);
+		}
+		
+		
 		var c = a;
 		var d = -1;
 		var targets = new Array();
 		for(var i = 0; i < n; i = i + 1)
 		{
-			var f = fc.getChildAt(b(i + s));
-			var l = 360.0 * (f.cf.length() / self.len);
+			var j = b(i + s);
+			var f = fc.getChildAt(j);
+			
+			var l = 0;
+			if(len[j] > min)
+				l = 360.0 * (len[j] / el);
+			else
+				l = 360.0 * (min / el);
+			
 			if(!f.drag)
-			{
-				var t = {};
-				var a = false;
-				if(f.rotation != c && n > 1)
-				{
-					a = true;
-					t.rotation = c;
-				}
-				
-				//always animate angle, becase the label might need to be moved.
-				t.angle = l;
-				
-				f.animate(t);
-				t.angle = l;
-				t.rotation = c;
-				targets.push(t);
-			}
+				targets.push({rotation:c,angle:l,});
 			else
 			{
 				d = i;
@@ -1054,13 +1059,20 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			}
 			c = bound_angle(c + l);
 		}
-		if(d>=0 && n > 2)
+		
+		if(d >= 0)
 		{
 			var f = fc.getChildAt(b(d+s));
 			var nxt = b(d+1);
 			var pre = b(d-1);
-			f._n = targets[nxt].rotation + targets[nxt].angle / 2.0;
-			f._p = targets[pre].rotation + targets[pre].angle / 2.0;
+			f._n = bound_angle(targets[nxt].rotation + targets[nxt].angle / 2.0);
+			f._p = bound_angle(targets[pre].rotation + targets[pre].angle / 2.0);
+		}
+		
+		for(var i = 0; i < n; i = i+1)
+		{
+			var j = b(i + s);
+			fc.getChildAt(j).animate(targets[i]);
 		}
 	}
 	
@@ -1178,6 +1190,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		self.addChild(fc);
 		
 		_set_len(self.len);
+		console.log('initial update layout');
 		_update_layout();
 	};
 	
@@ -1410,6 +1423,10 @@ var bound_angle = function(a) //make a within [-180, 180]
 };
 var a_contains = function(l,h,a) //is angle a in the segment defined by moving clockwise from l to h?
 {
+	if(isNaN(l) || isNaN(h) || isNaN(a)){
+		console.log('a_contains('+l+','+h+','+a+')');
+		return true;
+	}
 	var h_ = h; var a_ = a;
 	if(h_ < l) h_ = h_ + 360;
 	if(a_ < l) a_ = a_ + 360;
