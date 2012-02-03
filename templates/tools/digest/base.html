@@ -3,6 +3,8 @@
 {% block content %}
 {% with  ingredient_count=ingredients.count %}
 <div class="content fixed-width">
+
+{% regroup buffers by buffer.manufacturer as manufacturers %}
 <table>
 <tr>
 <th>Buffer</th>
@@ -12,11 +14,15 @@
 </tr>
 {% for manufacturer in manufacturers %}
 <tr>
-<th colspan="{{ ingredient_count|add:"1"}}">{{ manufacturer.name }}</th>
+<th colspan="{{ ingredient_count|add:"1"}}">{{ manufacturer.grouper.name }}</th>
 </tr>
-{% for buffer in manufacturer.buffers.all %}
+{% for buffer in manufacturer.list %}
 <tr>
-<th>{{ buffer.name }}</th><td colspan="{{ ingredient_count }}"></td></th>
+<th>{{ buffer.buffer.name }}</th>
+{% for ingredient in buffer.ingredients %}
+<td>{{ ingredient }}</td>
+{% endfor %}
+</th>
 </tr>
 {% endfor %}
 {% endfor %}

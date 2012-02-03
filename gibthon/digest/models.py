@@ -39,11 +39,29 @@ class Buffer( models.Model ):
 	manufacturer = models.ForeignKey( 'Manufacturer', related_name='buffers' )
 	ingredients = models.ManyToManyField( 'Ingredient', through='BufferIngredient' )
 	
+	def ingredient_list( self, ingredients ):
+		concentrations = []
+		for i in ingredients:
+			try:
+				ingredient = self.bufferingredient_set.filter( ingredient=i ).get()
+			except BufferIngredient.DoesNotExist:
+				concentrations.append( 0 )
+			else:
+				concentrations.append( ingredient.concentration )
+		return concentrations
+	
 	def __unicode__( self ):
 		return "%s (%s)"%( self.name, self.manufacturer.name )
 		
 	class Meta:
 		ordering = [ 'manufacturer__name', 'name' ]
+
+
+class RenderedBuffer():
+	
+	def __init__( self, buff, ingredients ):
+		self.buffer = buff
+		self.ingredients = buff.ingredient_list( ingredients )
 
 class Ingredient( models.Model ):
 	name = models.CharField( max_length=50 )

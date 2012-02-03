@@ -6,10 +6,10 @@ from digest.models import *
 def digest( request ):
 	t = loader.get_template( 'tools/digest/base.html' )
 	ingredients = Ingredient.objects.all()
-	manufacturers = Manufacturer.objects.all()
+	buffers = [ RenderedBuffer( buffer, ingredients ) for buffer in Buffer.objects.all() ]
 	c = RequestContext( request, {
 		'title':'Digestion Calculator',
 		'ingredients':ingredients,
-		'manufacturers':manufacturers,
+		'buffers':buffers,
 	} )
 	return HttpResponse( t.render( c ) )
