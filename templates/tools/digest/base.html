@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content fixed-width">
+<table>
+<tr>
+<th>Buffer</th>
+{% for ingredient in ingredients %}
+<th>{{ ingredient.name }}</th>
+{% endfor %}
+</tr>
+{% for manufacturer in manufacturers %}
+<tr>
+<th colspan="{{ ingredients.count|add:"1"}}">{{ manufacturer.name }}</th>
+</tr>
+{% for buffer in manufacturer.buffers.all %}
+<tr>
+<th>{{ buffer.name }}</th><td colspan="{{ ingredients.count }}"></td></th>
+</tr>
+{% endfor %}
+{% endfor %}
+</table>
+</div>
+{% endblock %}
