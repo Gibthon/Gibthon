@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% with  ingredient_count=ingredients.count %}
 <div class="content fixed-width">
 <table>
 <tr>
@@ -11,14 +12,15 @@
 </tr>
 {% for manufacturer in manufacturers %}
 <tr>
-<th colspan="{{ ingredients.count|add:"1"}}">{{ manufacturer.name }}</th>
+<th colspan="{{ ingredient_count|add:"1"}}">{{ manufacturer.name }}</th>
 </tr>
 {% for buffer in manufacturer.buffers.all %}
 <tr>
-<th>{{ buffer.name }}</th><td colspan="{{ ingredients.count }}"></td></th>
+<th>{{ buffer.name }}</th><td colspan="{{ ingredient_count }}"></td></th>
 </tr>
 {% endfor %}
 {% endfor %}
 </table>
 </div>
+{% endwith %}
 {% endblock %}
