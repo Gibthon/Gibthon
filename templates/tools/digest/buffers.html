@@ -3,11 +3,19 @@
 {% block js-include %}
 {{ block.super }}
 <script type="text/javascript">
+
+var buffer_loader = function () {
+	var manufacturers = [];
+	$('input[name="manufacturer"]:checked').each( function( i, o ) {
+		manufacturers.push( o.value );
+	} );
+	$( 'div#bufferlist' ).load( $('input[name="sorting"]:checked')[0].value, { 'manufacturers':manufacturers } );
+};
+
 $(document).ready( function() {
-	$('div#bufferlist').load( 'manufacturer' );
-	$('input[name="sorting"]').change( function( event ) {
-		$('div#bufferlist').load( $('input[name="sorting"]:checked')[0].value );
-		console.log($('input[name="sorting"]:checked'));
+	buffer_loader();
+	$('input').change( function( event ) {
+		buffer_loader();
 	});
 });
 </script>
@@ -19,9 +27,15 @@ $(document).ready( function() {
 
 <div class="content fixed-width">
 <h1>Buffers</h1>
-<p>Sort by:</p>
+<ul><li>Sort by:<br />
 <input type="radio" name="sorting" value="manufacturer" checked="true" />Manufacturer<br />
 <input type="radio" name="sorting" value="group" />Similar buffers<br />
+</li>
+<li>Showing results for:<br />
+{% for manufacturer in manufacturers %}
+<input type="checkbox" name="manufacturer" value="{{ manufacturer.id }}" checked="true" />{{ manufacturer.name }}<br />
+{% endfor %}
+</li></ul>
 <div id="bufferlist"></div>
 </div>
 {% endblock %}

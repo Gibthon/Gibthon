@@ -37,8 +37,9 @@ class EnzymeReactionBuffer( models.Model ):
 class Buffer( models.Model ):
 	name = models.CharField( max_length=20 )
 	manufacturer = models.ForeignKey( 'Manufacturer', related_name='buffers' )
-	groups = models.ManyToManyField( 'BufferGroup', related_name='buffers', blank=True, null=True )
+	groups = models.ManyToManyField( 'BufferGroup', related_name='buffers' )
 	ingredients = models.ManyToManyField( 'Ingredient', through='BufferIngredient' )
+	pH = models.DecimalField( max_digits=3, decimal_places=1 )
 	
 	def ingredient_list( self, ingredients ):
 		concentrations = []
@@ -67,6 +68,7 @@ class RenderedBuffer():
 class Ingredient( models.Model ):
 	name = models.CharField( max_length=50 )
 	order = models.PositiveSmallIntegerField()
+	unit = models.CharField( max_length=15 )
 	
 	def __unicode__( self ):
 		return self.name
@@ -102,3 +104,18 @@ class BufferGroup( models.Model ):
 		
 	class Meta:
 		ordering = [ 'order' ]
+
+class FilteredBufferGroup( ):
+	def __init__( self, buffergroup, filter ):
+		self.buffergroup = buffergroup
+		self.filter = filter
+	
+	def renderedbuffers( self ):
+		ingredients = self.buffergroup.ingredients()
+		return [ RenderedBuffer( buffer, ingredients ) for buffer in self.buffergroup.buffers.filter( manufacturer__id__in=self.filter ) ]
+		
+	def ingredients( self ):
+		return self.buffergroup.ingredients()
+	
+	def name( self ):
+		return self.buffergroup.name

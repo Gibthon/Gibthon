@@ -4,13 +4,14 @@
 <tr>
 <th class="ui-state-default buffer">Buffer</th>
 {% for ingredient in ingredients %}
-<th class="ui-state-default">{{ ingredient.name }}</th>
+<th class="ui-state-default">{{ ingredient.name }} ({{ ingredient.unit }})</th>
 {% endfor %}
+<th class="ui-state-default">pH</th>
 </tr>
 <tbody>
 {% for manufacturer in manufacturers %}
 <tr class="odd">
-<td colspan="{{ ingredient_count|add:"1"}}" class="sorting_1 header">{{ manufacturer.grouper.name }}</td>
+<td colspan="{{ ingredient_count|add:"2"}}" class="sorting_1 header">{{ manufacturer.grouper.name }}</td>
 </tr>
 {% for buffer in manufacturer.list %}
 <tr class="{% cycle 'odd' 'even' %}">
@@ -18,6 +19,7 @@
 {% for ingredient in buffer.ingredients %}
 <td>{{ ingredient }}</td>
 {% endfor %}
+<td>{{ buffer.buffer.pH }}</th>
 </th>
 </tr>
 {% endfor %}

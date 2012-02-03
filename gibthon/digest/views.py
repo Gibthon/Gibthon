@@ -13,25 +13,27 @@ def base( request ):
 	
 def buffers( request ):
 	t = loader.get_template( 'tools/digest/buffers.html' )
-	groups = BufferGroup.objects.all()
+	manufacturers = Manufacturer.objects.all()
 	c = RequestContext( request, {
 		'title':'Digestion Calculator',
-		'groups':groups,
+		'manufacturers':manufacturers,
 	} )
 	return HttpResponse( t.render( c ) )
 	
 def group( request ):
+	manufacturers = [ int(m) for m in request.POST.getlist('manufacturers[]') ]
 	t = loader.get_template( 'tools/digest/buffer_group.html' )
-	groups = BufferGroup.objects.all()
+	groups = [ FilteredBufferGroup( group, manufacturers ) for group in BufferGroup.objects.all() ]
 	c = RequestContext( request, {
 		'groups':groups,
 	} )
 	return HttpResponse( t.render( c ) )
 	
 def manufacturer( request ):
+	manufacturers = [ int(m) for m in request.POST.getlist('manufacturers[]') ]
 	t = loader.get_template( 'tools/digest/buffer_manufacturer.html' )
 	ingredients = Ingredient.objects.all()
-	buffers = [ RenderedBuffer( buffer, ingredients ) for buffer in Buffer.objects.all() ]
+	buffers = [ RenderedBuffer( buffer, ingredients ) for buffer in Buffer.objects.filter( manufacturer__id__in=manufacturers ) ]
 	c = RequestContext( request, {
 		'ingredients':ingredients,
 		'buffers':buffers,

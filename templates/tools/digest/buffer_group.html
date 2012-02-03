@@ -1,16 +1,13 @@
 {% for group in groups %}
+{% if group.renderedbuffers|length %}
 {% with group.ingredients as ingredients %}
 <table class="buffertable">
-<tr class="even">
-	<td colspan="{{ ingredients.count|add:"1" }}" class="sorting_1 header">
-	{{ group.name }}
-	</td>
-</tr>
 <tr>
 	<th class="ui-state-default buffer">Buffer</th>
 {% for ingredient in ingredients %}
-	<th class="ui-state-default">{{ ingredient.name }}</th>
+	<th class="ui-state-default">{{ ingredient.name }} ({{ ingredient.unit }})</th>
 {% endfor %}
+	<th class="ui-state-default">pH</th>
 </tr>
 {% for buffer in group.renderedbuffers %}
 <tr class="{% cycle 'odd' 'even' %}">
@@ -18,10 +15,13 @@
 {% for ingredient in buffer.ingredients %}
 	<td>{{ ingredient }}</td>
 {% endfor %}
+	<td>{{ buffer.buffer.pH }}</th>
 </tr>
 {% endfor %}
 
 </table>
+<br /><br />
 {% endwith %}
+{% endif %}
 {% endfor %}
 
