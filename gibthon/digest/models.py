@@ -37,6 +37,7 @@ class EnzymeReactionBuffer( models.Model ):
 class Buffer( models.Model ):
 	name = models.CharField( max_length=20 )
 	manufacturer = models.ForeignKey( 'Manufacturer', related_name='buffers' )
+	groups = models.ManyToManyField( 'BufferGroup', related_name='buffers', blank=True, null=True )
 	ingredients = models.ManyToManyField( 'Ingredient', through='BufferIngredient' )
 	
 	def ingredient_list( self, ingredients ):
@@ -45,7 +46,7 @@ class Buffer( models.Model ):
 			try:
 				ingredient = self.bufferingredient_set.filter( ingredient=i ).get()
 			except BufferIngredient.DoesNotExist:
-				concentrations.append( 0 )
+				concentrations.append( '-' )
 			else:
 				concentrations.append( ingredient.concentration )
 		return concentrations
@@ -59,9 +60,9 @@ class Buffer( models.Model ):
 
 class RenderedBuffer():
 	
-	def __init__( self, buff, ingredients ):
-		self.buffer = buff
-		self.ingredients = buff.ingredient_list( ingredients )
+	def __init__( self, buffer, ingredients ):
+		self.buffer = buffer
+		self.ingredients = buffer.ingredient_list( ingredients )
 
 class Ingredient( models.Model ):
 	name = models.CharField( max_length=50 )
@@ -76,10 +77,28 @@ class Ingredient( models.Model ):
 class BufferIngredient( models.Model ):
 	buffer = models.ForeignKey( 'Buffer' )
 	ingredient = models.ForeignKey( 'Ingredient' )
-	concentration = models.PositiveIntegerField()
+	concentration = models.DecimalField( max_digits=4, decimal_places=1)
 	
 	def __unicode__( self ):
 		return "%s: %s"%( self.buffer.name, self.ingredient.name )
 		
 	class Meta:
 		ordering = [ 'buffer__manufacturer__name', 'buffer__name', 'ingredient__order' ]
+		
+		
+class BufferGroup( models.Model ):
+	name = models.CharField( max_length=50 )
+	order = models.PositiveIntegerField()
+	
+	def renderedbuffers( self ):
+		ingredients = self.ingredients()
+		return [ RenderedBuffer( buffer, ingredients ) for buffer in self.buffers.all() ]
+	
+	def ingredients( self ):
+		return Ingredient.objects.distinct().filter( buffer__groups=self )
+	
+	def __unicode__( self ):
+		return self.name
+		
+	class Meta:
+		ordering = [ 'order' ]

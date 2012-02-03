@@ -14,7 +14,7 @@ toolpatterns = patterns('gibthon.views',
 	(r'^ligcalc/', include('gibthon.ligcalc.urls')),
 	(r'^molcalc/', include('gibthon.molcal.urls')),
 	(r'^molcal/$', 'molcal'),
-	(r'^digest/$', include( 'gibthon.digest.urls' ) ),
+	(r'^digest/', include( 'gibthon.digest.urls' ) ),
 )
 
 urlpatterns = patterns('',

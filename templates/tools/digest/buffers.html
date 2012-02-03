@@ -1,0 +1,27 @@
+{% extends "tools/digest/base.html" %}
+
+{% block js-include %}
+{{ block.super }}
+<script type="text/javascript">
+$(document).ready( function() {
+	$('div#bufferlist').load( 'manufacturer' );
+	$('input[name="sorting"]').change( function( event ) {
+		$('div#bufferlist').load( $('input[name="sorting"]:checked')[0].value );
+		console.log($('input[name="sorting"]:checked'));
+	});
+});
+</script>
+
+
+{% endblock %}
+
+{% block content %}
+
+<div class="content fixed-width">
+<h1>Buffers</h1>
+<p>Sort by:</p>
+<input type="radio" name="sorting" value="manufacturer" checked="true" />Manufacturer<br />
+<input type="radio" name="sorting" value="group" />Similar buffers<br />
+<div id="bufferlist"></div>
+</div>
+{% endblock %}
