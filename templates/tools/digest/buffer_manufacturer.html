@@ -1,5 +1,6 @@
 {% with  ingredient_count=ingredients.count %}
-{% regroup buffers by buffer.manufacturer as manufacturers %}
+
+{% regroup buffers by manufacturer as manufacturers %}
 <table class="buffertable">
 <tr>
 <th class="ui-state-default buffer">Buffer</th>
@@ -15,15 +16,16 @@
 </tr>
 {% for buffer in manufacturer.list %}
 <tr class="{% cycle 'odd' 'even' %}">
-<th>{{ buffer.buffer.name }}</th>
-{% for ingredient in buffer.ingredients %}
-<td>{{ ingredient }}</td>
+<th>{{ buffer.name }}</th>
+{% for concentration in buffer.concentrations %}
+<td>{{ concentration }}</td>
 {% endfor %}
-<td>{{ buffer.buffer.pH }}</th>
+<td>{{ buffer.pH }}</th>
 </th>
 </tr>
 {% endfor %}
 {% endfor %}
 </tbody>
 </table>
+
 {% endwith %}

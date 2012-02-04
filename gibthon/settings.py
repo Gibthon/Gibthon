@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'ligcalc',
     'accounts',
     'pricalc',
+    'digest',
 )
 
 LOGIN_URL = '/user/login'

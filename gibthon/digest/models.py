@@ -5,6 +5,9 @@ class Manufacturer( models.Model ):
 	
 	def __unicode__( self ):
 		return self.name
+	
+	class Meta:
+		ordering = [ 'name' ]
 		
 
 class Enzyme( models.Model ):
@@ -51,19 +54,16 @@ class Buffer( models.Model ):
 			else:
 				concentrations.append( ingredient.concentration )
 		return concentrations
+		
+	def get_concentrations( self, ingredients ):
+		self.concentrations = self.ingredient_list( ingredients )
+		return self
 	
 	def __unicode__( self ):
 		return "%s (%s)"%( self.name, self.manufacturer.name )
 		
 	class Meta:
 		ordering = [ 'manufacturer__name', 'name' ]
-
-
-class RenderedBuffer():
-	
-	def __init__( self, buffer, ingredients ):
-		self.buffer = buffer
-		self.ingredients = buffer.ingredient_list( ingredients )
 
 class Ingredient( models.Model ):
 	name = models.CharField( max_length=50 )
@@ -99,23 +99,12 @@ class BufferGroup( models.Model ):
 	def ingredients( self ):
 		return Ingredient.objects.distinct().filter( buffer__groups=self )
 	
+	def get_filtered_buffers( self, manufacturers ):
+		self.filtered_buffers = [ buffer.get_concentrations( self.ingredients() ) for buffer in self.buffers.filter( manufacturer__id__in=manufacturers ) ]
+		return self
+	
 	def __unicode__( self ):
 		return self.name
 		
 	class Meta:
 		ordering = [ 'order' ]
-
-class FilteredBufferGroup( ):
-	def __init__( self, buffergroup, filter ):
-		self.buffergroup = buffergroup
-		self.filter = filter
-	
-	def renderedbuffers( self ):
-		ingredients = self.buffergroup.ingredients()
-		return [ RenderedBuffer( buffer, ingredients ) for buffer in self.buffergroup.buffers.filter( manufacturer__id__in=self.filter ) ]
-		
-	def ingredients( self ):
-		return self.buffergroup.ingredients()
-	
-	def name( self ):
-		return self.buffergroup.name

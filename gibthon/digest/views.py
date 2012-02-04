@@ -23,7 +23,7 @@ def buffers( request ):
 def group( request ):
 	manufacturers = [ int(m) for m in request.POST.getlist('manufacturers[]') ]
 	t = loader.get_template( 'tools/digest/buffer_group.html' )
-	groups = [ FilteredBufferGroup( group, manufacturers ) for group in BufferGroup.objects.all() ]
+	groups = [ buffer_group.get_filtered_buffers( manufacturers ) for buffer_group in BufferGroup.objects.all() ]
 	c = RequestContext( request, {
 		'groups':groups,
 	} )
@@ -33,7 +33,7 @@ def manufacturer( request ):
 	manufacturers = [ int(m) for m in request.POST.getlist('manufacturers[]') ]
 	t = loader.get_template( 'tools/digest/buffer_manufacturer.html' )
 	ingredients = Ingredient.objects.all()
-	buffers = [ RenderedBuffer( buffer, ingredients ) for buffer in Buffer.objects.filter( manufacturer__id__in=manufacturers ) ]
+	buffers = [ buffer.get_concentrations( ingredients ) for buffer in Buffer.objects.filter( manufacturer__id__in=manufacturers ) ]
 	c = RequestContext( request, {
 		'ingredients':ingredients,
 		'buffers':buffers,
