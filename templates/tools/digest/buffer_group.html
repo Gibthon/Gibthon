@@ -1,6 +1,7 @@
 {% for group in groups %}
 {% if group.filtered_buffers|length %}
 {% with group.ingredients as ingredients %}
+<h3>{{ group.name }}</h3>
 <table class="buffertable">
 <tr>
 	<th class="ui-state-default buffer">Buffer</th>
@@ -20,7 +21,7 @@
 {% endfor %}
 
 </table>
-<br /><br />
+<br />
 {% endwith %}
 {% endif %}
 {% endfor %}

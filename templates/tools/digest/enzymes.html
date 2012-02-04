@@ -1,0 +1,14 @@
+{% extends 'tools/digest/base.html' %}
+
+{% block content %}
+<div class="content fixed-width">
+<h1>Enzymes</h1>
+<ul>
+	<li>Showing results for:<br />
+	{% for manufacturer in manufacturers %}
+		<input type="radio" name="manufacturer" value="{{ manufacturer.id }}" />{{ manufacturer.name }}<br />
+	{% endfor %}
+	</li>
+</ul>
+</div>
+{% endblock %}

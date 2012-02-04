@@ -3,19 +3,11 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 
 from digest.models import *
 
-def base( request ):
-	t = loader.get_template( 'tools/digest/base.html' )
-	c = RequestContext( request, {
-		'title':'Digestion Calculator',
-	} )
-	return HttpResponse( t.render( c ) )
-	
-	
 def buffers( request ):
 	t = loader.get_template( 'tools/digest/buffers.html' )
 	manufacturers = Manufacturer.objects.all()
 	c = RequestContext( request, {
-		'title':'Digestion Calculator',
+		'title':'Digestion Calculator -> Buffers',
 		'manufacturers':manufacturers,
 	} )
 	return HttpResponse( t.render( c ) )
@@ -39,6 +31,3 @@ def manufacturer( request ):
 		'buffers':buffers,
 	} )
 	return HttpResponse( t.render( c ) )
-	
-def enzymes( request ):
-	return HttpResponse()
