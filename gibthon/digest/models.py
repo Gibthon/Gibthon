@@ -92,10 +92,6 @@ class BufferGroup( models.Model ):
 	name = models.CharField( max_length=50 )
 	order = models.PositiveIntegerField()
 	
-	def renderedbuffers( self ):
-		ingredients = self.ingredients()
-		return [ RenderedBuffer( buffer, ingredients ) for buffer in self.buffers.all() ]
-	
 	def ingredients( self ):
 		return Ingredient.objects.distinct().filter( buffer__groups=self )
 	

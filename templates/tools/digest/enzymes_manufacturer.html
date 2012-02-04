@@ -1,0 +1,16 @@
+<table>
+<tr>
+	<th>Enzyme</th>
+	{% for buffer in manufacturer.buffers.all %}
+	<th>{{ buffer.name }}</th>
+	{% endfor %}
+</tr>
+{% for enzyme in enzymes %}
+<tr>
+	<th>{{ enzyme.enzyme.name }}</th>
+	{% for buffer in enzyme.enzymereactionbuffer_set.all %}
+	<td>{{ buffer.activity }}</td>
+	{% endfor %}
+</tr>
+{% endfor %}
+</table>

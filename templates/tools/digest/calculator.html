@@ -1,0 +1,53 @@
+{% extends 'tools/digest/base.html' %}
+
+
+{% block js-include %}
+{{ block.super }}
+<script type="text/javascript">
+$(document).ready( function () {
+	$('select[name="enzyme_1"]').change( function () {
+		$('select[name="manufacturer_1"]').load( 'manufacturer_list', { 'enzyme':this.value } );
+	});
+	$('select[name="enzyme_2"]').change( function () {
+		$('select[name="manufacturer_2"]').load( 'manufacturer_list', { 'enzyme':this.value } );
+	});
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="content fixed-width">
+<h1>Calculator</h1>
+<form>
+<input type="radio" name="enzyme_count" value="1" checked />Single digest<br />
+<input type="radio" name="enzyme_count" value="2" />Double digest<br />
+
+<select name="enzyme_1">
+	<option value="0">---</option>
+	{% for enzyme in enzymes %}
+	<option value="{{ enzyme.id }}">{{ enzyme.name }}</option>
+	{% endfor %}
+</select>
+
+<select name="manufacturer_1">
+	<option value="0">---</option>
+</select>
+
+<br />
+<select name="enzyme_2">
+	<option value="0">---</option>
+	{% for enzyme in enzymes %}
+	<option value="{{ enzyme.id }}">{{ enzyme.name }}</option>
+	{% endfor %}
+</select>
+
+<select name="manufacturer_2">
+	<option value="0">---</option>
+</select>
+
+<br />
+<button name="get_buffers">Get Buffers</button>
+
+</form>
+</div>
+{% endblock %}

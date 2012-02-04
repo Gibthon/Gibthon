@@ -25,26 +25,33 @@ td.header {
 {% block js-include %}
 <script type="text/javascript">
 $(document).ready( function() {
-	$('button[id="base"]')
+	$('button#base')
 		.click(function(event){
 			window.location.href="/tools/digest/";
 		})
 		.button({
 			icons:{primary:'ui-icon-arrowthick-1-e'}
 		});
-	$('button[id="buffers"]')
+	$('button#buffers')
 		.click( function( event ) {
 			window.location.href="/tools/digest/buffers/";
 		})
 		.button({
 			icons:{ primary:'ui-icon-battery-0' }
 		});
-	$('button[id="enzymes"]')
+	$('button#enzymes')
 		.click( function( event ) {
 			window.location.href="/tools/digest/enzymes/";
 		})
 		.button({
 			icons:{ primary:'ui-icon-seek-next' }
+		});
+	$('button#calculator')
+		.click( function( event ) {
+			window.location.href="/tools/digest/calculator/";
+		})
+		.button({
+			icons:{ primary:'ui-icon-calculator' }
 		});
 });
 </script>
@@ -54,6 +61,7 @@ $(document).ready( function() {
 <button id="base">Base</button>
 <button id="buffers">Buffers</button>
 <button id="enzymes">Enzymes</button>
+<button id="calculator">Calculator</button>
 {% endblock %}
 
 {% block content %}
