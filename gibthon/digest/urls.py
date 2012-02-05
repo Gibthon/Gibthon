@@ -15,6 +15,7 @@ enzymepatterns = patterns( 'digest.views.enzymes',
 calculatorpatterns = patterns( 'digest.views.calculator',
 	( '^$', 'calculator' ),
 	( '^manufacturer_list$', 'manufacturer_list' ),
+	( '^get_buffers/1$', 'get_buffer_single' ),
 )
 
 urlpatterns = patterns('digest.views.base',

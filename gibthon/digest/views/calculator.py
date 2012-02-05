@@ -18,10 +18,20 @@ def manufacturer_list( request ):
 	enzyme_id = int( request.POST.get( 'enzyme' ) )
 	if enzyme_id > 0:
 		enzyme = Enzyme.objects.get( pk=enzyme_id )
-		manufacturers = Manufacturer.objects.filter( brandedenzyme__in=enzyme.brandedenzyme_set.all() )
+		brandedenzymes = BrandedEnzyme.objects.filter( enzyme=enzyme )
 	else:
-		manufacturers = [];
+		brandedenzymes = [];
 	c = RequestContext( request, {
-		'manufacturers':manufacturers,
+		'brandedenzymes':brandedenzymes,
+	} )
+	return HttpResponse( t.render( c ) )
+	
+def get_buffer_single( request ):
+	t = loader.get_template( 'tools/digest/calculator_single_enzyme.html' )
+	brandedenzyme = BrandedEnzyme.objects.get( pk=request.POST.get('enzyme') )
+	enzymereactionbuffers = EnzymeReactionBuffer.objects.filter( enzyme=brandedenzyme )
+	c = RequestContext( request, {
+		'brandedenzyme':brandedenzyme,
+		'enzymereactionbuffers':enzymereactionbuffers,
 	} )
 	return HttpResponse( t.render( c ) )

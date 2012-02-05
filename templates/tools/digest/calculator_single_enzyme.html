@@ -1,0 +1,17 @@
+<table>
+<tr>
+<th></th>
+{% for buffer in brandedenzyme.manufacturer.buffers.all %}
+<th>{{ buffer.name }}</th>
+{% endfor %}
+</tr>
+<tr>
+<th>{{ brandedenzyme.enzyme.name }}</th>
+{% for buffer in enzymereactionbuffers %}
+<td>
+	{{ buffer.activity }}%<br/ >
+	<input type="radio" name="buffer" value="{{ buffer.buffer.id }}" />
+</td>
+{% endfor %}
+</tr>
+</table>

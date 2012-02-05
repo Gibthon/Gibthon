@@ -4,13 +4,65 @@
 {% block js-include %}
 {{ block.super }}
 <script type="text/javascript">
+var Digest = function () {
+	this.enzymes = $('select[name^="enzyme"]');
+	this.manufacturers = $('select[name^="manufacturer"]');
+	this.seconds = $('select[name$="_2"]');
+	this.enzyme_count = $('input[name="enzyme_count"]');
+	this.get_buffer_button = $('button[name="get_buffers"]');
+	
+	this.enzymes.change( function( ) {
+		$( this ).next( 'select' ).load( 'manufacturer_list', 
+			{ 'enzyme':this.value } );
+	});
+	
+	this.enzyme_count.change( function( ) {
+		if ( digest.get_enzyme_count() == 1 ){
+			$(digest.manufacturers[1]).html('<option value="0">---</option>');
+			digest.enzymes[1].value=0;
+			digest.seconds.attr( 'disabled', true );
+		} else {
+			digest.seconds.removeAttr( 'disabled' );
+			digest.get_buffer_button.attr( 'disabled', true );
+		};
+	});
+	
+	this.manufacturers.change( function () {
+		digest.validate_enzymes();
+	});
+	
+	this.get_buffer_button.click( function ( event ) {
+		event.preventDefault();
+		$('div#buffers').load( 'get_buffers/1', { 'enzyme':digest.manufacturers[0].value } );
+	});
+			
+	
+}
+
+Digest.prototype.get_enzyme_count = function () {
+	return $(this.enzyme_count + ':checked')[0].value;
+}
+
+Digest.prototype.validate_enzymes = function () {
+	var valid = true;
+	for (i=0;i<this.get_enzyme_count();i++)
+	{
+		if ( this.enzymes[i].value == 0 || this.manufacturers[i].value == 0 ){
+			valid=false;
+		}
+	}
+	if ( this.enzymes[0].value == this.enzymes[1].value ) {
+		valid = false;
+	}
+	if ( valid ) {
+		this.get_buffer_button.removeAttr( 'disabled' );
+	} else {
+		this.get_buffer_button.attr( 'disabled', true );
+	};
+};
+
 $(document).ready( function () {
-	$('select[name="enzyme_1"]').change( function () {
-		$('select[name="manufacturer_1"]').load( 'manufacturer_list', { 'enzyme':this.value } );
-	});
-	$('select[name="enzyme_2"]').change( function () {
-		$('select[name="manufacturer_2"]').load( 'manufacturer_list', { 'enzyme':this.value } );
-	});
+	digest = new Digest();
 });
 </script>
 {% endblock %}
@@ -22,32 +74,36 @@ $(document).ready( function () {
 <input type="radio" name="enzyme_count" value="1" checked />Single digest<br />
 <input type="radio" name="enzyme_count" value="2" />Double digest<br />
 
-<select name="enzyme_1">
+First enzyme: <select name="enzyme_1">
 	<option value="0">---</option>
 	{% for enzyme in enzymes %}
 	<option value="{{ enzyme.id }}">{{ enzyme.name }}</option>
 	{% endfor %}
 </select>
 
-<select name="manufacturer_1">
+from <select name="manufacturer_1">
 	<option value="0">---</option>
 </select>
 
 <br />
-<select name="enzyme_2">
+Second enzyme: <select name="enzyme_2" disabled>
 	<option value="0">---</option>
 	{% for enzyme in enzymes %}
 	<option value="{{ enzyme.id }}">{{ enzyme.name }}</option>
 	{% endfor %}
 </select>
 
-<select name="manufacturer_2">
+from <select name="manufacturer_2" disabled>
 	<option value="0">---</option>
 </select>
 
 <br />
-<button name="get_buffers">Get Buffers</button>
+<button name="get_buffers" disabled>Get Buffers</button>
 
 </form>
+
+<div id="buffers">
+</div>
+
 </div>
 {% endblock %}
