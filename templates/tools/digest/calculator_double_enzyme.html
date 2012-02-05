@@ -1,0 +1,28 @@
+<table>
+<tr>
+<th></th>
+{% for buffer in buffers %}
+<th>
+{{ buffer.name }}
+</th>
+{% endfor %}
+</tr>
+<tr>
+<th></th>
+{% for buffer in buffers %}
+<th>
+	<input type="radio" name="buffer" value="{{ buffer.id }}" />
+</th>
+{% endfor %}
+</tr>
+{% for enzyme in brandedenzymes %}
+<tr>
+	<th>{{ enzyme.enzyme.name }} ({{ enzyme.manufacturer.name }})</th>
+	{% for buffer in enzyme.enzymereactionbuffer_set.all %}
+	<td>
+		{{ buffer.activity }}%
+	</td>
+	{% endfor %}
+</tr>
+{% endfor %}
+</table>

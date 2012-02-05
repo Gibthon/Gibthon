@@ -35,3 +35,13 @@ def get_buffer_single( request ):
 		'enzymereactionbuffers':enzymereactionbuffers,
 	} )
 	return HttpResponse( t.render( c ) )
+	
+def get_buffer_double( request ):
+	t = loader.get_template( 'tools/digest/calculator_double_enzyme.html' )
+	brandedenzymes = [ BrandedEnzyme.objects.get( pk=eid ) for eid in request.POST.getlist('enzymes[]') ]
+	buffers = brandedenzymes[0].buffers.all()
+	c = RequestContext( request, {
+		'brandedenzymes':brandedenzymes,
+		'buffers':buffers,
+	} )
+	return HttpResponse( t.render( c ) )

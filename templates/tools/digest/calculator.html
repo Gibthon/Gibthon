@@ -21,6 +21,7 @@ var Digest = function () {
 			$(digest.manufacturers[1]).html('<option value="0">---</option>');
 			digest.enzymes[1].value=0;
 			digest.seconds.attr( 'disabled', true );
+			digest.validate_enzymes();
 		} else {
 			digest.seconds.removeAttr( 'disabled' );
 			digest.get_buffer_button.attr( 'disabled', true );
@@ -33,7 +34,11 @@ var Digest = function () {
 	
 	this.get_buffer_button.click( function ( event ) {
 		event.preventDefault();
-		$('div#buffers').load( 'get_buffers/1', { 'enzyme':digest.manufacturers[0].value } );
+		if ( digest.get_enzyme_count() == 1 ) {
+			$('div#buffers').load( 'get_buffers/1', { 'enzyme':digest.manufacturers[0].value } );
+		} else {
+			$('div#buffers').load( 'get_buffers/2', { 'enzymes':[ digest.manufacturers[0].value, digest.manufacturers[1].value ] } )
+		}
 	});
 			
 	
@@ -104,6 +109,6 @@ from <select name="manufacturer_2" disabled>
 
 <div id="buffers">
 </div>
-
+<button name="get_protocol">Get protocol</button>
 </div>
 {% endblock %}
