@@ -28,20 +28,45 @@ def manufacturer_list( request ):
 	
 def get_buffer_single( request ):
 	t = loader.get_template( 'tools/digest/calculator_single_enzyme.html' )
-	brandedenzyme = BrandedEnzyme.objects.get( pk=request.POST.get('enzyme') )
-	enzymereactionbuffers = EnzymeReactionBuffer.objects.filter( enzyme=brandedenzyme )
+	enzyme = BrandedEnzyme.objects.get( pk=request.POST.get('enzyme') )
+	buffers = enzyme.enzymereactionbuffer_set.all()
 	c = RequestContext( request, {
-		'brandedenzyme':brandedenzyme,
-		'enzymereactionbuffers':enzymereactionbuffers,
+		'enzyme':enzyme,
+		'buffers':buffers,
 	} )
 	return HttpResponse( t.render( c ) )
 	
 def get_buffer_double( request ):
-	t = loader.get_template( 'tools/digest/calculator_double_enzyme.html' )
 	brandedenzymes = [ BrandedEnzyme.objects.get( pk=eid ) for eid in request.POST.getlist('enzymes[]') ]
-	buffers = brandedenzymes[0].buffers.all()
-	c = RequestContext( request, {
-		'brandedenzymes':brandedenzymes,
-		'buffers':buffers,
-	} )
+
+	if brandedenzymes[0].manufacturer == brandedenzymes[1].manufacturer:	
+		t = loader.get_template( 'tools/digest/calculator_double_enzyme.html' )
+		buffers = brandedenzymes[0].buffers.all()
+		print buffers
+		c = RequestContext( request, {
+			'brandedenzymes':brandedenzymes,
+			'buffers':buffers,
+		} )
+	else:
+		t = loader.get_template( 'tools/digest/calculator_double_trouble_enzyme.html' )
+		enzyme1 = brandedenzymes[0]
+		enzyme2 = brandedenzymes[1]
+		enzyme2in1 = enzyme2.manufacturer.brandedenzyme_set.filter( enzyme=enzyme1.enzyme ).get()
+		enzyme1in2 = enzyme1.manufacturer.brandedenzyme_set.filter( enzyme=enzyme2.enzyme ).get()
+		buffers1 = enzyme1.buffers.all()
+		buffers2 = enzyme2.buffers.all()
+		enzyme2.get_related_activities( buffers1 )
+		enzyme2.get_activities( buffers2 )
+		enzyme1.get_related_activities( buffers2 )
+		enzyme1.get_activities( buffers1 )
+		enzyme2in1.get_activities( buffers2 )
+		enzyme1in2.get_activities( buffers1 )
+		c = RequestContext( request, 
+			{ 'enzyme1':enzyme1,
+			  'enzyme2':enzyme2,
+			  'buffers1':buffers1,
+			  'buffers2':buffers2,
+			  'enzyme2in1':enzyme2in1,
+			  'enzyme1in2':enzyme1in2,
+			} )
 	return HttpResponse( t.render( c ) )

@@ -1,5 +1,24 @@
 {% extends 'tools/digest/base.html' %}
 
+{% block css-include %}
+
+<style type="text/css">
+
+table {
+	width: auto;
+}
+
+th {
+	width:125px;
+}
+
+td {
+	text-align:center;
+}
+
+</style>
+
+{% endblock %}
 
 {% block js-include %}
 {{ block.super }}

@@ -23,6 +23,26 @@ class BrandedEnzyme( models.Model ):
 	manufacturer = models.ForeignKey( 'Manufacturer' )
 	buffers = models.ManyToManyField( 'Buffer', through='EnzymeReactionBuffer' )
 	
+	def get_activities( self, buffers ):
+		activities = []
+		for buffer in buffers:
+			try:
+				activities.append( buffer.enzymereactionbuffer_set.get( enzyme=self ).activity )
+			except EnzymeReactionBuffer.DoesNotExist:
+				activities.append( 0 )
+		self.activities = activities
+		return self
+	
+	def get_related_activities( self, buffers ):
+		activities = []
+		for buffer in buffers:
+			try:
+				activities.append( buffer.groups.all()[0].buffers.get( manufacturer=self.manufacturer ).enzymereactionbuffer_set.filter( enzyme__enzyme=self.enzyme ).get().activity )
+			except Buffer.DoesNotExist:
+				activities.append( 0 )
+		self.related_activities = activities
+		return self
+	
 	def __unicode__( self ):
 		return "%s (%s)"%( self.enzyme.name, self.manufacturer.name )
 		
