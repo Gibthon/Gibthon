@@ -29,7 +29,7 @@ class BrandedEnzyme( models.Model ):
 			try:
 				activities.append( buffer.enzymereactionbuffer_set.get( enzyme=self ).activity )
 			except EnzymeReactionBuffer.DoesNotExist:
-				activities.append( 0 )
+				activities.append( 'NA' )
 		self.activities = activities
 		return self
 	
@@ -39,7 +39,7 @@ class BrandedEnzyme( models.Model ):
 			try:
 				activities.append( buffer.groups.all()[0].buffers.get( manufacturer=self.manufacturer ).enzymereactionbuffer_set.filter( enzyme__enzyme=self.enzyme ).get().activity )
 			except Buffer.DoesNotExist:
-				activities.append( 0 )
+				activities.append( 'NA' )
 		self.related_activities = activities
 		return self
 	
@@ -70,7 +70,7 @@ class Buffer( models.Model ):
 			try:
 				ingredient = self.bufferingredient_set.filter( ingredient=i ).get()
 			except BufferIngredient.DoesNotExist:
-				concentrations.append( '-' )
+				concentrations.append( 'NA' )
 			else:
 				concentrations.append( ingredient.concentration )
 		return concentrations

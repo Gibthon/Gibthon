@@ -51,16 +51,16 @@ def get_buffer_double( request ):
 		t = loader.get_template( 'tools/digest/calculator_double_trouble_enzyme.html' )
 		enzyme1 = brandedenzymes[0]
 		enzyme2 = brandedenzymes[1]
-		enzyme2in1 = enzyme2.manufacturer.brandedenzyme_set.filter( enzyme=enzyme1.enzyme ).get()
-		enzyme1in2 = enzyme1.manufacturer.brandedenzyme_set.filter( enzyme=enzyme2.enzyme ).get()
+		enzyme1in2 = enzyme2.manufacturer.brandedenzyme_set.filter( enzyme=enzyme1.enzyme ).get()
+		enzyme2in1 = enzyme1.manufacturer.brandedenzyme_set.filter( enzyme=enzyme2.enzyme ).get()
 		buffers1 = enzyme1.buffers.all()
 		buffers2 = enzyme2.buffers.all()
 		enzyme2.get_related_activities( buffers1 )
 		enzyme2.get_activities( buffers2 )
 		enzyme1.get_related_activities( buffers2 )
 		enzyme1.get_activities( buffers1 )
-		enzyme2in1.get_activities( buffers2 )
-		enzyme1in2.get_activities( buffers1 )
+		enzyme2in1.get_activities( buffers1 )
+		enzyme1in2.get_activities( buffers2 )
 		c = RequestContext( request, 
 			{ 'enzyme1':enzyme1,
 			  'enzyme2':enzyme2,
