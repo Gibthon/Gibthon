@@ -30,7 +30,7 @@
  * * * * * * * * * * * Datatypes
  * 
  * metadata:
- * 		.fid	: Fragment ID
+ * 		.id	: Fragment ID
  * 		.name	: Fragment Name
  *		.desc	: Description of fragment
  *		.refs	: A list of references, see below
@@ -218,29 +218,30 @@ function Sequence(s)
 	this.reverse = function() {return self.seq.split("").reverse().join("");}
 }
 // ========================================================= AJAX things
-function handle_error(action, msg)
+function handle_error(action, textStatus, errorThrown)
 {
-	var s = "Error while " + action + ": " + msg;
-	//alert(s);
+	var s = "Error while " + action + ": \n\tstatus: " + textStatus + "\n\tthrew: " + errorThrown;
 	console.error(s);
 }
 
-function make_request(u, d, act, cb)
+function make_request(url, data, desc, cb, error_cb)
 {
 	$.ajax({
-		url: u,
+		url: url,
 		dataType: 'json',
-		data: d,
+		data: data,
 		type:'POST',
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			handle_error(act, "Ajax request failed, status: '" + textStatus + "', error: '" + errorThrown + "'");
+			if(error_cb == undefined)
+				handle_error(desc, "Ajax request failed, status: '" + textStatus + "'", errorThrown);
 		},
 		success: function(data) 
 		{
 			if(data[0] != 0)
 			{
-				handle_error(act, data[1]);
+				if(error_cb == undefined)
+					handle_error(desc, "Error at Server", data[1]);
 				return;
 			}
 			cb(data[1]);

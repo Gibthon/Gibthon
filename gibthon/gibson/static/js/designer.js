@@ -49,7 +49,7 @@ var get_next_color = function()
 {
 	if(get_next_color.i == undefined)
 		get_next_color.i = Math.floor(Math.random() * 256);
-	get_next_color.i = (14 + get_next_color.i) % 255;
+	get_next_color.i = (24 + get_next_color.i) % 255;
 	var r = Graphics.getHSL(get_next_color.i,60,60);
 	return r;
 }
@@ -381,6 +381,7 @@ function DisplayFragment(f, cf)
 		if(self.area == CW) self.radius = F.radii[CW] + F.delta;
 		if(self.area == CCW) self.radius = F.radii[CCW] - F.delta;
 		self.drag = true;
+		self.redraw();
 	};
 	
 	var _end_drag = function(a)
@@ -925,6 +926,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	
 	var _update_labels = function()
 	{
+		/*
 		label_l.removeAllChildren();
 		label_r.removeAllChildren();
 		for(var i in labels)
@@ -953,6 +955,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		_arrange_labels(label_l);
 		
 		stage.update();
+		* */
 	}
 	
 	var _get_area = function(r) //return the area based on radial point r
