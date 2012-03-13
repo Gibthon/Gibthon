@@ -40,24 +40,32 @@ var UI_FONT_LG = '700 24px Lucida Grande,Lucida Sans,Arial,sans-serif';
 var UI_FONT_M = '500 12px Lucida Grande,Lucida Sans,Arial,sans-serif';
 var UI_FONT_SM = '300 10px Lucida Grande,Lucida Sans,Arial,sans-serif';
 
-//Areas:
-var CW = 0;
-var CCW = 1;
-var RM = 2;
-
 var get_next_color = function()
 {
 	if(get_next_color.i == undefined)
 		get_next_color.i = Math.floor(Math.random() * 256);
+
 	get_next_color.i = (24 + get_next_color.i) % 255;
 	var r = Graphics.getHSL(get_next_color.i,60,60);
+
 	return r;
 }
 
+/*Areas:
+ * 
+ * Fragments can be in one of three areas as specified:
+ * 
+ * */
+var CW = 0;
+var CCW = 1;
+var RM = 2;
+//convert area to human readable string
 var a2s = function(a) {switch(a){case CW: return 'cw'; case CCW: return 'ccw'; case RM: return 'rm'; default: return 'unknown';}}
 
 /*
  * Item - a fragment as it appears in the library
+ * 
+ * CONDEMNED! -- library to become a jquery widget
  *  
  * */
 Item.prototype = new Container();
@@ -123,7 +131,9 @@ function Item(x,y,w,h,m) //x,y,w,h, metadata
 
 /*
  * Library - the library
- *  
+ * 
+ * CONDEMNED! -- library to become a jquery widget
+ * 
  * */
 Library.prototype = new Container();
 Library.prototype.constructor = Library;
@@ -302,26 +312,169 @@ function Library(x,y,w,h, slide)
 	
 }; //end Library def
 
-//F contains all the settings for DisplayFragments, values are set by Designer
+
+/*
+ * Label - show a display fragment's label
+ *  
+ * */
+Label.prototype = new Container();
+Label.prototype.constructor = Label;
+function Label(text, radius, font, color)
+{
+	var self = this;
+	Container.call(this);
+	
+	if(font == undefined) font = UI_FONT_SM;
+	if(color == undefined) color = BLACK;
+	
+	var t = text;
+	var r = radius;
+	var f = font;
+	var col = color;
+	var s = 1; //controls which way up the text should display +1 => bottom inwards, -1 => top inwards
+	
+	//holds the text
+	var c = new Container();
+	self.addChild(c);
+	
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++ Public methods
+	
+	/*
+	 * update Rotation - should the text face inwards or outwards
+	 * 
+	 * a: the absolute angle relative to +ve x axis
+	 * */
+	this.updateRotation = function(a, update)
+	{
+		var x = Math.sin(a / _R2D);
+		var _s = s;
+		if(x > 0)
+			_s = -1;
+		if(x < 0)
+			_s = 1;
+		if(s != _s)
+		{
+			s = _s;
+			reposition();
+		}
+		
+		_u(update);
+	};
+	
+	this.setRadius = function (_r, update)
+	{
+		if(_r != r)
+		{
+			r = _r;
+			reposition();
+			_u(update);
+		}
+	};
+	
+	this.setText = function(_t, update)
+	{
+		if(_t != t)
+		{
+			r = _r;
+			redraw();
+			_u(update);
+		}
+	};
+	
+	this.getRadius = function() {return r;};
+	this.getText = function() {return t;};
+	
+	this.show = function(update) 
+	{
+		self.visible = true;
+		_u(update);
+	};
+	this.hide = function(update) 
+	{
+		self.visible = false;
+		_u(update);
+	};
+	
+	// ------------------------------------------------------ Private methods
+	
+	var reposition = function()
+	{
+		var a = 0;
+		//for each letter
+		for(var i = 0; i < c.getNumChildren(); i = i + 1)
+		{
+			var l = c.getChildAt(i);
+			l.regY = s * r;
+			l.x=0;
+			l.rotation = a;
+			a = a + (s * (l.getMeasuredWidth() + 0.5)/ r) * _R2D;
+		}
+		c.rotation = bound_angle(- a / 2.0 + s * 90);
+		self.uncache();
+		var _r = r + 10;
+		self.cache(-_r,-_r, 2 * _r, 2 * _r);
+	};
+	
+	var redraw = function()
+	{
+		//clear any previous text
+		c.removeAllChildren();
+		
+		var a = 0;
+		//for each letter
+		for(var i = 0; i < t.length; i = i + 1)
+		{
+			var l = new Text(t[i], f, col);
+			l.textBaseline = 'middle';
+			c.addChild(l);
+		}
+		reposition();
+	};
+	
+	var _u = function(u)
+	{
+		if(u == undefined) u = true;
+		if(u) stage.update();
+	}
+	
+	//intiate :
+	redraw();
+	
+}; //end Label
+
+
+/*	F - global settings for DisplayFragments
+ * 
+ * 
+ * */
 var F = new Object();
-F.radii = [0,0,0];
-F.width = 25;
-F.arrow = 5;
-F.delta = 5;
+F.radii = [0,0,0]; //radii at which to render for each area
+F.label = [0,0,0]; //radii at which to render the labels
+F.width = 25; // width of fragment
+F.arrow = 5; //how many pixels the arrow should be when in the construct
+F.delta = 5; //how much of a gap to leave when dragging
 
 /*
  * DisplayFragment - inherits display object and represents a fragment which is in view in the Designer
  *  
  * */
-DisplayFragment.prototype = new Shape();
+DisplayFragment.prototype = new Container();
 DisplayFragment.prototype.constructor = Fragment;
 //DisplayFragment(Fragment f, ConstructFragment cf = undefined, Area _area = RM)
 function DisplayFragment(f, cf)
 {
 	var self = this;
 	Shape.call(this, new Graphics);
-		
+	
+	/*
+	 * this.f - stores the fragment related to this DisplayFragment - go here for metadata
+	 * */
 	this.f = f;
+	
+	/*
+	 * this.cf - stores the constructFragment for this object.
+	 * 
+	 * */
 	this.cf = cf;
 	
 	// Display things
@@ -331,7 +484,9 @@ function DisplayFragment(f, cf)
 		if(cf.strand == 1) this.area = CW;
 		else this.area = CCW;
 	}
+	
 	this.angle = 0; //in degrees
+	
 	this.radius = F.radii[this.area];
 	
 	this.mouseOver = false;
@@ -343,13 +498,46 @@ function DisplayFragment(f, cf)
 	this.regX = 0; this.regY = 0;
 	
 	this.start = function() {return this.rotation;};
-	this.middle = function() {return this.rotation + this.angle/2.0;};
-	this.end = function() {return this.rotation + this.angle;};
+	this.middle = function() {return this.rotation + self.angle/2.0;};
+	this.end = function() {return this.rotation + self.angle;};
 	
-	var anim = 0; //the number of animations currently going on, controls whether to redraw on tick
+	var anim = 0; //the number of animations currently running, controls whether to redraw on tick
 	
-	this.setAnim = function(){anim = anim+1;}
-	this.clearAnim = function(){anim=anim-1; if(anim==0) self.redraw();}
+	this.setAnim = function()
+	{
+		anim = anim+1;
+		if(this.tick == undefined)
+			this.tick = self.redraw;
+	}
+	this.clearAnim = function()
+	{
+		anim=anim-1;
+		if(anim==0)
+		{
+			self.tick = undefined;
+			self.redraw();
+		}
+	}
+	
+	/*
+	 * my label
+	 * */
+	var l = new Label(self.f.name, F.label[self.area]);
+	if(this.area == RM)
+		l.hide();
+	self.addChild(l);
+	
+	var g = new Graphics();
+	var s = new Shape(g);
+	self.addChild(s);
+	
+	this.setAngle = function(a)
+	{
+		self.angle = a;
+		l.rotation = a / 2.0;
+		l.updateRotation(self.middle());
+	}
+	this.getAngle = function() {return angle;}
 	
 	//set the fragment's area -- not animated
 	this.setArea = function(a) 
@@ -358,61 +546,68 @@ function DisplayFragment(f, cf)
 		var a_ = self.area;
 		self.area = a;
 		if(a == CW || a == CCW)
+		{
 			self.x = 0; self.y = 0;
+			l.setRadius(F.label[a]);
+			l.show();
+		}
+		else(a == RM)
+			l.hide();
 		
 		this.radius = F.radii[a];
 		if(this.drag)
 		{
+			l.hide();
 			if(a == CW) this.radius = this.radius + F.delta;
 			if(a == CCW) this.radius = this.radius - F.delta;
 		}
 		self.redraw();
 	};
 	
-	this.setDrag = function(d, a)//a is angle for end drag
+	this.setDrag = function(d, a, cb)//a is angle for end drag
 	{
 		if(d == this.drag) return;
 		if(d) _start_drag();
-		else _end_drag(a);
+		else _end_drag(a, cb);
 	};
 	
-	var _start_drag = function()
+	var _start_drag = function(cb)
 	{
 		if(self.area == CW) self.radius = F.radii[CW] + F.delta;
 		if(self.area == CCW) self.radius = F.radii[CCW] - F.delta;
 		self.drag = true;
 		self.redraw();
+
+		l.hide();
+		if(cb != undefined) cb();
 	};
 	
 	var _end_drag = function(a)
 	{
 		var t = {'radius': F.radii[self.area],'rotation':a,};
-		self.animate(t);
+		var cb = function() {l.show();};
+		self.animate(t, cb);
 		self.drag = false;
 	};
 	
-	this.animate = function(t) //animate angle, rotation, radius or total_length
+	this.animate = function(t, cb) //animate angle, rotation or radius
 	{
 		if(t.rotation != undefined)
 		{
 			var r = bound_angle(t.rotation - this.rotation); //r is the distance and direction of shortest rotation
 			t.rotation = this.rotation + r;
 		}
-		//make sure that the rotation is bound at the end of the animation
-		var done = function() {self.rotation = bound_angle(self.rotation);};
-
-		if(t.total_length != undefined)
-		{
-			t.angle = 360.0 * (self.cf.length() / t.total_length);
-			t.total_length = undefined;
-		}
+		//make sure that the rotation is bound at the end of the animation, and make sure the label keeps up
+		var done = function() {self.rotation = bound_angle(self.rotation); self.setAngle( self.angle );};
+		
 		//r: whether we need to redraw at each frame
 		var r = (t.angle != undefined) || (t.radius != undefined);
 		var tween = Tween.get(self).call(setAnim);
 		if(r) tween.call(self.setAnim);
 		tween.to(t, 250, Ease.quartOut)
 		if(r) tween.call(self.clearAnim)
-		tween.call(clearAnim).call(done);
+		tween.call(done).call(clearAnim);
+		if(cb != undefined) tween.call(cb);
 	};
 
 	this.onMouseMove = function(r)
@@ -444,7 +639,7 @@ function DisplayFragment(f, cf)
 		return a_contains(self.rotation, self.end(), r.a);
 	};
 	
-	var _draw_frag = function(g, d) // d = direction E [1,-1], 1 -> CW, -1 -> CCW
+	var _draw_frag = function(d) // d = direction E [1,-1], 1 -> CW, -1 -> CCW
 	{
 		var w2 = F.width / 2.0;
 		var l = self.angle / _R2D;
@@ -462,8 +657,8 @@ function DisplayFragment(f, cf)
 	
 	this.redraw = function()
 	{
-		var g = self.graphics.clear();
-		g.setStrokeStyle(1)
+		g.clear()
+		 .setStrokeStyle(1)
 		 .beginFill(self.color)
 		 .beginStroke(self.stroke);
 
@@ -473,104 +668,18 @@ function DisplayFragment(f, cf)
 				g.rect(-F.width * 3, -F.width * .5, F.width * 6, F.width * .5);
 				break;
 			case CW:
-				_draw_frag(g, +1);
+				_draw_frag(+1);
 				break;
 			case CCW:
-				_draw_frag(g, -1);
+				_draw_frag(-1);
 				break;
 		}
 		
 	};
 	
-	this.tick = function()
-	{
-		if(anim > 0)
-			self.redraw();
-	};
+	this.tick = undefined;
 	
 	this.redraw();
-};
-
-
-/*
- * Label - show a display fragment's label
- *  
- * */
-Label.prototype = new Container();
-Label.prototype.constructor = Label;
-function Label(df)
-{
-	var self = this;
-	Container.call(this);
-	
-	this.textHeight = 8;
-	this.df = df;
-	
-	var text = new Text(UI_FONT_SM, df.f.name, UI_TEXT);
-	var line = new Shape(new Graphics);
-	
-	self.addChild(text);
-	self.addChild(line);
-	
-	this.draw = function (h, x, w) //h - spot height
-	{
-		console.log('label.draw('+h+')');
-		var p_ = ra2xy(df.radius, df.middle());
-		var p = this.df.localToLocal(p_.x, p_.y, self);
-		var g = line.graphics.clear();
-		
-		var s_x = 0;
-		if(parent.left)
-		{
-			s_x = x + w;
-			text.x = s_x - F.width;
-			text.textAlign = 'right';
-		}
-		else
-		{
-			s_x = x;
-			text.x = s_x + F.width;
-			text.textAlign = 'left';
-		}
-		
-		draw_spot(g,p.x,p.y,F.width/2.0,df.color);
-		draw_spot(g,s_x,h,F.width/2.0,df.color);
-		
-		
-		text.textBaseline = 'middle';
-		text.x = h;
-		
-		//draw the lines...
-		
-	}
-	
-	var draw_spot = function(g,x,y,r,c) //x,y,radius, colour
-	{
-		console.log('  draw_spot = function(g,'+x+', '+y+', '+r+', '+c+')');
-		g.setStrokeStyle(1);
-		g.beginStroke(BLACK);
-		g.beginFill(c);
-		g.drawCircle(x,y,r);
-	}
-	
-};
-
-/*
- * 
- * 
- * LabelContainer
- *  
- * */
-LabelContainer.prototype = new Container();
-LabelContainer.prototype.constructor = Designer;
-function LabelContainer(x,w,l) //x width left
-{
-	var self = this;
-	Container.call(this);
-	
-	this.x = x;
-	this.width = w;
-	this.left = l;
 };
 
 /*
@@ -585,6 +694,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 {
 	var self = this;
 	Container.call(this);
+	
 /*
  * Designer Variables
  * */
@@ -606,6 +716,11 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	F.delta = radius * 0.15;
 	F.radii[CW] = radius + F.delta;
 	F.radii[CCW]= radius - F.delta;
+	F.radii[RM] = 1000;
+	
+	F.label[CW] = radius + 1.5 * F.delta;
+	F.label[CCW]= radius - 1.5 * F.delta;
+	F.radii[RM] = 1000;
 	 
 	var title_font = UI_FONT_LG;
 	var len_font = UI_FONT_M;
@@ -618,11 +733,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	var name_t, len_t;
 	var fc = new Container(); //fragment container
 	
-	//Create the Label Containers
-	var lw = w / 5.0;
-	var label_l = new LabelContainer(0, lw, true);
-	var label_r = new LabelContainer(w - lw, lw, false);
-	var labels = new Array();
 /*
  * Designer Functions
  * */
@@ -649,6 +759,20 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		
 		self.addChild(f);
 	};
+	
+	this.removeFragment = function(df)
+	{
+		var g = df.cf.order;
+		
+		fc.removeFragAt(g);
+		_set_len(self.len - df.cf.length());
+		
+		cd_rm_fragment(function() {}, self.cid, df.cf.id);
+		
+		g = b(g-1);
+		console.log('update_layout because a fragment was removed');
+		_update_layout(g);
+	}
 	
 	this.dragFragment = function(e, f) //fragment moved
 	{
@@ -681,8 +805,9 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			f.rotation = rp.a + f._mo - f.angle / 2.0;
 			
 			//Check if we crossed any fragments
-			if(fc.getNumChildren() > 2 && !a_contains(f._p, f._n, f.middle()))
+			if(fc.getNumChildren() > 2 && !a_contains(f._p, f._n, f.middle()) && (anim <= 0))
 			{
+				console.log('Crossed: a_contains('+f._p+', '+f._n+', '+f.middle()+') = false');
 				var i = fc.getChildIndex(f);
 				var i_ = i;
 				var u = i;
@@ -700,6 +825,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 					
 				//switch the fragments
 				fc.swap(i,i_);
+				console.log('update layout because fragment '+i+' swapped with '+i_);
 				_update_layout(u);
 			}
 		}
@@ -728,7 +854,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		//let the server know what's going on
 		if(f.cf.id == undefined)
 		{
-			console.log('adding fragment "'+f.f.name+'" to server at ' + f.f.order);
 			cd_add_fragment(function(cf) {f.cf = new ConstructFragment(cf);},
 							self.cid,
 							f.f.fid,
@@ -753,7 +878,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			}
 		}
 		cd_reorder_fragments(function() {}, self.cid,{'cfid': cf, 'direction': d,});
-		
 	}
 	
 	this.onMouseMove = function(e)
@@ -774,22 +898,46 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	{
 		if(selected != null)
 		{
-			f = fc.getChildAt(selected);
-			r = fc.globalToLocal(e.stageX,e.stageY).toRadial();
-			t = {};
-			
-			drag = true;
-
-			f._p = fc.getChildAt(b(selected - 1)).middle();
-			f._n = fc.getChildAt(b(selected + 1)).middle();
-			f._mo = bound_angle(f.middle() - r.a);
-			
-			f.setDrag(true);
-			
-			e.onMouseMove = function(e) {self.dragFragment(e,f);};
-			e.onMouseUp = function(e) {self.dropFragment(e,f);};
+			var s = selected;
+			var t = setTimeout(function() {self.onMouseDrag(e,s);}, 250);
+			e.onMouseUp = function() {clearTimeout(t); self.onMouseClick(e,s);};
 		}
+	};
+	
+	//a click to the fragment at s
+	this.onMouseClick = function(e, s)
+	{
+		var df = fc.getChildAt(s);
+		var loc = ra2xy(df.radius, df.middle());
+		var g = fc.localToGlobal(loc.x, loc.y);
+		show_info(df, g.x,g.y);
 	}
+	
+	//begins dragging the fragment at s
+	this.onMouseDrag = function(e, s)
+	{
+		e.onMouseUp = function() {};
+		var f = fc.getChildAt(s);
+		var r = fc.globalToLocal(e.stageX,e.stageY).toRadial();
+		var t = {};
+		
+		drag = true;
+
+		f._p = fc.getChildAt(b(s - 1)).middle();
+		f._n = fc.getChildAt(b(s + 1)).middle();
+		f._mo = bound_angle(f.middle() - r.a);
+		
+		f.setDrag(true);
+		
+		e.onMouseMove = function(e) {self.dragFragment(e,f);};
+		e.onMouseUp = function(e) {self.dropFragment(e,f);};
+	}
+	
+	this.construct2Local = function(r,t,target) //translate to global coords
+	{
+		var p = ra2xy(r, t);
+		return fc.localToLocal(p.x,p.y,target);
+	}; 
 	
 	// -----------------------------------------------------------PRIVATE---------
 	//add DisplayFragment f to the construct at angle a and remove from self
@@ -799,34 +947,26 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		df._mo = 0; //mouse offset
 		self.removeChild(df);
 		fc.addFragAt(df, i);
-		df.angle = 360 * (df.cf.length() / (self.len + df.cf.length()));
+		df.setAngle(360 * (df.cf.length() / (self.len + df.cf.length())));
 				
 		_set_len(self.len + df.cf.length());
-		labels.push(new Label(df));
 		
+		console.log('update layout because a fragmen joined');
 		_update_layout(b(i-1));
 	}
 	
-	var _leave = function(f) //remove fragment f to the construct and add to self
+	var _leave = function(df) //remove fragment f to the construct and add to self
 	{
-		var g = f.cf.order;
-		f._mo = undefined;
+		var g = df.cf.order;
+		df._mo = undefined;
 		fc.removeFragAt(g);
-		f.rotation = 0;
-		self.addChild(f);
-		_set_len(self.len - f.cf.length());
+		df.rotation = 0;
+		self.addChild(df);
+		_set_len(self.len - df.cf.length());
 		
 		g = b(g-1);
 		
-		for(var i in labels)
-		{
-			if(labels[i].df.cf.id == f.cf.id)
-			{
-				labels.splice(i,1);
-				break;
-			}
-		}
-		
+		console.log('update layout because a fragment left');
 		_update_layout(g);
 	}
 	
@@ -872,7 +1012,11 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 	var _update_layout = function(s, a) //layout the fragments tip to tail. start with index s at angle a
 	{
 		var n = fc.getNumChildren();
-		if(n == 0) return;
+		if(n == 0) 
+		{
+			stage.update();
+			return;
+		}
 		if(s==undefined) s = 0;
 
 		s = b(s);
@@ -880,33 +1024,37 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		if(a==undefined) a = fc.getChildAt(s).rotation;
 		a = bound_angle(a);
 		
+		//calculate the effective length
+		var min = self.len * 5.0 / 360.0;
+		var el = 0;
+		var len = new Array();
+		for(var i = 0; i < n; i = i + 1)
+		{
+			var l = fc.getChildAt(i).cf.length();
+			if(l > min)
+				el = el + l;
+			else
+				el = el + min;
+			len.push(l);
+		}
+		
+		
 		var c = a;
 		var d = -1;
 		var targets = new Array();
 		for(var i = 0; i < n; i = i + 1)
 		{
-			var f = fc.getChildAt(b(i + s));
-			var l = 360.0 * (f.cf.length() / self.len);
+			var j = b(i + s);
+			var f = fc.getChildAt(j);
+			
+			var l = 0;
+			if(len[j] > min)
+				l = 360.0 * (len[j] / el);
+			else
+				l = 360.0 * (min / el);
+			
 			if(!f.drag)
-			{
-				var t = {};
-				var a = false;
-				if(f.rotation != c && n > 1)
-				{
-					a = true;
-					t.rotation = c;
-				}
-				
-				if(f.angle != l)
-				{
-					a = true;
-					t.angle = l;
-				}
-				if(a) f.animate(t);
-				t.angle = l;
-				t.rotation = c;
-				targets.push(t);
-			}
+				targets.push({rotation:c,angle:l,});
 			else
 			{
 				d = i;
@@ -914,7 +1062,8 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 			}
 			c = bound_angle(c + l);
 		}
-		if(d>=0 && n > 2)
+		
+		if(d >= 0)
 		{
 			var f = fc.getChildAt(b(d+s));
 			var nxt = b(d+1);
@@ -936,19 +1085,13 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 				label_r.addChild(labels[i]);
 			else
 				label_l.addChild(labels[i]);
+
 		}
-		var s = function(a,b) {return ra2xy(a.df.radius, a.df.middle()).x < ra2xy(b.df.radius, b.df.middle()).x;};
-		label_r.sortChildren(s);
-		label_l.sortChildren(s);
 		
-		var _arrange_labels = function(l)
+		for(var i = 0; i < n; i = i+1)
 		{
-			var h = 20;
-			for(var i = 0; i < l.getNumChildren(); i = i+1)
-			{
-				l.getChildAt(i).draw(h, l.x, lw);
-				h = h + 20;
-			}
+			var j = b(i + s);
+			fc.getChildAt(j).animate(targets[i]);
 		}
 		
 		_arrange_labels(label_r);
@@ -956,6 +1099,7 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		
 		stage.update();
 		* */
+
 	}
 	
 	var _get_area = function(r) //return the area based on radial point r
@@ -1015,8 +1159,6 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		con.addChild(s);
 		con.addChild(len_t);
 		con.addChild(name_t);
-		con.addChild(label_l);
-		con.addChild(label_r);
 		
 		fc.x = c.x;
 		fc.y = c.y;
@@ -1039,6 +1181,10 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 				this.getChildAt(j).cf.order = j;
 			}
 		};
+		fc.removeFrag = function(df)
+		{
+			this.removeFragAt(this.getChildIndex(df));
+		}
 		fc.swap = function(i, j) //swap the order of the DisplayFragments at i and j
 		{
 			if(i == j) return;
@@ -1060,10 +1206,8 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		{
 			var f = meta[m.cfs[i].fid];
 			var cf = new ConstructFragment(m.cfs[i], f);
-			console.log('Adding Fragment #' + i +': f.name ('+cf.length()+'bp)');
 			var df = new DisplayFragment(f,cf);
 			fc.addChild(df);
-			labels.push(new Label(df));
 			self.len = self.len + cf.length();
 		}
 		
@@ -1072,8 +1216,8 @@ function Designer(x,y,w,h,cid) //x,y,w,h, metadata
 		self.addChild(fc);
 		
 		_set_len(self.len);
+		console.log('initial update layout');
 		_update_layout();
-		setTimeout(function() {_update_labels();}, 400);
 	};
 	
 	cd_get_info(_init, this.cid);
@@ -1098,14 +1242,16 @@ var library;
 var designer;
 
 var $c;
+var $info;
+
 //stage is only updated if an animation is playing
 var anim = 0;
 var setAnim = function() {anim=anim+1;};
 var clearAnim = function() {anim=anim-1; if(anim == 0) stage.update();};
 
 var init_designer = function(cid){
-	console.log('cid: ' + cid);	
 	$c = $('#cdesigner');
+	init_info();
 	var w = $c.width();
 	var h = (7.0 / 16.0) * w;
 	$c.height(h);
@@ -1122,7 +1268,6 @@ var init_designer = function(cid){
 	library = new Library(LIB_X,LIB_Y,LIB_W,LIB_H,LIB_SLIDE);
 	library.onSelect = function(e, m)
 	{
-		console.log('Selected: ' + m.name + ' -> ' + m.fid);
 		designer.addFragment(e,m);
 	}
 
@@ -1133,14 +1278,13 @@ var init_designer = function(cid){
 };
 var continue_init = function(m, cid)
 {
-	console.log('continue_init');
 	library.addItems(m);
 	meta = {};
 	for(var i in m)
 	{
 		meta[m[i].fid] = m[i];
 	}
-	designer = new Designer(0,0,LIB_X - 2, bounds.height, cid);
+	designer = new Designer(0,0,LIB_X, bounds.height, cid);
 	stage.addChild(designer);
 	stage.addChild(library);
 	
@@ -1164,6 +1308,46 @@ var _calc_size = function(){
 	LIB_H = bounds.height;
 };
 
+
+// --------------------------------------Info window
+var init_info = function()
+{
+	$info = $('.fragment-info');
+	
+	//setup the buttons
+	$info.find('#fragment_remove')
+		.button({label: 'Remove', icons: {primary:'ui-icon-trash',},})
+		.click(function() {hide_info()});
+
+	$info.find('#fragment_clip')
+		.button({label: 'Clipping', icons: {primary:'ui-icon-scissors'}, disabled:true,})
+		.click(function() {});
+}
+
+var show_info = function(df, x, y)
+{
+	//set the title and description
+	$info.find('#fragment_name').text(df.f.name);
+	$info.find('#fragment_desc').text(df.f.desc);
+	
+	//set position
+	$info.css({position: 'absolute', zindex:100, left:x - 37, top:y - $info.height(),});
+	$info.css({display:'block',});
+	
+	//set remove callback
+	$info.find('#fragment_remove')
+		.unbind('click')
+		.click(function() {hide_info();designer.removeFragment(df);});
+	
+	//binding to click means it gets triggered immediately
+	$c.mousedown(hide_info);
+}
+
+var hide_info = function()
+{
+	$info.css({display:'none',});
+	$c.unbind('mousedown', hide_info);
+}
 
 // Mouse things --------------------------
 var _on_mouse_move = function(e)
@@ -1265,6 +1449,10 @@ var bound_angle = function(a) //make a within [-180, 180]
 };
 var a_contains = function(l,h,a) //is angle a in the segment defined by moving clockwise from l to h?
 {
+	if(isNaN(l) || isNaN(h) || isNaN(a)){
+		console.log('a_contains('+l+','+h+','+a+')');
+		return true;
+	}
 	var h_ = h; var a_ = a;
 	if(h_ < l) h_ = h_ + 360;
 	if(a_ < l) a_ = a_ + 360;
