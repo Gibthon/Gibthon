@@ -2,6 +2,7 @@ import simplejson as json
 from gibthon.jsonresponses import JsonResponse, ERROR
 
 from fragment.models import *
+from fragment.api import get_gene, read_min_meta
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from gibson.views import get_construct
 from fragment.views import get_fragment

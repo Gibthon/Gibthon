@@ -11,10 +11,10 @@
 * 		cd_reorder_fragment(cb, cid, {Array[] cfid, Array[] direction})
 * 			cb = function()
 * 
-* 		cd_get_info(cb, cid)
-* 			cb = function({name, desc, length, Array[construct fragment] cfs})
+* 		cd_get_info(cb, cid, ecb)
+* 			cb = function({name, desc, Array[fragment] fs, Array[construct fragment] cfs})
 * 
-* 		cd_set_info(cb, cid, name, desc)
+* 		cd_set_info(cb, cid, name, desc, ecb)
 * 			cb = function()
 * 
 */
@@ -68,7 +68,7 @@ function ConstructFragment(d, f)
 
 var CD_BASE_URL = '/gibthon/api/'
 
-var cd_add_fragment = function(cb, cid, fid, position)
+var cd_add_fragment = function(cb, cid, fid, position, ecb)
 {
 	make_request(	CD_BASE_URL + cid + '/addFragment/', 
 					JSON.stringify({'fid': fid}), 
@@ -76,7 +76,7 @@ var cd_add_fragment = function(cb, cid, fid, position)
 					cb);
 }
 
-var cd_rm_fragment = function(cb, cid, cfid)
+var cd_rm_fragment = function(cb, cid, cfid, ecb)
 {
 	make_request(	CD_BASE_URL + cid + '/rmFragment/', 
 					JSON.stringify({'cfid': cfid,}), 
@@ -84,7 +84,7 @@ var cd_rm_fragment = function(cb, cid, cfid)
 					cb);
 }
 
-var cd_reorder_fragments = function(cb, cid, d)
+var cd_reorder_fragments = function(cb, cid, d, ecb)
 {
 	make_request(	CD_BASE_URL + cid + '/saveOrder/', 
 					JSON.stringify({'d[]': d,}), 
@@ -92,7 +92,7 @@ var cd_reorder_fragments = function(cb, cid, d)
 					cb);
 }
 
-var cd_get_info = function(cb, cid)
+var cd_get_info = function(cb, cid, ecb)
 {
 	make_request(	CD_BASE_URL + cid + '/getInfo/', 
 					undefined, 
@@ -100,7 +100,7 @@ var cd_get_info = function(cb, cid)
 					cb);
 }
 
-var cd_set_info = function(cb, cid, name, desc)
+var cd_set_info = function(cb, cid, name, desc, ecb)
 {
 	make_request(	CD_BASE_URL + cid + '/saveMeta/', 
 					JSON.stringify({'name': name, 'desc': desc,}), 

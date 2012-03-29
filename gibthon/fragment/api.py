@@ -58,6 +58,16 @@ def get_gene(usr, fid):
 	except ValueError:
 		raise Http404
 	return Gene.objects.get(id = fid, owner=usr)
+	
+def read_min_meta(g):
+	"""Return JSON-ready minimal metadata about a fragment"""
+	f = {
+			'id': g.id,
+			'name': g.name,
+			'desc': g.description,
+			'origin': g.origin,
+			'length': len(g.sequence),
+		}
 
 def g2dict(g):
 	return {	'name': g.name,
