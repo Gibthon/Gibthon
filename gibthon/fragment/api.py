@@ -59,6 +59,14 @@ def get_gene(usr, fid):
 		raise Http404
 	return Gene.objects.get(id = fid, owner=usr)
 
+def g2dict(g):
+	return {	'name': g.name,
+				'id': g.id,
+				'desc': g.description,
+				'origin': g.get_origin_display(),
+				'length': len(g.sequence),
+	}
+
 def read_meta(g):
 	"""Return JSON-ready metadata about a fragment"""
 	refs = []

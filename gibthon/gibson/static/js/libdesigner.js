@@ -26,24 +26,16 @@
  * */
 
 function ConstructFragment(d, f)
-{	
-	if(d == undefined) d = {};
-	
-	this.id = d.cfid;
+{		
+	this.id = d.id;
 	this.strand = d.direction;
 	this.s_offset = d.s_offset;
 	this.s_feat = d.s_feat;
 	this.e_offset = d.e_offset;
 	this.e_feat = d.e_feat;
 	this.order = d.order;
+	this.f = f;
 	
-	if(((f == undefined) || (f.fid != d.fid)) && (d.fid != undefined))
-	{
-		get_meta(d.fid, function(d) {
-			f = new Fragment(d);
-		});
-	}
-	this.isValid = function() {return f != undefined;};
 	this.startPos = function()
 	{
 		if(this.id == undefined) return 0;
@@ -71,6 +63,7 @@ function ConstructFragment(d, f)
 	{
 		return Math.abs(this.endPos() - this.startPos());
 	};
+	this.toString = function() {return '[ConstructFragment (id='+this.id+') ]';};
 }
 
 var CD_BASE_URL = '/gibthon/api/'

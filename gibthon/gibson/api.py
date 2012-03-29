@@ -5,6 +5,7 @@ from fragment.models import *
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from gibson.views import get_construct
 from fragment.views import get_fragment
+from fragment.api import get_gene, read_meta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -13,7 +14,7 @@ def cf2dict(cf):
 	"""
 		Convert a ConstructFragment to a dictionary suitable for JSON encoding
 	"""
-	ret = {	'cfid': cf.id,
+	ret = {	'id': cf.id,
 			'fid': cf.fragment.id,
 			'order': cf.order,
 			'direction': 1,
@@ -79,13 +80,18 @@ def get_info(request, cid):
 	try:
 		c = get_construct(request.user, cid)
 		cfs = []
+		fs = []
 		for cf in c.cf.all():
 			cfs.append(cf2dict(cf));
+			g = get_gene(request.user, cf.fragment.id)
+			fs.append(read_meta(g))
+			
 		ret = {
 			'name': c.name,
 			'desc': c.description,
 			'length': c.length(),
 			'cfs': cfs,
+			'fs': fs,
 			'created': c.last_modified(),
 		}
 		return JsonResponse(ret)
