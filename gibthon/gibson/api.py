@@ -110,8 +110,16 @@ def fragment_add(request, cid):
 		if not fid:
 			return JsonResponse("No fragment id provided", ERROR)
 		f = get_fragment(request.user, fid)
+		
+		pos = post.get('pos', 0);
+		strand = post.get('dir', 1);
+		
+		direction = 'f'
+		if strand == -1:
+			direction = 'r'
+		
 		if f:
-			cf = con.add_fragment(f)
+			cf = con.add_fragment(f, pos, direction)
 			if cf:
 				return JsonResponse(cf2dict(cf))
 			else:

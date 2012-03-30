@@ -378,9 +378,21 @@ class Construct(models.Model):
 		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features()]
 		return g.format('genbank')
 		
-	def add_fragment(self, fragment):
-		o = len(self.fragments.all())
-		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction='f', start_feature=None, end_feature=None, start_offset=0, end_offset=0)
+	def add_fragment(self, fragment, order = 0, direction='f'):
+		if(order > len(self.fragments.all())):
+			order = len(self.fragments.all())
+		if(order < 0):
+			order = order % len(self.fragments.all()) + 1;
+		# update all the orders which have changed
+		try:
+			inc = self.fragments.objects.filter(ConstructFragment__order__gte=(order));
+			for i in inc:
+				i.order = i.order + 1
+				i.save()
+		except Exception:
+			pass #probably not found
+			
+		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction=direction, start_feature=None, end_feature=None, start_offset=0, end_offset=0)
 		self.processed = False
 		self.save()
 		return cf

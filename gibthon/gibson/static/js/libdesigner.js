@@ -68,10 +68,10 @@ function ConstructFragment(d, f)
 
 var CD_BASE_URL = '/gibthon/api/'
 
-var cd_add_fragment = function(cb, cid, fid, position, ecb)
+var cd_add_fragment = function(cb, cid, fid, position, direction, ecb)
 {
 	make_request(	CD_BASE_URL + cid + '/addFragment/', 
-					JSON.stringify({'fid': fid}), 
+					JSON.stringify({'fid': fid, 'pos': position, 'dir':direction,}), 
 					'Adding fragment "' + fid + '"', 
 					cb);
 }

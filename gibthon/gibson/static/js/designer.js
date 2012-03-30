@@ -7,7 +7,54 @@
 
 	//the stage
 	var stage;
+	var $c;
+	/**
+	 * Animation system.
+	 * */
+	var _anims = 0;
+	
+	var setAnim = function()
+	{
+		_anims = _anims + 1;
+	}
+	var clearAnim = function()
+	{
+		_anims = _anims -1;
+		if(_anims <= 0)
+		{
+			_anims = 0;
+			stage.update();
+		}
+	}
+	var tick = function()
+	{
+		if(_anims > 0)
+			stage.update();
+	}
+	
+	Ticker.setFPS(25);
+	Ticker.addListener(this);
+	
+	/**
+	 * Cursor
+	 * */
+	
+	//eg auto, move, wait
+	var set_cursor = function(type)
+	{
+		if(type == undefined) type = 'auto';
+		$c.css('cursor', type);
+	}
 
+	// prevent text cursor when dragging
+	window.addEventListener("dragstart", function(fEventObject){ CancelEvent(fEventObject); } );
+	window.addEventListener("selectstart", function(fEventObject){ CancelEvent(fEventObject); } );
+
+	function CancelEvent(fEventObject) 
+	{
+	   if (fEventObject.preventDefault) fEventObject.preventDefault();
+	   if (fEventObject.cancel != null) fEventObject.cancel = true;
+	}
 
 	/**
 	 * Areas - represent the possible areas that a fragment could be in
@@ -16,7 +63,6 @@
 	var Area = {
 		CCW: 0,
 		CW: 1,
-		RM: 2,
 	};
 
 	var AreaString = ['ccw', 'cw', 'rm',];
@@ -116,19 +162,19 @@
 		 * @property radii
 		 * @public
 		 **/
-		F.radii = [0,0,0,];
+		F.radii = [0,0,];
 		/**
 		 * Stores the radii for each area when a fragment is being dragged
 		 * @property dradii
 		 * @public
 		 **/
-		F.dradii = [0,0,0,];
+		F.dradii = [0,0,];
 		/**
 		 * Stores the label radii for each area
 		 * @property lradii
 		 * @public
 		 **/
-		F.lradii = [0,0,0,];
+		F.lradii = [0,0,];
 		/**
 		 * Stores the default width for a fragment
 		 * @property width
@@ -174,6 +220,15 @@
 		 GREEN: 'rgb(0,255,0)',
 		 BLUE: 'rgb(0,0,255)',
 	 }
+	
+	var _h = Math.random() * 360;
+	var _grc = 0.618033988749895 * 360;
+	
+	var get_next_color = function()
+	{
+		_h = (_h + _grc) % 360;
+		return Graphics.getHSL(_h,40,50);
+	}
 
 /**
 * Fragment shape contains all the raw values and function to draw a fragment
@@ -258,6 +313,7 @@ var fs = FragmentShape.prototype = new Shape();
 		this.rotation = _r;
 		this.angle = _a;
 		this.radius = _ra;
+		this.fill = get_next_color();
 	};
 	
 //Public Methods
@@ -272,11 +328,13 @@ var fs = FragmentShape.prototype = new Shape();
 	 * into itself).
 	 **/
 	fs.draw = function(ctx, ignoreCache)
-	{
+	{/*
 		console.log('fs.draw(...)');
-		p = ['width', 'angle', 'rotation', 'radius'];
+		p = ['width', 'angle', 'radius'];
 		for(i in p)
 			console.log('	fs.'+p[i]+' = ' + this[p[i]]);
+		console.log('	fs.rotation = ' + d2r(this.rotation));
+	*/	
 		ctx.save();
 		
 		ctx.lineWidth = 1;
@@ -330,6 +388,9 @@ var fl = FragmentLabel.prototype = new Container();
 	 **/
 	fl._text = '';
 	
+	//the angle made by the text
+	fl._angle = 0.0;
+	
 	/**
 	 * The radius at which to display - px
 	 * @property _radius
@@ -370,6 +431,8 @@ var fl = FragmentLabel.prototype = new Container();
 	 **/
 	fl.Container_initialize = fl.initialize;
 
+	//fl._cmark = null;
+
 	/**
 	 * Initialization method.
 	 * @method initialize
@@ -384,6 +447,8 @@ var fl = FragmentLabel.prototype = new Container();
 		this._radius = _ra;
 		
 		this.rotation = r2d(_ro);
+		
+		//this._cmark = new Shape();
 		
 		this._redraw();
 	};
@@ -487,16 +552,10 @@ var fl = FragmentLabel.prototype = new Container();
 	 * @default true
 	 **/
 	fl.setText = function(_text, _update)
-	{
-		if(_update == undefined) _update = true;
-		
+	{	
 		this.text = _text;
 		this._redraw();
 		//Cache
-		
-		if(_update)
-			stage.update();
-		return this;
 	};
 	
 	/**
@@ -515,16 +574,10 @@ var fl = FragmentLabel.prototype = new Container();
 	 * @param {boolean} _update Whether to update the stage
 	 * @default true
 	 **/
-	fl.setRadius = function(_radius, _update)
-	{	
-		if(_update == undefined) _update = true;
-		
+	fl.setRadius = function(_radius)
+	{		
 		this._radius = _radius;
 		this._realign();
-		
-		if(_update)
-			stage.update();
-		return this;
 	}
 	
 	/**
@@ -533,7 +586,7 @@ var fl = FragmentLabel.prototype = new Container();
 	 **/
 	fl.getRotation = function()
 	{
-		return deg2rad(this.rotation);
+		return deg2rad(this.rotation) + 0.5 * this._angle;
 	};
 	
 	/**
@@ -543,14 +596,21 @@ var fl = FragmentLabel.prototype = new Container();
 	 * @param {boolean} _update Whether to update the stage
 	 * @default true
 	 **/
-	fl.setRotation = function(_rotation, _update)
+	fl.setRotation = function(_rotation)
 	{	
-		if(_update == undefined) _update = true;
+		//find overall rotation
+		var r = bound_degs(r2d(_rotation) + this.parent.rotation);
+		//nb. 	r < 0 => outward = false
+		//		r > 0 => outward = true 
+		//if the outwardness needs changing
+		if( (r > 0) != this._outward)
+		{
+			this._outward = !this._outward;
+			this._realign();
+			
+		}
 		
-		this.rotation = r2d(_rotation);
-		
-		if(_update)
-			stage.update();
+		this.rotation = r2d(_rotation) - r2d(0.5 * this._angle);
 		return this;
 	};
 	
@@ -583,6 +643,11 @@ var fl = FragmentLabel.prototype = new Container();
 		return this;
 	};
 	
+	fl.toString = function()
+	{
+		return '[ FragmentLabel (text='+this._text+')]';
+	}
+	
 //private methods
 	/**
 	 * Redraw all the letters
@@ -601,6 +666,7 @@ var fl = FragmentLabel.prototype = new Container();
 			this.addChild(l);
 		}
 		
+		//this.addChild(this._cmark);
 		return this._realign();
 	};
 	
@@ -610,35 +676,72 @@ var fl = FragmentLabel.prototype = new Container();
 	 * @protected
 	 **/
 	fl._realign = function()
-	{
+	{		
 		var r = 0;
+		var erad = this._radius;
+		if(this._outward)
+			erad = -this._radius;
+		
 		//for each letter
-		for(var i = 0; i < this.getNumChildren(); i = i + 1)
+		for(var i = 0; i < this._text.length; i = i + 1)
 		{
 			var l = this.getChildAt(i);
 			//reset the center
 			l.x = 0;
+			l.maxWidth = 1000;
 			//set the y-offset accordingly
-			if(this._outward)
-			{
-				l.y = this.radius;
-				l.regY = -this._radius;
-			}
-			else
-			{
-				l.y = -this.radius;
-				l.regY = this._radius;
-			}
+			l.regY = erad;
 				
 			//set the rotation
-			l.rotation = r2d(r);
-			if(!this.outward)
-				l.rotation = -r2d(r);
+			l.rotation = r2d(r) + 90;
+			if(this._outward)
+				l.rotation = -r2d(r) - 90;
 			
-			r = r + l.getMeasuredWidth() / this.radius;
+			r = r + l.getMeasuredWidth() / this._radius;
+			
+			
 		}
+		//set the rotation
+		if(this._outward) r = - Math.abs(r);
+		else r = Math.abs(r);
+		
+		this.rotation = r2d((d2r(this.rotation) + 0.5 * this._angle) - 0.5 * r);
+		this._angle = r;
+		
+		//cache the result
+		var pad = 20;
+		var dr = 0;
+		//this._outward ? dr = 90 : dr = -90;
+		p1 = ra2xy(this._radius, 0);
+		p2 = ra2xy(this._radius, this._angle);
+		
+		var x = Math.min(p1.x, p2.x) - pad;
+		var y = Math.min(p1.y, p2.y) - pad;
+		var w = Math.abs(p1.x - p2.x) + 2*pad;
+		var h = Math.abs(p1.y - p2.y) + 2*pad;
+		
+		
+	/*	cache debugging
+	 * console.log(this+'.cache('+x+','+y+','+w+','+h+');');
+	 * this._cmark.graphics
+			.clear()
+			.setStrokeStyle(1)
+			.beginStroke(COL.RED)
+			.rect(x,y,w,h)
+			.endStroke()
+			.closePath()
+			.beginFill(COL.RED)
+			.drawCircle(p2.x,p2.y,3)
+			.beginFill(COL.GREEN)
+			.drawCircle(p1.x,p1.y,3);
+	*/	
+		
+		this.cache(x,y,w,h);
+		
 		return this;
 	};
+	
+	fl.toString = function() {return '[ FragmentLabel ("'+this._text+'")]';};
 	
 /**
 * 
@@ -646,10 +749,8 @@ var fl = FragmentLabel.prototype = new Container();
 * @extends Container
 * @constructor
 * @param {Fragment} _f The Fragment which this represents
-* @param {ConstructFragment} _df The ConstructFragment - represents it's position in this construct
+* @param {ConstructFragment} _cf The ConstructFragment - represents it's position in this construct
 * @default null
-* @param {Area} _area The initial area
-* @default Area.RM
 * 
 **/
 var DisplayFragment = function(_f, _cf)
@@ -738,23 +839,24 @@ var df = DisplayFragment.prototype = new Container();
 		//set initial values
 		this._f = _f;
 		this._cf = _cf;
-		this._area = Area.RM;
+		this._area = Area.CW;
 		if(_cf != undefined)
 		{
-			if(_cf.strand = 1)
+			if(_cf.strand == 1)
 				this._area = Area.CW;
-			if(_cf.strand = -1)
+			if(_cf.strand == -1)
 				this._area = Area.CCW;
 		}
 
 		this._fs = new FragmentShape(0,0,F.radii[this._area]);
+		if(this._area == Area.CCW)
+			this._fs.clockwise = -1;
+		
 		this._fl = new FragmentLabel(this._f.name, F.lradii[this._area], this._fs.angle / 2.0);
 		
 		this.addChild(this._fs);
 		this.addChild(this._fl);
 		
-		if(this._area == Area.RM)
-			this._fl.hide();
 		
 		/* For now, don't support immediate dragging
 		if(_df == undefined)
@@ -789,31 +891,22 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.setArea = function(_a)
 	{
-		if(_a == RM)
+		this.x = 0; this.y = 0;
+		
+		if(this._drag)
 		{
-			this._fs.linear = true;
+			this._fs.radius = F.dradii[_a];
 			this._fl.hide();
 		}
 		else
 		{
-			this.x = 0; this.y = 0;
-			
-			this._fs.linear = false;
-			if(this._drag)
-			{
-				this._fs.radius = F.radii[_a];
-				this._fl.hide();
-			}
-			else
-			{
-				this._fs.radius = f.dradii[_a];
-				this._fl.show();
-			}
-			if(_a == CW)
-				this._fl.clockwise = 1.0;
-			else
-				this._fl.clockwise = -1.0;
+			this._fs.radius = f.radii[_a];
+			this._fl.show();
 		}
+		if(_a == Area.CW)
+			this._fl.clockwise = 1.0;
+		else
+			this._fl.clockwise = -1.0;
 	}
 	 
 	/**
@@ -858,7 +951,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getStart = function()
 	{
-		return d2r(this._df.rotation);
+		return d2r(this._fs.rotation);
 	}
 	
 	/**
@@ -867,7 +960,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getMid = function()
 	{
-		return d2r(this._cf.rotation) + this._fs.angle / 2.0;
+		return d2r(this._fs.rotation) + this._fs.angle / 2.0;
 	}
 	
 	/**
@@ -876,7 +969,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getEnd = function()
 	{
-		return d2r(this._df.rotation) + this._fs.angle;
+		return d2r(this._fs.rotation) + this._fs.angle;
 	}
 	
 	/**
@@ -892,11 +985,18 @@ var df = DisplayFragment.prototype = new Container();
 	 * Animate the properties of the framgment
 	 * @method animate
 	 * @param {Object} t The target properties
-	 * Supports start (rads), angle(rads), radius, alpha, clockwise
+	 * Supports rotation (rads), angle(rads), radius, alpha, clockwise
 	 * @param {function} cb A callback for when the animation completes 
 	 **/
 	df.animate = function(t, cb)
 	{
+	/*	out = ['  '+this+'.animate({',];
+		for(i in t)
+			out.push(' ' + i +': '+t[i]+',');
+		out.push('});\n');
+		console.log(out.join(''));
+	*/	
+		var change = false;
 		var self = this;
 		//make sure any rotation goes the fastest route
 		if(t.rotation != undefined)
@@ -905,10 +1005,18 @@ var df = DisplayFragment.prototype = new Container();
 			t.rotation = this._fs.rotation + r;
 		}
 		
+		//check for changes
+		for(i in t)
+		{
+			if(this._fs[i] != t[i]) change = true;
+		}
+		
+		if(!change) return;
+		
 		var done = function() {
-			this._fs.rotation = bound_angle(self.rotation);
-			if((this._area != RM) && (!this._drag))
-				this._fl.show();
+			self._fs.rotation = bound_degs(self._fs.rotation);
+			if(!self._drag)
+				self._fl.show();
 		};
 		
 		this._fl.hide();
@@ -928,7 +1036,12 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.set = function(t)
 	{
-		console.log('  df.set({angle: '+t.angle+', rotation: '+t.rotation+'})');
+	/*	out = ['  '+this+'.set({',];
+		for(i in t)
+			out.push(' ' + i +': '+t[i]+',');
+		out.push('});\n');
+		console.log(out.join(''));
+	*/	
 		//set rotation
 		if(t.rotation != undefined)
 		{
@@ -937,12 +1050,12 @@ var df = DisplayFragment.prototype = new Container();
 		//set angle
 		if(t.angle != undefined)
 		{
-			this._fs.angle = bound_rads(t.angle);
+			this._fs.angle = t.angle;
 		}
 		//set radius
 		if(t.radius != undefined)
 		{
-			this._fs.radius = t.radius;
+			this._fs.radius = Math.abs(t.radius);
 		}
 		//set alpha
 		if(t.alpha != undefined)
@@ -962,7 +1075,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.tick = function()
 	{
-		this._fl.setRotation(this.getMid(), false);
+		this._fl.setRotation(this.getMid());
 	}
 	
 	df.toString = function()
@@ -978,9 +1091,13 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onMouseOver = function(ev)
 	{
-		console.log('"'+this.f.name+'".onMouseOver('+ev.stageX+','+ev.stageY+')');
-		this.alpha = 0.8;
-		stage.update();
+		//console.log('"'+this._f.name+'".onMouseOver('+ev.stageX+','+ev.stageY+')');
+		if(!this._drag)
+		{
+			set_cursor('pointer');
+			this.alpha = 0.8;
+			stage.update();
+		}
 	}
 	
 	/**
@@ -990,9 +1107,13 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onMouseOut = function(ev)
 	{
-		console.log('"'+this.f.name+'".onMouseOut('+ev.stageX+','+ev.stageY+')');
-		this.alpha = 1.0;
-		stage.update();
+		//console.log('"'+this._f.name+'".onMouseOut('+ev.stageX+','+ev.stageY+')');
+		if(!this._drag)
+		{
+			set_cursor();
+			this.alpha = 1.0;
+			stage.update();
+		}
 	}
 	
 	//timeout for a drag
@@ -1005,17 +1126,15 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onClick = function(ev)
 	{
-		console.log('"'+this.f.name+'".onMouseClick('+ev.stageX+','+ev.stageY+')');
 		//if we were about to start dragging
 		if(dt != null)
 		{
 			clearTimeout(dt);
 			dt = null;
 			//do on-click stuff
-			
+			console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
 			return;
 		}
-		//onDrop should have already been called
 	}
 	
 	/**
@@ -1025,19 +1144,31 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onPress = function(ev)
 	{
-		console.log('"'+this.f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
+		console.log('"'+this._f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
+		
+		var p = this._get_mev(ev);
+		
+		this._mouse_offset = bound_rads(p.a - d2r(this._fs.rotation));
 		
 		//set a timeout to handle dragging if the mouse isn't released
 		var self = this;
-		dt = setTimeout( function() {
-			dt = null;
-			self._drag = true;
-			self.animate({radius: F.dradii[this.area],});
-			
-			//hookup the events
-			ev.onMouseMove = self.onDrag;
-			ev.onMouseUp = self.onDrop;
-		}, 250);
+		dt = setTimeout( function() {self.onDragStart(ev);}, 150);
+	}
+	
+	df.onDragStart = function(ev)
+	{
+		console.log('"'+this._f.name+' - dragStart, ev.type = ' + ev.type);
+		dt = null;
+		this._drag = true;
+		this.set({radius: F.dradii[this._area],});
+		set_cursor('move');
+		this._fl.hide();
+		stage.update();
+		
+		var self = this;
+		//listen for mouse ups
+		stage.onMouseMove = function(e) {self.onDrag(e);};
+		stage.onMouseUp = function(e) {self.onDrop(e);};
 	}
 	
 	/**
@@ -1047,10 +1178,11 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onDrag = function(ev)
 	{
-		console.log('"'+this.f.name+'".onDrag('+ev.stageX+','+ev.stageY+')');
+//		console.log('"'+this._f.name+'".onDrag('+ev.stageX+','+ev.stageY+')');
 		var p = this._get_mev(ev);
 		this._rotate(p.a);
-		this.parent.SortOne(this);
+		stage.update();
+		//this.parent.SortOne(this);
 	};
 	
 	/**
@@ -1060,9 +1192,13 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onDrop = function(ev)
 	{
-		console.log('"'+this.f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
+		stage.onMouseMove = null;
+		stage.onMouseUp = null;
+		console.log('"'+this._f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
 		this._drag = false;
+		this.animate({radius: F.radii[this._area],});
 		this.parent.onDrop(this);
+		set_cursor();
 	}
 	
 
@@ -1075,7 +1211,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df._rotate = function(a)
 	{
-		self._fs.rotation = r2d(a - this._mouse_offset);
+		this._fs.rotation = r2d(a - this._mouse_offset);
 	}
 	
 	/**
@@ -1086,7 +1222,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df._get_mev = function(ev)
 	{
-		var p = this.globalToLocal(ex.stageX, ev.stageY);
+		var p = this.globalToLocal(ev.stageX, ev.stageY);
 		var rp = xy2ra(p.x,p.y);
 		return { x: p.x, y:p.y, r: rp.r, a: rp.a,};
 	}
@@ -1225,7 +1361,7 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc.onDrop = function(df)
 	{
-		this._update_layout();
+		df.animate({rotation: this.getFragAt(this.getChildIndex(df)-1).getEnd()});
 		return this;
 	}
 	
@@ -1286,7 +1422,7 @@ var fc = FragmentContainer.prototype = new Container();
 		if(startFrag == undefined)
 			startFrag = 0;
 		else
-			startFrag = this._bound(startFrag);
+			startFrag = this._bound(parseInt(startFrag));
 			
 		if(startAngle == undefined)
 			startAngle = this.getChildAt(startFrag).getStart();
@@ -1310,8 +1446,10 @@ var fc = FragmentContainer.prototype = new Container();
 			//make the target
 			var t = {};
 			
-			if(!df.drag)
+			if(!df.drag && (df.rotation != r))
+			{
 				t.rotation = r;
+			}
 			
 			//calculate the angle
 			var l = df.getLength();
@@ -1319,34 +1457,32 @@ var fc = FragmentContainer.prototype = new Container();
 			
 			var a = 2 * Math.PI *  l / this._eff_length;
 			
-			console.log('calculate angle: var a = '+a+' = 2 * Math.PI * '+df.getLength()+' / '+this._eff_length+';');
-			
-			t.angle = a;
-			console.log('t.angle = '+t.angle+' = a = '+a+';');
+			if(df.angle != a)
+				t.angle = a;
 			r = r + a;
-			console.log('push target = {angle: '+t.angle+', rotation: '+t.rotation+'}');
 			targets.push(t);
 		}
-		
+/*		
 		console.log('fc._updateLayout(startFrag = '+startFrag+',startAngle = '+startAngle+',animate = '+animate+');');
 		console.log('  result:');
-		for(t in targets)
+		for(var t = 0; t < targets.length; t = t+1)
 		{
 			var f = this.getFragAt(t + startFrag);
 			console.log(this._bound(t+startFrag) + ' ' + targets[t].rotation + ' -> ' + (targets[t].rotation + targets[t].angle));
 		}
-			
+*/			
 		//apply the targets all at once
 		if(animate)
 		{
-			for(t in targets)
+			for(var t = 0; t < targets.length; t = t+1)
+			{
 				this.getFragAt(t + startFrag).animate(targets[t]);
+			}
 		}
 		else
 		{
-			for(t in targets)
+			for(var t = 0; t < targets.length; t = t+1)
 			{
-				console.log('this.getFragAt('+ t +').set(targets['+t+'] = {rotation: '+targets[t].rotation+', angle: '+targets[t].angle + '});');
 				this.getFragAt(t + startFrag).set(targets[t]);
 			}
 		}
@@ -1424,8 +1560,9 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc._bound = function(i)
 	{
-		while(i < 0) i = i + this.getNumChildren;
-		return i % this.getNumChildren();
+		i = i % this.children.length;
+		if(i < 0) return i + this.children.length;
+		return i;
 	}
 
 	
@@ -1451,9 +1588,11 @@ var s = Server.prototype = new Container();
 	s.initialize = function()
 	{
 		this._text.x = 0;
+		this._text.maxWidth = 1000;
 		this._sm_text.x = 10;
 		this._sm_text.y = -this._text.getMeasuredLineHeight() - 2;
 		this._sm_text.visible = false;
+		this._sm_text.maxWidth = 1000;
 		this._text.visible = false;
 		
 		this.addChild(this._text, this._sm_text);
@@ -1463,6 +1602,8 @@ var s = Server.prototype = new Container();
 
 	s.getInfo = function(cb, cid)
 	{
+		this._showMessage('Getting Info...');
+		
 		var self = this;
 		cd_get_info(function(data)
 			{
@@ -1477,24 +1618,41 @@ var s = Server.prototype = new Container();
 				{
 					dfs.push( new DisplayFragment(data.fs[i], new ConstructFragment(data.cfs[i], data.fs[i])) );
 				}
-				
+				self._hideMessage();
 				cb(data.name, data.desc, data.length, dfs);
 				
 			}, cid, this._handle_error);
 		return this;
+	}
+	
+	s.addFrag = function(cb, cid, fid, pos, dir)
+	{
+		this._showMessage('Adding Fragment...');
+		var self = this;
+		cd_add_fragment(function(data)
+			{
+				self._hideMessage();
+				cb(data);
+			} , cid, fid, pos, dir, this._handle_error)
+	}
+	
+	s.rmFrag = function(cb, cid, cfid)
+	{
+		this._showMessage('Removing Fragment...');
+		var self = this;
+		cd_rm_fragment(function(data)
+			{
+				self._hideMessage();
+				cb();
+			} , cid, cfid, this._handle_error)
 	}
 
 	//Private functions
 	
 	s._handle_error = function(desc, textStatus, errorThrown)
 	{
-		this._text.text = "Sorry, there was an error while " + desc + ", please try reloading.";
-		this._sm_text.text = "status: '" + textStatus + "' error: '" + errorThrown + '"';
-		this._text.color = UI.RED;
-		this._sm_text.color = UI.BLACK;
-		this._sm_text.visible = true;
-		this.visible = true;
-		stage.update();
+		this._showMessage(	"Sorry, there was an error while " + desc + ", please try reloading.",
+							"status: '" + textStatus + "' error: '" + errorThrown + '"');
 	}
 	
 	s._handle_success = function(cb, data)
@@ -1502,6 +1660,28 @@ var s = Server.prototype = new Container();
 		this.visible = false;
 		this._sm_text.visible = false;
 		cb(data);
+	}
+	
+	s._showMessage = function(msg, emsg)
+	{
+		this._text.text = msg;
+		this._text.color = COL.BLACK;
+		this._text.visible = true;
+		if(emsg)
+		{
+			s._sm_text._text = emsg;
+			s._sm_text.visible = true;
+			this._text.color = COL.RED;
+			this._sm_text.color = COL.BLACK;
+		}
+		stage.update();
+	}
+	
+	s._hideMessage = function()
+	{
+		s._text.visible = false;
+		s._sm_text.visible = false;
+		stage.update();
 	}
 
 /**
@@ -1534,6 +1714,7 @@ var d = Designer.prototype = new Container();
 	d.initialize = function($canvas, cid)
 	{
 		this.$canvas = $canvas;
+		$c = $canvas;
 		this._cid = cid;
 		
 		this._child = new Container();
@@ -1559,20 +1740,12 @@ var d = Designer.prototype = new Container();
 		//setup the canvas
 		stage = new Stage(document.getElementById('cdesigner')); //$canvas.get());
 		stage.addChild(this);
-		
-		Ticker.setFPS(25);
-		Ticker.addListener(this);
+		stage.enableMouseOver(15);
 		
 		var self = this;
-		this._server.getInfo(function(a,b,c,d) {self._gotInfo(a,b,c,d)}, this._cid);
+		self._server.getInfo(function(a,b,c,d) {self._gotInfo(a,b,c,d)}, self._cid);
 		
 		stage.update();
-	}
-	
-	//Public methods
-	d.tick = function()
-	{
-		// update.
 	}
 	
 	d.getName = function()
@@ -1612,19 +1785,16 @@ var d = Designer.prototype = new Container();
 		
 		var radius = Math.min(this._width,this._height) * 0.35; //the base radius of the plasmid
 		
-		F.radii[Area.CW] = radius + F.width;
-		F.radii[Area.CCW]= radius - F.width;
-		F.radii[Area.RM] = 1000;
+		F.radii[Area.CW] = radius + 1.1*F.width;
+		F.radii[Area.CCW]= radius - 1.1*F.width;
 		
-		F.dradii[Area.CW] = F.radii[Area.CW] + F.width;
-		F.dradii[Area.CCW]= F.radii[Area.CCW] - F.width;
-		F.dradii[Area.RM] = F.radii[Area.RM];
+		F.dradii[Area.CW] = F.radii[Area.CW] + 2.2*F.width;
+		F.dradii[Area.CCW]= F.radii[Area.CCW] - 2.2*F.width;
 			
-		F.lradii[Area.CW] = radius + 1.5 * F.width;
-		F.lradii[Area.CCW]= radius - 1.5 * F.width;
-		F.lradii[Area.RM] = 1000;
+		F.lradii[Area.CW] = radius + 1.5 * F.width + 14
+		F.lradii[Area.CCW]= radius - 1.5 * F.width - 10;
 		
-		F.maxRadius = radius + 2.5 * F.width;
+		F.maxRadius = radius + 3.0 * F.width;
 	}
 	
 	d._gotInfo = function(name, desc, length, dfs)
