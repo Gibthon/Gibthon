@@ -176,10 +176,10 @@
 		F.dradii = [0,0,];
 		/**
 		 * Stores the label radii for each area
-		 * @property lradii
+		 * @property ldelta
 		 * @public
 		 **/
-		F.lradii = [0,0,];
+		F.ldelta = [0,0,];
 		/**
 		 * Stores the default width for a fragment
 		 * @property width
@@ -612,7 +612,6 @@ var fl = FragmentLabel.prototype = new Container();
 		{
 			this._outward = !this._outward;
 			this._realign();
-			
 		}
 		
 		this.rotation = r2d(_rotation) - r2d(0.5 * this._angle);
@@ -685,7 +684,7 @@ var fl = FragmentLabel.prototype = new Container();
 		var r = 0;
 		var erad = this._radius;
 		if(this._outward)
-			erad = -this._radius;
+			erad = - this._radius;
 		
 		//for each letter
 		for(var i = 0; i < this._text.length; i = i + 1)
@@ -700,7 +699,12 @@ var fl = FragmentLabel.prototype = new Container();
 			//set the rotation
 			l.rotation = r2d(r) + 90;
 			if(this._outward)
+			{
+				l.textBaseline = 'top';
 				l.rotation = -r2d(r) - 90;
+			}
+			else
+				l.textBaseline = 'bottom';
 			
 			r = r + l.getMeasuredWidth() / this._radius;
 			
@@ -859,7 +863,7 @@ var df = DisplayFragment.prototype = new Container();
 		if(this._area == Area.CCW)
 			this._fs.clockwise = -1;
 		
-		this._fl = new FragmentLabel(this._f.name, F.lradii[this._area], this._fs.angle / 2.0);
+		this._fl = new FragmentLabel(this._f.name, F.radii[this._area] + F.ldelta[this._area], this._fs.angle / 2.0);
 		
 		this.addChild(this._fs);
 		this.addChild(this._fl);
@@ -1004,18 +1008,42 @@ var df = DisplayFragment.prototype = new Container();
 		console.log(out.join(''));
 	*/	
 		var change = false;
+		var hide = false; //should the label be hidden?
 		var self = this;
-		//make sure any rotation goes the fastest route
+		
+	
+	//check for changes
+		var delta = 1 / this._fs.radius;
+		//make sure any rotation goes the fastest direction
 		if(t.rotation != undefined)
 		{
 			var r = bound_degs(r2d(t.rotation) - this._fs.rotation); //r is the distance and direction of shortest rotation
 			t.rotation = this._fs.rotation + r;
+			if(Math.abs(r) > delta) change = true;
 		}
-		
-		//check for changes
-		for(i in t)
+		//angle
+		if(t.angle != undefined)
 		{
-			if(this._fs[i] != t[i]) change = true;
+			if(Math.abs(this._fs.angle - t.angle) > delta) change = true;
+		}
+		//radius
+		if(t.radius != undefined)
+		{
+			if(Math.abs(this._fs.radius - t.radius) > 1.0) 
+			{
+				change = true;
+				hide = true;
+			}
+		}
+		//alpha
+		if(t.alpha != undefined)
+		{
+			if(this._fs.alpha != t.alpha) change = true;
+		}
+		//clockwise
+		if(t.clockwise != undefined)
+		{
+			if(this._fs.clockwise != t.clockwise) change = true;
 		}
 		
 		if(!change) return;
@@ -1025,8 +1053,8 @@ var df = DisplayFragment.prototype = new Container();
 			if(!self._drag)
 				self._fl.show();
 		};
+		if(hide) this._fl.hide();
 		
-		this._fl.hide();
 		var tween = Tween.get(this._fs)
 		 .call(setAnim) //enable global animation
 		 .to(t, 250, Ease.quartOut)
@@ -1157,12 +1185,13 @@ var df = DisplayFragment.prototype = new Container();
 	
 	df.onDragStart = function(ev)
 	{
-		console.log('"'+this._f.name+' - dragStart, ev.type = ' + ev.type);
-		dt = null;
+		console.log(this+' - dragStart, ev.type = ' + ev.type);
 		this._drag = true;
 		this.set({radius: F.dradii[this._area],});
+		this._fl.setRadius(F.dradii[this._area] + F.ldelta[this._area]);
+		
 		set_cursor('move');
-		this._fl.hide();
+		
 		stage.update();
 		
 		var self = this;
@@ -1183,7 +1212,7 @@ var df = DisplayFragment.prototype = new Container();
 		{
 			this._rotate(p.a);
 			stage.update();
-			//this.parent.SortOne(this);
+			this.parent.sortOne(this);
 		}
 		else
 		{
@@ -1206,9 +1235,11 @@ var df = DisplayFragment.prototype = new Container();
 		stage.onMouseUp = null;
 		console.log('"'+this._f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
 		this._drag = false;
-		this.animate({radius: F.radii[this._area],});
 		this.parent.onDrop(this);
 		set_cursor();
+		this.animate({radius: F.radii[this._area],});
+		this._fl.setRadius(F.radii[this._area] + F.ldelta[this._area]);
+		
 	}
 	
 
@@ -1456,9 +1487,9 @@ var fc = FragmentContainer.prototype = new Container();
 			//make the target
 			var t = {};
 			
-			if(!df.drag && (df.rotation != r))
+			if(!df.isDragging())
 			{
-				t.rotation = r;
+				t.rotation = bound_rads(r);
 			}
 			
 			//calculate the angle
@@ -1467,8 +1498,7 @@ var fc = FragmentContainer.prototype = new Container();
 			
 			var a = 2 * Math.PI *  l / this._eff_length;
 			
-			if(df.angle != a)
-				t.angle = a;
+			t.angle = a;
 			r = r + a;
 			targets.push(t);
 		}
@@ -1480,10 +1510,17 @@ var fc = FragmentContainer.prototype = new Container();
 			var f = this.getFragAt(t + startFrag);
 			console.log(this._bound(t+startFrag) + ' ' + targets[t].rotation + ' -> ' + (targets[t].rotation + targets[t].angle));
 		}
-*/			
+*/		
+
 		//apply the targets all at once
 		if(animate)
 		{
+			console.log(this+'._updateLayout('+startFrag+')');
+			for(var t = 0; t < targets.length; t = t+1)
+			{
+				console.log('  ('+this._bound(t + startFrag)+') '+this.getFragAt(t+startFrag)+' '+this.getFragAt(t + startFrag).getStart()+' -> '+ targets[t].rotation);
+			}
+			
 			for(var t = 0; t < targets.length; t = t+1)
 			{
 				this.getFragAt(t + startFrag).animate(targets[t]);
@@ -1508,10 +1545,57 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc.sortOne = function(s)
 	{
-//TODO: implement bi-directional bubble...
-		this._sortAll();
+		//find the appropriate offset
+		var i = this.getChildIndex(s);
+		var j = this._rs1(i);
+		
+		if(j < 0) //there was some reordering
+			this._updateLayout(this._bound(i+1));
+		
+		if(j > 0) //there was some reordering
+			this._updateLayout(this._bound(i-1));
+		
 		return this;
 	}
+	
+	//recursive sort one
+	fc._rs1 = function(i)
+	{
+		var prev = this.getFragAt(i-1).getMid();
+		var next = this.getFragAt(i+1).getMid();
+		var gap = next-prev;
+		while(gap < 0) gap = gap + 2 * Math.PI;
+		var pos = bound_rads(this.getFragAt(i).getMid() - prev);
+		
+		if(pos >= 0)
+		{
+			if(pos <= gap)
+				return 0;
+			else
+			{
+				//swap with next
+				var n = this._bound(i+1);
+				var t = this.children[i];
+				this.children[i] = this.children[n];
+				this.children[n] = t;
+				
+				console.log('Moving forward: '+i+' -> '+n);
+				return 1 + this._rs1(n);
+			}
+		}		
+		else
+		{
+			//swap with previous
+			var p = this._bound(i-1);
+			var t = this.children[i];
+			this.children[i] = this.children[p];
+			this.children[p] = t;
+			
+			console.log('Moving backward: '+i+' -> '+p);
+			return -1 + this._rs1(p);
+		} 
+	}
+	
 	
 	/**
 	 * sort the fragments by rotation
@@ -1574,6 +1658,8 @@ var fc = FragmentContainer.prototype = new Container();
 		if(i < 0) return i + this.children.length;
 		return i;
 	}
+	
+	fc.toString = function() {return '[FragmentContainer (numChildren='+this.getNumChildren()+')]';};
 
 	
 /**
@@ -1780,7 +1866,7 @@ var d = Designer.prototype = new Container();
 	{
 		var $c = this.$canvas;
 		this._width = $c.width();
-		this._height = (7.0 / 16.0) * this._width;
+		this._height = (9.0 / 16.0) * this._width;
 		$c.height(this._height);
 		$c.prop('width', this._width);
 		$c.prop('height', this._height);
@@ -1801,8 +1887,8 @@ var d = Designer.prototype = new Container();
 		F.dradii[Area.CW] = F.radii[Area.CW] + 2.2*F.width;
 		F.dradii[Area.CCW]= F.radii[Area.CCW] - 2.2*F.width;
 			
-		F.lradii[Area.CW] = radius + 1.5 * F.width + 14
-		F.lradii[Area.CCW]= radius - 1.5 * F.width - 10;
+		F.ldelta[Area.CW] = + 15;
+		F.ldelta[Area.CCW]= - 15;
 		
 		F.maxRadius = radius + 3.0 * F.width;
 	}
