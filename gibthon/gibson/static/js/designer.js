@@ -75,7 +75,8 @@
 	var a2s = function(a) {return AreaString[a];};
 
 //angle Functions
-	var _D_PER_R = 360.0 / (2 * Math.PI);
+	var _2PI = 2 * Math.PI;
+	var _D_PER_R = 360.0 / (_2PI);
 	/**
 	 * Convert Radians to Degrees
 	 * @func r2d
@@ -152,6 +153,18 @@
 		return this.moveTo(p.x,p.y);
 	}
 	cp.lineToRA = function(r,a)
+	{
+		var p = ra2xy(r,a);
+		return this.lineTo(p.x,p.y);
+	}
+	
+	var g = Graphics.prototype;
+	g.moveToRA = function(r,a)
+	{
+		var p = ra2xy(r,a);
+		return this.moveTo(p.x,p.y);
+	}
+	g.lineToRA = function(r,a)
 	{
 		var p = ra2xy(r,a);
 		return this.lineTo(p.x,p.y);
@@ -1328,6 +1341,8 @@ var fc = FragmentContainer.prototype = new Container();
 	{
 		this.Container_initialize();
 		this._server = server;
+		
+		
 	};
 	
 //public methods
@@ -1496,7 +1511,7 @@ var fc = FragmentContainer.prototype = new Container();
 			var l = df.getLength();
 			if(l < this._lmin) l = this._lmin;
 			
-			var a = 2 * Math.PI *  l / this._eff_length;
+			var a = _2PI *  l / this._eff_length;
 			
 			t.angle = a;
 			r = r + a;
@@ -1515,11 +1530,11 @@ var fc = FragmentContainer.prototype = new Container();
 		//apply the targets all at once
 		if(animate)
 		{
-			console.log(this+'._updateLayout('+startFrag+')');
+			/*console.log(this+'._updateLayout('+startFrag+')');
 			for(var t = 0; t < targets.length; t = t+1)
 			{
 				console.log('  ('+this._bound(t + startFrag)+') '+this.getFragAt(t+startFrag)+' '+this.getFragAt(t + startFrag).getStart()+' -> '+ targets[t].rotation);
-			}
+			}*/
 			
 			for(var t = 0; t < targets.length; t = t+1)
 			{
@@ -1543,57 +1558,83 @@ var fc = FragmentContainer.prototype = new Container();
 	 * @param {int} s
 	 * @public
 	 **/
+	
+	var _datum = NaN; 
+	var _lim = NaN;
+	
+	fc._gdb = new Shape();
+	
 	fc.sortOne = function(s)
 	{
-		//find the appropriate offset
-		var i = this.getChildIndex(s);
-		var j = this._rs1(i);
+		if(isNaN(_datum))
+		{
+			var i = this.getChildIndex(s);
+			var n = this.getFragAt(i+1);
+			var p = this.getFragAt(i-1);
+			
+			_lim = 0.5 * (0.5*n.getAngle() + 0.5*p.getAngle() + s.getAngle());
+			_datum = bound_rads(n.getMid() - _lim);
+			
+			if(!this.parent.contains(this._gdb))
+				this.parent.addChild(this._gdb);
+			
+			this._gdb.graphics.clear()
+			.moveTo(0,0)
+			.beginStroke(COL.GREEN)
+			.lineToRA(100, _datum)
+			.endStroke()
+			.moveTo(0,0)
+			.beginStroke(COL.RED)
+			.lineToRA(120, _datum + _lim)
+			.endStroke()
+			.moveTo(0,0)
+			.beginStroke(COL.RED)
+			.lineToRA(120, _datum - _lim)
+			.endStroke()
+			
+		}
 		
-		if(j < 0) //there was some reordering
-			this._updateLayout(this._bound(i+1));
-		
-		if(j > 0) //there was some reordering
-			this._updateLayout(this._bound(i-1));
+		//test for compliance
+		var a = bound_rads(s.getMid() - _datum);
+		if(a > _lim)
+		{
+			console.log('Forwards: a > _lim : '+r2d(a)+' > '+r2d(_lim));
+			this._swap(this.getChildIndex(s), 1);
+			_datum = NaN;
+		}
+		if(a < -_lim)
+		{
+			console.log('Backwards: a < -_lim : '+r2d(a)+' < '+ r2d(-_lim));
+			this._swap(this.getChildIndex(s), -1);
+			_datum = NaN;
+		}
 		
 		return this;
 	}
 	
-	//recursive sort one
-	fc._rs1 = function(i)
+	//a = offset to swap, offset = 1 | -1
+	fc._swap = function(i,offset)
 	{
-		var prev = this.getFragAt(i-1).getMid();
-		var next = this.getFragAt(i+1).getMid();
-		var gap = next-prev;
-		while(gap < 0) gap = gap + 2 * Math.PI;
-		var pos = bound_rads(this.getFragAt(i).getMid() - prev);
+		var ipo = this._bound(i + offset);
+		var imo = this._bound(i - offset);
 		
-		if(pos >= 0)
+		console.log('  Swap '+i+' and ' + ipo);
+		
+		var t = this.children[i];
+		this.children[i] = this.children[ipo];
+		this.children[ipo] = t;
+		
+		var target = {};
+		switch(offset)
 		{
-			if(pos <= gap)
-				return 0;
-			else
-			{
-				//swap with next
-				var n = this._bound(i+1);
-				var t = this.children[i];
-				this.children[i] = this.children[n];
-				this.children[n] = t;
-				
-				console.log('Moving forward: '+i+' -> '+n);
-				return 1 + this._rs1(n);
-			}
-		}		
-		else
-		{
-			//swap with previous
-			var p = this._bound(i-1);
-			var t = this.children[i];
-			this.children[i] = this.children[p];
-			this.children[p] = t;
-			
-			console.log('Moving backward: '+i+' -> '+p);
-			return -1 + this._rs1(p);
-		} 
+			case -1:
+				target.rotation = this.children[imo].getStart() - this.children[i].getAngle();
+				break;
+			case 1:
+				target.rotation = this.children[imo].getEnd();
+				break;
+		}
+		this.children[i].animate(target);
 	}
 	
 	
@@ -1633,7 +1674,7 @@ var fc = FragmentContainer.prototype = new Container();
 		}
 		
 		//find the minimum length
-		this._lmin = Math.ceil(this._length * F.minAngle / (2 * Math.PI));
+		this._lmin = Math.ceil(this._length * F.minAngle / (_2PI));
 		
 		//find the effective length
 		this._eff_length = 0;
@@ -1809,9 +1850,11 @@ var d = Designer.prototype = new Container();
 	d._container_initialize = d.initialize;
 	d.initialize = function($canvas, cid)
 	{
+		var self = this;
 		this.$canvas = $canvas;
 		$c = $canvas;
 		this._cid = cid;
+		$(window).resize(function() {self._calcSize(); stage.update();});
 		
 		this._child = new Container();
 		this._tname = new Text('', FONT.LG, COL.BLACK);
@@ -1828,7 +1871,7 @@ var d = Designer.prototype = new Container();
 		this._child.addChild(this._tname, this._tlen, this._fc);
 		this.addChild(this._child, this._server);
 		
-		this._calc_size();
+		this._calcSize();
 		
 		this.setName('My Name (' + this._cid + ')');
 		this.setLength(150);
@@ -1862,7 +1905,7 @@ var d = Designer.prototype = new Container();
 	}
 	
 	//private methods
-	d._calc_size = function()
+	d._calcSize = function()
 	{
 		var $c = this.$canvas;
 		this._width = $c.width();
@@ -1879,7 +1922,7 @@ var d = Designer.prototype = new Container();
 		this._server.x = 10;
 		this._server.y = this._height - 30;
 		
-		var radius = Math.min(this._width,this._height) * 0.35; //the base radius of the plasmid
+		var radius = Math.min(this._width,this._height) * 0.25; //the base radius of the plasmid
 		
 		F.radii[Area.CW] = radius + 1.1*F.width;
 		F.radii[Area.CCW]= radius - 1.1*F.width;
