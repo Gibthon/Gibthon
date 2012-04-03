@@ -46,6 +46,11 @@
 		$c.css('cursor', type);
 	}
 
+	var get_cursor = function()
+	{
+		return $c.css('cursor');
+	}
+
 	// prevent text cursor when dragging
 	window.addEventListener("dragstart", function(fEventObject){ CancelEvent(fEventObject); } );
 	window.addEventListener("selectstart", function(fEventObject){ CancelEvent(fEventObject); } );
@@ -819,6 +824,8 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	 df._mouse_offset = 0.0;
 	 
+	 df._mouse_down = new Point(0,0);
+	 
 //Constructor
 	/**
 	 * @property Shape_initialize
@@ -1092,7 +1099,7 @@ var df = DisplayFragment.prototype = new Container();
 	df.onMouseOver = function(ev)
 	{
 		//console.log('"'+this._f.name+'".onMouseOver('+ev.stageX+','+ev.stageY+')');
-		if(!this._drag)
+		if(!this._drag && (get_cursor() == 'auto'))
 		{
 			set_cursor('pointer');
 			this.alpha = 0.8;
@@ -1108,16 +1115,13 @@ var df = DisplayFragment.prototype = new Container();
 	df.onMouseOut = function(ev)
 	{
 		//console.log('"'+this._f.name+'".onMouseOut('+ev.stageX+','+ev.stageY+')');
-		if(!this._drag)
+		if(!this._drag && (get_cursor() == 'pointer'))
 		{
 			set_cursor();
 			this.alpha = 1.0;
 			stage.update();
 		}
 	}
-	
-	//timeout for a drag
-	var dt = null;
 	
 	/**
 	 * Handle a mouse click
@@ -1127,13 +1131,10 @@ var df = DisplayFragment.prototype = new Container();
 	df.onClick = function(ev)
 	{
 		//if we were about to start dragging
-		if(dt != null)
+		if(!this._drag)
 		{
-			clearTimeout(dt);
-			dt = null;
 			//do on-click stuff
 			console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
-			return;
 		}
 	}
 	
@@ -1144,15 +1145,14 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onPress = function(ev)
 	{
+		var self = this;
 		console.log('"'+this._f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
 		
-		var p = this._get_mev(ev);
+		this._mouse_down = this._get_mev(ev);
 		
-		this._mouse_offset = bound_rads(p.a - d2r(this._fs.rotation));
-		
-		//set a timeout to handle dragging if the mouse isn't released
-		var self = this;
-		dt = setTimeout( function() {self.onDragStart(ev);}, 150);
+		this._mouse_offset = bound_rads(this._mouse_down.a - d2r(this._fs.rotation));
+		stage.onMouseMove = function(e) {self.onDrag(e);};
+		stage.onMouseUp = function(e) {stage.onMouseMove = null; stage.onMouseUp = null;};
 	}
 	
 	df.onDragStart = function(ev)
@@ -1178,11 +1178,21 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onDrag = function(ev)
 	{
-//		console.log('"'+this._f.name+'".onDrag('+ev.stageX+','+ev.stageY+')');
 		var p = this._get_mev(ev);
-		this._rotate(p.a);
-		stage.update();
-		//this.parent.SortOne(this);
+		if(this._drag)
+		{
+			this._rotate(p.a);
+			stage.update();
+			//this.parent.SortOne(this);
+		}
+		else
+		{
+			var x = (p.x - this._mouse_down.x);
+			var y = (p.y - this._mouse_down.y);
+			if((x*x + y*y) > (0.5 * F.width * F.width))
+				this.onDragStart(ev);
+		}
+		
 	};
 	
 	/**
