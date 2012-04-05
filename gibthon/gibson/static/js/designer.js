@@ -206,11 +206,20 @@
 		 **/
 		F.arrow = 5;
 		/**
-		 * The maximum radius in the construct
-		 * @property maxRadius
+		 * The maximum radius in each area
+		 * @property maxRadii
 		 * @public
 		 **/
-		F.maxRadius = 0;
+		F.maxRadii = [0,0,];
+		F.getArea = function(r)
+		{
+			for(var i = 0; i < 2; i = i + 1)
+			{
+				if(r < F.maxRadii[i])
+					return i;
+			}
+			return undefined;
+		}
 		/**
 		 * The minimum angle that a DisplayFragment should occupy
 		 * @property minAngle
@@ -810,6 +819,11 @@ var df = DisplayFragment.prototype = new Container();
 	 df._fs = null;
 	 
 	 /**
+	  * store a copy the the fragment shape's properties to avoid showing tweend values to the outside world
+	  * */
+	 df._props = null;
+	 
+	 /**
 	 * The FragmentLabel draws the label to the canvas
 	 * @property _fl
 	 * @private
@@ -859,8 +873,16 @@ var df = DisplayFragment.prototype = new Container();
 	df.initialize = function(_f, _cf) 
 	{
 		this.Container_initialize();
-		
 		//set initial values
+		
+		this._props = {
+			'rotation': 0.0,
+			'angle':0.0,
+			'radius':0.0,
+			'alpha':1.0,
+			'clockwise':1.0,	
+		};
+		
 		this._f = _f;
 		this._cf = _cf;
 		this._area = Area.CW;
@@ -873,10 +895,13 @@ var df = DisplayFragment.prototype = new Container();
 		}
 
 		this._fs = new FragmentShape(0,0,F.radii[this._area]);
+		this._props.radius = F.radii[this._area];
 		if(this._area == Area.CCW)
-			this._fs.clockwise = -1;
+		{
+			this.setClockwise(-1);
+		}
 		
-		this._fl = new FragmentLabel(this._f.name, F.radii[this._area] + F.ldelta[this._area], this._fs.angle / 2.0);
+		this._fl = new FragmentLabel(this._f.name, F.radii[this._area] + F.ldelta[this._area], this._props.angle / 2.0);
 		
 		this.addChild(this._fs);
 		this.addChild(this._fl);
@@ -916,23 +941,73 @@ var df = DisplayFragment.prototype = new Container();
 	df.setArea = function(_a)
 	{
 		this.x = 0; this.y = 0;
+		this._area = _a;
+		this._drag ?
+			this.setRadius(F.dradii[_a]) :
+			this.setRadius(F.radii[_a]);
 		
-		if(this._drag)
-		{
-			this._fs.radius = F.dradii[_a];
-			this._fl.hide();
-		}
-		else
-		{
-			this._fs.radius = f.radii[_a];
-			this._fl.show();
-		}
-		if(_a == Area.CW)
-			this._fl.clockwise = 1.0;
-		else
-			this._fl.clockwise = -1.0;
+		(_a == Area.CW) ?
+			this.setClockwise(1.0) :
+			this.setClockwise(-1.0);
+		
+		this._setLabelRadius();
 	}
-	 
+	
+	df.setRotation = function(rads)
+	{
+		this._props.rotation = this._fs.rotation = r2d(bound_rads(rads));
+	}
+	
+	df.setAngle = function(angle)
+	{
+		this._props.angle = this._fs.angle = angle;
+	}
+	
+	df.setRadius = function(px)
+	{
+		this._props.radius = this._fs.radius = px;
+	}
+	
+	df.setAlpha = function(a)
+	{
+		this._props.alpha = this._fs.alpha = a;
+	}
+	
+	df.setClockwise = function(cw)
+	{
+		this._props.clockwise = this._fs.clockwise = cw;
+	}
+	
+	df.getRotation = function(rads)
+	{
+		return d2r(this._props.rotation);
+	}
+	
+	df.getMouseRotation = function(rads)
+	{
+		return d2r(this._props.rotation) + this._mouse_offset;
+	}
+	
+	df.getAngle = function(angle)
+	{
+		return this._props.angle;
+	}
+	
+	df.getRadius = function(px)
+	{
+		return this._props.radius;
+	}
+	
+	df.getAlpha = function(a)
+	{
+		return this._props.alpha;
+	}
+	
+	df.getClockwise = function(cw)
+	{
+		return this._props.clockwise;
+	}
+	
 	/**
 	 * Return whether the fragment is being dragged or not
 	 * @method isDragging
@@ -975,7 +1050,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getStart = function()
 	{
-		return d2r(this._fs.rotation);
+		return d2r(this._props.rotation);
 	}
 	
 	/**
@@ -984,7 +1059,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getMid = function()
 	{
-		return d2r(this._fs.rotation) + this._fs.angle / 2.0;
+		return d2r(this._props.rotation) + this._props.angle / 2.0;
 	}
 	
 	/**
@@ -993,7 +1068,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getEnd = function()
 	{
-		return d2r(this._fs.rotation) + this._fs.angle;
+		return d2r(this._props.rotation) + this._props.angle;
 	}
 	
 	/**
@@ -1002,7 +1077,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getAngle = function()
 	{
-		return this._fs.angle;
+		return this._props.angle;
 	}
 	
 	/**
@@ -1026,23 +1101,23 @@ var df = DisplayFragment.prototype = new Container();
 		
 	
 	//check for changes
-		var delta = 1 / this._fs.radius;
+		var delta = 1 / this._props.radius;
 		//make sure any rotation goes the fastest direction
 		if(t.rotation != undefined)
 		{
-			var r = bound_degs(r2d(t.rotation) - this._fs.rotation); //r is the distance and direction of shortest rotation
-			t.rotation = this._fs.rotation + r;
+			var r = bound_degs(r2d(t.rotation) - this._props.rotation); //r is the distance and direction of shortest rotation
+			t.rotation = this._props.rotation + r;
 			if(Math.abs(r) > delta) change = true;
 		}
 		//angle
 		if(t.angle != undefined)
 		{
-			if(Math.abs(this._fs.angle - t.angle) > delta) change = true;
+			if(Math.abs(this._props.angle - t.angle) > delta) change = true;
 		}
 		//radius
 		if(t.radius != undefined)
 		{
-			if(Math.abs(this._fs.radius - t.radius) > 1.0) 
+			if(Math.abs(this._props.radius - t.radius) > 1.0) 
 			{
 				change = true;
 				hide = true;
@@ -1051,20 +1126,24 @@ var df = DisplayFragment.prototype = new Container();
 		//alpha
 		if(t.alpha != undefined)
 		{
-			if(this._fs.alpha != t.alpha) change = true;
+			if(this._props.alpha != t.alpha) change = true;
 		}
 		//clockwise
 		if(t.clockwise != undefined)
 		{
-			if(this._fs.clockwise != t.clockwise) change = true;
+			if(this._props.clockwise != t.clockwise) change = true;
 		}
 		
 		if(!change) return;
 		
+		//update the saved values
+		this._set(t);
+		this._props.rotation = bound_degs(this._props.rotation);
+		
 		var done = function() {
 			self._fs.rotation = bound_degs(self._fs.rotation);
-			if(!self._drag)
-				self._fl.show();
+			self._setLabelRadius();
+			self._fl.show();
 		};
 		if(hide) this._fl.hide();
 		
@@ -1093,28 +1172,28 @@ var df = DisplayFragment.prototype = new Container();
 		//set rotation
 		if(t.rotation != undefined)
 		{
-			this._fs.rotation = r2d(bound_rads(t.rotation));
+			this.setRotation(bound_rads(t.rotation));
 		}
 		//set angle
 		if(t.angle != undefined)
 		{
-			this._fs.angle = t.angle;
+			this.setAngle(t.angle);
 		}
 		//set radius
 		if(t.radius != undefined)
 		{
-			this._fs.radius = Math.abs(t.radius);
+			this.setRadius(t.radius);
 		}
 		//set alpha
 		if(t.alpha != undefined)
 		{
-			this._fs.alpha = t.alpha;
+			this.setAlpha(t.alpha);
 		}
 		//set clockwise
 		if(t.clockwise != undefined)
 		{
-			this._fs.clockwise = t.clockwise;
-		}		
+			this.setClockwise(t.clockwise);
+		}
 	}
 	
 	/**
@@ -1191,7 +1270,7 @@ var df = DisplayFragment.prototype = new Container();
 		
 		this._mouse_down = this._get_mev(ev);
 		
-		this._mouse_offset = bound_rads(this._mouse_down.a - d2r(this._fs.rotation));
+		this._mouse_offset = bound_rads(this._mouse_down.a - d2r(this._props.rotation));
 		stage.onMouseMove = function(e) {self.onDrag(e);};
 		stage.onMouseUp = function(e) {stage.onMouseMove = null; stage.onMouseUp = null;};
 	}
@@ -1200,8 +1279,8 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		console.log(this+' - dragStart, ev.type = ' + ev.type);
 		this._drag = true;
-		this.set({radius: F.dradii[this._area],});
-		this._fl.setRadius(F.dradii[this._area] + F.ldelta[this._area]);
+		this.setRadius(F.dradii[this._area]);
+		this._setLabelRadius();
 		
 		set_cursor('move');
 		
@@ -1223,7 +1302,21 @@ var df = DisplayFragment.prototype = new Container();
 		var p = this._get_mev(ev);
 		if(this._drag)
 		{
-			this._rotate(p.a);
+			this.setRotation(p.a - this._mouse_offset);
+			
+			var area = F.getArea(p.r);
+			if(area != this._area)
+			{
+				if(area != undefined)
+				{
+					//console.log('Area '+a2s(this._area)+' -> '+a2s(area));
+					this.setArea(area);
+				}
+				else
+					console.log('Leave Construct');
+			}
+			
+			
 			stage.update();
 			this.parent.sortOne(this);
 		}
@@ -1250,22 +1343,19 @@ var df = DisplayFragment.prototype = new Container();
 		this._drag = false;
 		this.parent.onDrop(this);
 		set_cursor();
-		this.animate({radius: F.radii[this._area],});
-		this._fl.setRadius(F.radii[this._area] + F.ldelta[this._area]);
-		
+		this.animate({radius: F.radii[this._area],});		
 	}
 	
 
 //Private Methods
-	/**
-	 * Set the rotation, given the mouse is at angle a (rads)
-	 * @method _rotate
-	 * @private
-	 * @param {angle} a The angle of the mouse
-	 **/
-	df._rotate = function(a)
+	
+	df._setLabelRadius = function()
 	{
-		this._fs.rotation = r2d(a - this._mouse_offset);
+		var r = 0;
+		this._drag ? r = F.dradii[this._area] : r = F.radii[this._area]; 
+		(this._area == Area.CCW) ? r = r + F.ldelta[this._area] : r = r + F.ldelta[this._area];
+		
+		this._fl.setRadius(r);
 	}
 	
 	/**
@@ -1279,6 +1369,20 @@ var df = DisplayFragment.prototype = new Container();
 		var p = this.globalToLocal(ev.stageX, ev.stageY);
 		var rp = xy2ra(p.x,p.y);
 		return { x: p.x, y:p.y, r: rp.r, a: rp.a,};
+	}
+	
+	/**
+	 * Set the prop values to t
+	 * */
+	df._set = function(t)
+	{
+		for(i in this._props)
+		{
+			if(t[i])
+			{
+				this._props[i] = t[i];
+			}
+		}
 	}
 
 
@@ -1554,15 +1658,15 @@ var fc = FragmentContainer.prototype = new Container();
 	
 	/**
 	 * sort the fragment s, assuming all others are in order
-	 * @method _sortOne
-	 * @param {int} s
+	 * @method sortOne
+	 * @param {DisplayFragment} s
 	 * @public
 	 **/
 	
 	var _datum = NaN; 
 	var _lim = NaN;
 	
-	fc._gdb = new Shape();
+	//fc._gdb = new Shape();
 	
 	fc.sortOne = function(s)
 	{
@@ -1574,7 +1678,7 @@ var fc = FragmentContainer.prototype = new Container();
 			
 			_lim = 0.5 * (0.5*n.getAngle() + 0.5*p.getAngle() + s.getAngle());
 			_datum = bound_rads(n.getMid() - _lim);
-			
+			/*
 			if(!this.parent.contains(this._gdb))
 				this.parent.addChild(this._gdb);
 			
@@ -1590,21 +1694,19 @@ var fc = FragmentContainer.prototype = new Container();
 			.moveTo(0,0)
 			.beginStroke(COL.RED)
 			.lineToRA(120, _datum - _lim)
-			.endStroke()
+			.endStroke()*/
 			
 		}
 		
 		//test for compliance
-		var a = bound_rads(s.getMid() - _datum);
+		var a = bound_rads(s.getMouseRotation() - _datum);
 		if(a > _lim)
 		{
-			console.log('Forwards: a > _lim : '+r2d(a)+' > '+r2d(_lim));
 			this._swap(this.getChildIndex(s), 1);
 			_datum = NaN;
 		}
 		if(a < -_lim)
 		{
-			console.log('Backwards: a < -_lim : '+r2d(a)+' < '+ r2d(-_lim));
 			this._swap(this.getChildIndex(s), -1);
 			_datum = NaN;
 		}
@@ -1617,8 +1719,6 @@ var fc = FragmentContainer.prototype = new Container();
 	{
 		var ipo = this._bound(i + offset);
 		var imo = this._bound(i - offset);
-		
-		console.log('  Swap '+i+' and ' + ipo);
 		
 		var t = this.children[i];
 		this.children[i] = this.children[ipo];
@@ -1909,7 +2009,7 @@ var d = Designer.prototype = new Container();
 	{
 		var $c = this.$canvas;
 		this._width = $c.width();
-		this._height = (9.0 / 16.0) * this._width;
+		this._height = (10.0 / 16.0) * this._width;
 		$c.height(this._height);
 		$c.prop('width', this._width);
 		$c.prop('height', this._height);
@@ -1922,18 +2022,19 @@ var d = Designer.prototype = new Container();
 		this._server.x = 10;
 		this._server.y = this._height - 30;
 		
-		var radius = Math.min(this._width,this._height) * 0.25; //the base radius of the plasmid
+		var radius = Math.min(this._width,this._height) * 0.30; //the base radius of the plasmid
 		
-		F.radii[Area.CW] = radius + 1.1*F.width;
-		F.radii[Area.CCW]= radius - 1.1*F.width;
+		F.radii[Area.CW] = radius + 0.5*F.width;
+		F.radii[Area.CCW]= radius - 0.5*F.width;
 		
-		F.dradii[Area.CW] = F.radii[Area.CW] + 2.2*F.width;
-		F.dradii[Area.CCW]= F.radii[Area.CCW] - 2.2*F.width;
+		F.dradii[Area.CW] = F.radii[Area.CW] + 1.6*F.width;
+		F.dradii[Area.CCW]= F.radii[Area.CCW] - 1.6*F.width;
 			
 		F.ldelta[Area.CW] = + 15;
-		F.ldelta[Area.CCW]= - 15;
+		F.ldelta[Area.CCW]= - 25;
 		
-		F.maxRadius = radius + 3.0 * F.width;
+		F.maxRadii[Area.CCW] = radius;
+		F.maxRadii[Area.CW] = radius + 3.0 * F.width;
 	}
 	
 	d._gotInfo = function(name, desc, length, dfs)
