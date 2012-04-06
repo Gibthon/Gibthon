@@ -1542,6 +1542,7 @@ var fc = FragmentContainer.prototype = new Container();
 	fc.onDrop = function(df)
 	{
 		df.animate({rotation: this.getFragAt(this.getChildIndex(df)-1).getEnd()});
+		this._datum = NaN;
 		return this;
 	}
 	
@@ -1683,52 +1684,52 @@ var fc = FragmentContainer.prototype = new Container();
 	 * @public
 	 **/
 	
-	var _datum = NaN; 
-	var _lim = NaN;
+	fc._datum = NaN; 
+	fc._lim = NaN;
 	
 	//fc._gdb = new Shape();
 	
 	fc.sortOne = function(s)
 	{
-		if(isNaN(_datum))
+		if(isNaN(this._datum))
 		{
 			var i = this.getChildIndex(s);
 			var n = this.getFragAt(i+1);
 			var p = this.getFragAt(i-1);
 			
-			_lim = 0.5 * (0.5*n.getAngle() + 0.5*p.getAngle() + s.getAngle());
-			_datum = bound_rads(n.getMid() - _lim);
-			/*
-			if(!this.parent.contains(this._gdb))
+			this._lim = 0.5 * (0.5*n.getAngle() + 0.5*p.getAngle() + s.getAngle());
+			this._datum = bound_rads(n.getMid() - this._lim);
+			
+			/*if(!this.parent.contains(this._gdb))
 				this.parent.addChild(this._gdb);
 			
 			this._gdb.graphics.clear()
 			.moveTo(0,0)
 			.beginStroke(COL.GREEN)
-			.lineToRA(100, _datum)
+			.lineToRA(100, this._datum)
 			.endStroke()
 			.moveTo(0,0)
 			.beginStroke(COL.RED)
-			.lineToRA(120, _datum + _lim)
+			.lineToRA(120, this._datum + this._lim)
 			.endStroke()
 			.moveTo(0,0)
 			.beginStroke(COL.RED)
-			.lineToRA(120, _datum - _lim)
-			.endStroke()*/
+			.lineToRA(120, this._datum - this._lim)
+			.endStroke();*/
 			
 		}
 		
 		//test for compliance
-		var a = bound_rads(s.getMouseRotation() - _datum);
-		if(a > _lim)
+		var a = bound_rads(s.getMouseRotation() - this._datum);
+		if(a > this._lim)
 		{
 			this._swap(this.getChildIndex(s), 1);
-			_datum = NaN;
+			this._datum = NaN;
 		}
-		if(a < -_lim)
+		if(a < -this._lim)
 		{
 			this._swap(this.getChildIndex(s), -1);
-			_datum = NaN;
+			this._datum = NaN;
 		}
 		
 		return this;
