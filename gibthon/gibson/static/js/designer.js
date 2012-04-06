@@ -1008,6 +1008,8 @@ var df = DisplayFragment.prototype = new Container();
 		return this._props.clockwise;
 	}
 	
+	df.f = function() {return this._f;};
+	
 	/**
 	 * Return whether the fragment is being dragged or not
 	 * @method isDragging
@@ -1255,6 +1257,7 @@ var df = DisplayFragment.prototype = new Container();
 		{
 			//do on-click stuff
 			console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
+			this.parent.designer().showInfo(this);
 		}
 	}
 	
@@ -1393,9 +1396,9 @@ var df = DisplayFragment.prototype = new Container();
 * @constructor
 * @param {Server} server A server object for saving changes
 **/
-var FragmentContainer = function(server)
+var FragmentContainer = function(designer)
 {
-	this.initialize(server);
+	this.initialize(designer);
 }
 var fc = FragmentContainer.prototype = new Container();
 
@@ -1427,6 +1430,8 @@ var fc = FragmentContainer.prototype = new Container();
 	 * @private
 	 **/
 	fc._gap_length = 0;
+	
+	fc._designer = null;
 
 //Constructor
 	/**
@@ -1441,15 +1446,15 @@ var fc = FragmentContainer.prototype = new Container();
 	 * @method initialize
 	 * @protected
 	 **/
-	fc.initialize = function(server) 
+	fc.initialize = function(d) 
 	{
 		this.Container_initialize();
-		this._server = server;
-		
-		
+		this._designer = d;	
 	};
 	
 //public methods
+
+	fc.designer = function() {return this._designer;};
 	/**
 	 * Add a new DisplayFragment
 	 * @method addFragAt
@@ -1920,6 +1925,8 @@ var s = Server.prototype = new Container();
 		s._sm_text.visible = false;
 		stage.update();
 	}
+	
+	s.toString = function() {return '[Server ]'};
 
 /**
 * The actual designer, called with a jQuery HTML canvas
@@ -1933,6 +1940,7 @@ var Designer = function($canvas, cid)
 var d = Designer.prototype = new Container();
 	
 	d._$canvas = null;
+	d._$info = null;
 	
 	d._cid = 0;
 	
@@ -1951,7 +1959,7 @@ var d = Designer.prototype = new Container();
 	d.initialize = function($canvas, cid)
 	{
 		var self = this;
-		this.$canvas = $canvas;
+		this._$canvas = $canvas;
 		$c = $canvas;
 		this._cid = cid;
 		$(window).resize(function() {self._calcSize(); stage.update();});
@@ -1964,7 +1972,7 @@ var d = Designer.prototype = new Container();
 		this._tlen.textAlign = 'center';
 		this._tlen.maxWidth = 1000;
 		
-		this._fc = new FragmentContainer();
+		this._fc = new FragmentContainer(this);
 		
 		this._server = new Server();
 		
@@ -1983,6 +1991,8 @@ var d = Designer.prototype = new Container();
 		
 		var self = this;
 		self._server.getInfo(function(a,b,c,d) {self._gotInfo(a,b,c,d)}, self._cid);
+		
+		self._initInfo();
 		
 		stage.update();
 	}
@@ -2005,9 +2015,55 @@ var d = Designer.prototype = new Container();
 	}
 	
 	//private methods
+	
+	d._initInfo = function()
+	{
+		var self = this;
+		this._$info = $('.fragment-info');
+		
+		//setup the buttons
+		this._$info.find('#fragment_remove')
+			.button({label: 'Remove', icons: {primary:'ui-icon-trash',},})
+			.click(function() {self._hideInfo()});
+
+		this._$info.find('#fragment_clip')
+			.button({label: 'Clipping', icons: {primary:'ui-icon-scissors'}, disabled:true,})
+			.click(function() {});
+	}
+
+	d.showInfo = function(df)
+	{
+		//set the title and description
+		this._$info.find('#fragment_name').text(df.f().name);
+		this._$info.find('#fragment_desc').text(df.f().desc);
+		
+		var loc = ra2xy(df.getRadius(), df.getMid());
+		loc = this._fc.localToGlobal(loc.x, loc.y);
+		
+		//set position
+		this._$info.css({position: 'absolute', zindex:100, left:loc.x - 33, top:loc.y - (this._$info.outerHeight() + 14),});
+		this._$info.css({display:'block',});
+		
+		//set remove callback
+		var self = this;
+		this._$info.find('#fragment_remove')
+			.unbind('click')
+			.click(function() {self.hideInfo();/*designer.removeFragment(df);*/});
+		
+		//binding to click means it gets triggered immediately
+		this._$canvas.mousedown(function() {self.hideInfo();});
+	}
+
+	d.hideInfo = function()
+	{
+		this._$info.css({display:'none',});
+		this._$canvas.unbind('mousedown', this.hideInfo);
+	}
+	
+	
 	d._calcSize = function()
 	{
-		var $c = this.$canvas;
+		var $c = this._$canvas;
 		this._width = $c.width();
 		this._height = (10.0 / 16.0) * this._width;
 		$c.height(this._height);
@@ -2047,3 +2103,5 @@ var d = Designer.prototype = new Container();
 		
 		stage.update();
 	}
+	
+	d.toString = function() {return '[Designer '+this._width+'x'+this._height+' (cid='+this._cid+') ]';};

@@ -52,35 +52,40 @@ tr.settings-alt
 {
 	margin: .2em;
 }
-.fragment
+
+#fragment_clip
 {
-	margin: .5em;
-	height: 2em;
-	padding: .5em 0 0 .5em;
-	margin: .5em;
-	font-weight: bold;
-	cursor: move;
-}
-.fragment-info
-{
-	position: absolute;
-	display: none;
+    float:right;
 }
 .fragment-data
 {
-	background-image: url(images/info_bk.png);
-	min-width: 10em;
-	max-width: 20em;
-	min-height: 5em;
-	border: 1px solid #7b7b7b;
-	padding: 0.5em;
+    min-width: 10em;
+    max-width: 20em;
+    min-height: 3em;
 }
-.fragment-pointer
+.fragment-info
 {
-	width: 31px;
-	height: 16px;
-	background-image: url(images/info_pointer.png);
-	position: absolute;
-	left: 20px;
-	bottom: -15px;
+    position: absolute;
+    background: rgb(255,255,255);
+    border: 1px solid #7b7b7b;
+    padding: 0.5em;
+    background-clip: padding-box;
 }
+.fragment-info:before{
+    content: ' ';
+    border-color: #7b7b7b transparent transparent;
+    border-style: solid;
+    border-width: 14px;
+    position: absolute;
+    bottom: -29px;
+    left: 19px;
+}
+.fragment-info:after{
+    content: ' ';
+    border-color: rgb(255,255,255) transparent transparent;
+    border-style: solid;
+    border-width: 13px;
+    position: absolute;
+    bottom: -26px;
+    left: 20px;
+}​
