@@ -1258,7 +1258,9 @@ var df = DisplayFragment.prototype = new Container();
 			//do on-click stuff
 			console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
 			this.parent.designer().showInfo(this);
+			return;
 		}
+		this._drag = false;
 	}
 	
 	/**
@@ -1343,10 +1345,14 @@ var df = DisplayFragment.prototype = new Container();
 		stage.onMouseMove = null;
 		stage.onMouseUp = null;
 		console.log('"'+this._f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
-		this._drag = false;
+		
 		this.parent.onDrop(this);
 		set_cursor();
-		this.animate({radius: F.radii[this._area],});		
+		this.animate({radius: F.radii[this._area],});
+		p = this.globalToLocal(ev.stageX, ev.stageY);
+		
+		if(!this.hitTest(p.x,p.y))
+			this._drag = false;
 	}
 	
 
@@ -1516,6 +1522,15 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc.rm = function(df)
 	{
+		var i = this.getChildIndex(df);
+		if(i < 0) return this;
+		
+		var a = df.getMid();
+		
+		this.removeChildAt(i);
+		this._updateLength();
+		this._updateLayout(this._bound(i), a);
+		
 		return this;
 	}
 	
@@ -2048,7 +2063,7 @@ var d = Designer.prototype = new Container();
 		var self = this;
 		this._$info.find('#fragment_remove')
 			.unbind('click')
-			.click(function() {self.hideInfo();/*designer.removeFragment(df);*/});
+			.click(function() {self.hideInfo();self._fc.rm(df);});
 		
 		//binding to click means it gets triggered immediately
 		this._$canvas.mousedown(function() {self.hideInfo();});
