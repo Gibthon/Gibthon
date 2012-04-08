@@ -211,6 +211,8 @@
 		 * @public
 		 **/
 		F.maxRadii = [0,0,];
+		F.joinRadius = 0;
+		
 		F.getArea = function(r)
 		{
 			for(var i = 0; i < 2; i = i + 1)
@@ -1329,7 +1331,7 @@ var df = DisplayFragment.prototype = new Container();
 					ev.onMouseMove = null;
 					
 					set_cursor();
-					this.parent.designer().leave(this, this._mousedownEvent);
+					this.parent.designer().leave(this);
 					return;
 				}
 			}
@@ -2044,16 +2046,56 @@ var d = Designer.prototype = new Container();
 		return this._fc.getLength();
 	}
 	
-	d.leave = function(df, ev)
+	d.leave = function(df)
 	{
-		var $jf = $('<div>').jFragment({'fragment':df.f(), 'containment':'parent','scroll':false,});
+		var o = this._$canvas.parent().offset();
+		var self = this;
+		
+		var $jf = $('<div>').jFragment({
+			'fragment':df.f(),
+			'constructFragment':df._cf,
+			'containment':'parent',
+			'scroll':false,
+			'color':df._fs.fill,
+			'stop': function(event, ui) {
+				$jf.remove();
+			},
+			'drag': function(event, ui) {
+				var p = self._fc.globalToLocal( event.pageX - o.left, event.pageY - o.top);
+				if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
+				{
+					self.join($jf);
+				}
+			},	
+		});
+		
 		
 		this._$canvas.parent().append($jf);
-		$jf.css({'left':stage.mouseX - 0.5 * $jf.outerWidth(), 'top':stage.mouseY + 0.5 * $jf.height() - this._$canvas.parent().height(),});
+		
+		var l = stage.mouseX - 0.5 * $jf.outerWidth();
+		var t = stage.mouseY - 0.5 * $jf.height();
+		
+		$jf.css({'left':l, 'top':t,});
+		
 		this._fc.rm(df);
 		
-		$jf.trigger(ev.nativeEvent);
+		var jev = $.Event('mousedown', {'which':1,'pageX':(o.left+stage.mouseX),'pageY':(o.top+stage.mouseY),});
 		
+		$jf.trigger(jev);
+		
+	}
+	
+	d.join = function($jf)
+	{
+		console.log('join');
+		
+		//add the fragment into the construct, with dragging
+		var df = new DisplayFragment($jf.options.fragment, $jf.options.constructFragment);
+		
+		this._fc.add(df);
+		
+		//remove the jFragment from the DOM
+		$jf.trigger($.Event('mouseup'));
 	}
 	
 	d._initInfo = function()
@@ -2130,7 +2172,9 @@ var d = Designer.prototype = new Container();
 		F.ldelta[Area.CCW]= - 25;
 		
 		F.maxRadii[Area.CCW] = radius;
-		F.maxRadii[Area.CW] = radius + 3.0 * F.width;
+		F.maxRadii[Area.CW] = radius + 4.5 * F.width;
+		
+		F.joinRadius = radius + 4.0 * F.width;
 	}
 	
 	d._gotInfo = function(name, desc, length, dfs)

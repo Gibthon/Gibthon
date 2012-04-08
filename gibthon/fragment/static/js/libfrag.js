@@ -297,7 +297,8 @@ var get_sequence = function(fid, start, length, success)
 $.widget("ui.jFragment", $.ui.draggable, {
 	options: {
 		fragment: null,
-		
+		constructFragment: null,
+		color: 'red',
 	},
     _create: function() {
 	/*	console.log('$.ui.draggable.prototype._create.call('+this+');');
@@ -308,6 +309,6 @@ $.widget("ui.jFragment", $.ui.draggable, {
 		
 		this.$el.html("<p class='jf-name'>"+this.options.fragment.name+"</p>");
 		this.$el.addClass('jFragment');
-       
+        this.$el.css({'background-color':this.options.color, 'border-color':this.options.color,'position':'absolute',});
     }
 });  
