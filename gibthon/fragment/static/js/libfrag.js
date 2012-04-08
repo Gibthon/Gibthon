@@ -291,3 +291,23 @@ var get_sequence = function(fid, start, length, success)
 {
 	make_request(PRE + fid + '/getSeq/', undefined, "getting sequence for '" + fid +"' offset:" + start + " length:" + length, success);
 }
+
+// ============================================ Widgets
+
+$.widget("ui.jFragment", $.ui.draggable, {
+	options: {
+		fragment: null,
+		
+	},
+    _create: function() {
+	/*	console.log('$.ui.draggable.prototype._create.call('+this+');');
+		$.ui.draggable.prototype._create.call(this);
+		console.log('  returned...');
+	*/	
+		this.$el = $(this.element[0]).draggable(this.options);
+		
+		this.$el.html("<p class='jf-name'>"+this.options.fragment.name+"</p>");
+		this.$el.addClass('jFragment');
+       
+    }
+});  

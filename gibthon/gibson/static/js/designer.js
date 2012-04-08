@@ -857,6 +857,8 @@ var df = DisplayFragment.prototype = new Container();
 	 
 	 df._mouse_down = new Point(0,0);
 	 
+	 df._mousedownEvent = null;
+	 
 //Constructor
 	/**
 	 * @property Shape_initialize
@@ -1261,6 +1263,7 @@ var df = DisplayFragment.prototype = new Container();
 			return;
 		}
 		this._drag = false;
+		this._mousedownEvent = null;
 	}
 	
 	/**
@@ -1271,8 +1274,10 @@ var df = DisplayFragment.prototype = new Container();
 	df.onPress = function(ev)
 	{
 		var self = this;
+		
 		console.log('"'+this._f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
 		
+		this._mousedownEvent = ev;
 		this._mouse_down = this._get_mev(ev);
 		
 		this._mouse_offset = bound_rads(this._mouse_down.a - d2r(this._props.rotation));
@@ -1318,7 +1323,15 @@ var df = DisplayFragment.prototype = new Container();
 					this.setArea(area);
 				}
 				else
-					console.log('Leave Construct');
+				{
+					stage.onMouseMove = null;
+					stage.onMouseUp = null;
+					ev.onMouseMove = null;
+					
+					set_cursor();
+					this.parent.designer().leave(this, this._mousedownEvent);
+					return;
+				}
 			}
 			
 			
@@ -1353,6 +1366,7 @@ var df = DisplayFragment.prototype = new Container();
 		
 		if(!this.hitTest(p.x,p.y))
 			this._drag = false;
+		this._mousedownEvent = null;
 	}
 	
 
@@ -2030,7 +2044,17 @@ var d = Designer.prototype = new Container();
 		return this._fc.getLength();
 	}
 	
-	//private methods
+	d.leave = function(df, ev)
+	{
+		var $jf = $('<div>').jFragment({'fragment':df.f(), 'containment':'parent','scroll':false,});
+		
+		this._$canvas.parent().append($jf);
+		$jf.css({'left':stage.mouseX - 0.5 * $jf.outerWidth(), 'top':stage.mouseY + 0.5 * $jf.height() - this._$canvas.parent().height(),});
+		this._fc.rm(df);
+		
+		$jf.trigger(ev.nativeEvent);
+		
+	}
 	
 	d._initInfo = function()
 	{
