@@ -1711,7 +1711,7 @@ var fc = FragmentContainer.prototype = new Container();
 	fc._datum = NaN; 
 	fc._lim = NaN;
 	
-	fc._gdb = new Shape();
+	//fc._gdb = new Shape();
 	
 	fc.sortOne = function(s)
 	{
@@ -1727,7 +1727,7 @@ var fc = FragmentContainer.prototype = new Container();
 			if(!this.parent.contains(this._gdb))
 				this.parent.addChild(this._gdb);
 			
-			this._gdb.graphics.clear()
+			/*this._gdb.graphics.clear()
 			.moveTo(0,0)
 			.beginStroke(COL.GREEN)
 			.lineToRA(100, this._datum)
@@ -1739,7 +1739,7 @@ var fc = FragmentContainer.prototype = new Container();
 			.moveTo(0,0)
 			.beginStroke(COL.RED)
 			.lineToRA(120, this._datum - this._lim)
-			.endStroke();
+			.endStroke();*/
 			
 		}
 		
