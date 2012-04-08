@@ -898,33 +898,20 @@ var df = DisplayFragment.prototype = new Container();
 				this._area = Area.CCW;
 		}
 
+		this._fl = new FragmentLabel(this._f.name, F.radii[this._area] + F.ldelta[this._area], this._props.angle / 2.0);
 		this._fs = new FragmentShape(0,0,F.radii[this._area]);
 		this._props.radius = F.radii[this._area];
+		
+		this._drag = false;
+		
 		if(this._area == Area.CCW)
 		{
 			this.setClockwise(-1);
 		}
-		
-		this._fl = new FragmentLabel(this._f.name, F.radii[this._area] + F.ldelta[this._area], this._props.angle / 2.0);
-		
+				
 		this.addChild(this._fs);
 		this.addChild(this._fl);
 		
-		
-		/* For now, don't support immediate dragging
-		if(_df == undefined)
-		{
-			this._df = null;
-			//we are dragging
-			this._drag = true;
-		}
-		else
-		{
-			this.drag = false;
-			//not dragging
-		}
-		* */
-		this._drag = false;		
 	};
 //Public Methods
 //Getters & Setters
@@ -1260,7 +1247,7 @@ var df = DisplayFragment.prototype = new Container();
 		if(!this._drag)
 		{
 			//do on-click stuff
-			console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
+			//console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
 			this.parent.designer().showInfo(this);
 			return;
 		}
@@ -1277,7 +1264,7 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		var self = this;
 		
-		console.log('"'+this._f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
+		//console.log('"'+this._f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
 		
 		this._mousedownEvent = ev;
 		this._mouse_down = this._get_mev(ev);
@@ -1289,7 +1276,7 @@ var df = DisplayFragment.prototype = new Container();
 	
 	df.onDragStart = function(ev)
 	{
-		console.log(this+' - dragStart, ev.type = ' + ev.type);
+		//console.log(this+' - dragStart, ev.type = ' + ev.type);
 		this._drag = true;
 		this.setRadius(F.dradii[this._area]);
 		this._setLabelRadius();
@@ -1359,7 +1346,7 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		stage.onMouseMove = null;
 		stage.onMouseUp = null;
-		console.log('"'+this._f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
+		//console.log('"'+this._f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
 		
 		this.parent.onDrop(this);
 		set_cursor();
@@ -1487,27 +1474,48 @@ var fc = FragmentContainer.prototype = new Container();
 	fc.addFragAt = function(df, pos)
 	{
 		if(pos == undefined)
-			pos = df.cf.order;
+			(df._cf == undefined) ? pos = 0 : pos = df._cf.order;
 		else
 			pos = this._bound(pos);
-				
+		
 		this.addChildAt(df, pos);
-		for(var i = pos; i < this.getNumChildren(); i = i+1)
-		{
-			var c = this.getChildAt(i);
-			if(c.df != undefined)
-				c.df.order = i;
-		}
 		
-		this._update_length();
+		this._updateLength();
 		
-		this._update_layout( 
+		df._mouse_offset = Math.PI*df.getLength()/this._eff_length;
+		this._updateLayout( 
 			pos+1,
-			this.getFragAt(pos+1).getStart() + 2*Math.Pi*cf.getLength()/this._eff_length(),
+			this.getFragAt(pos+1).getStart() + df._mouse_offset,
 			true
 		);
 		
 		return this;
+	}
+	
+	fc.add = function(df)
+	{
+		//figure where the fragment should be added
+		//mouse position
+		var xy = this.globalToLocal(stage.mouseX, stage.mouseY);
+		var p = xy2ra(xy.x,xy.y);
+		df.setRotation(p.a);
+		var min_v = _2PI; var min_i = 0;
+		for(var i = 0; i < this.children.length; i = i + 1)
+		{
+			var v = Math.abs(bound_rads(p.a - this.children[i].getStart()));
+			if(v < min_v)
+			{
+				min_v = v;
+				min_i = i;
+			}
+		}
+		//add the fragment
+		
+		df._drag = true;
+		this.addFragAt(df, min_i);
+		df.setAngle(_2PI*df.getLength()/this._eff_length);
+		//begin the dragging!
+		df.onDragStart($.Event('mousemove'));
 	}
 	
 	/**
@@ -1546,7 +1554,7 @@ var fc = FragmentContainer.prototype = new Container();
 		this.removeChildAt(i);
 		this._updateLength();
 		this._updateLayout(this._bound(i), a);
-		
+		this._datum = NaN;
 		return this;
 	}
 	
@@ -1703,7 +1711,7 @@ var fc = FragmentContainer.prototype = new Container();
 	fc._datum = NaN; 
 	fc._lim = NaN;
 	
-	//fc._gdb = new Shape();
+	fc._gdb = new Shape();
 	
 	fc.sortOne = function(s)
 	{
@@ -1716,7 +1724,7 @@ var fc = FragmentContainer.prototype = new Container();
 			this._lim = 0.5 * (0.5*n.getAngle() + 0.5*p.getAngle() + s.getAngle());
 			this._datum = bound_rads(n.getMid() - this._lim);
 			
-			/*if(!this.parent.contains(this._gdb))
+			if(!this.parent.contains(this._gdb))
 				this.parent.addChild(this._gdb);
 			
 			this._gdb.graphics.clear()
@@ -1731,7 +1739,7 @@ var fc = FragmentContainer.prototype = new Container();
 			.moveTo(0,0)
 			.beginStroke(COL.RED)
 			.lineToRA(120, this._datum - this._lim)
-			.endStroke();*/
+			.endStroke();
 			
 		}
 		
@@ -2069,7 +2077,6 @@ var d = Designer.prototype = new Container();
 			},	
 		});
 		
-		
 		this._$canvas.parent().append($jf);
 		
 		var l = stage.mouseX - 0.5 * $jf.outerWidth();
@@ -2086,16 +2093,27 @@ var d = Designer.prototype = new Container();
 	}
 	
 	d.join = function($jf)
-	{
-		console.log('join');
-		
+	{		
 		//add the fragment into the construct, with dragging
-		var df = new DisplayFragment($jf.options.fragment, $jf.options.constructFragment);
+		var f = $jf.jFragment('option', 'fragment');
+		var cf = $jf.jFragment('option', 'constructFragment');
+		
+		var df = new DisplayFragment(f,cf);
+		
+		df._fs.fill = $jf.jFragment('option', 'color');
 		
 		this._fc.add(df);
 		
 		//remove the jFragment from the DOM
-		$jf.trigger($.Event('mouseup'));
+		$(document)
+			.unbind('mousemove.draggable')
+			.unbind('mouseup.draggable')
+			.unbind('mousedown.draggable')
+			.unbind('click.draggable');
+			
+		$jf.jFragment('destroy');
+		
+		$jf.remove();
 	}
 	
 	d._initInfo = function()

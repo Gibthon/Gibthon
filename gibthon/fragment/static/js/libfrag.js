@@ -301,10 +301,8 @@ $.widget("ui.jFragment", $.ui.draggable, {
 		color: 'red',
 	},
     _create: function() {
-	/*	console.log('$.ui.draggable.prototype._create.call('+this+');');
-		$.ui.draggable.prototype._create.call(this);
-		console.log('  returned...');
-	*/	
+		//$.ui.draggable.prototype._create.call(this);
+		
 		this.$el = $(this.element[0]).draggable(this.options);
 		
 		this.$el.html("<p class='jf-name'>"+this.options.fragment.name+"</p>");
