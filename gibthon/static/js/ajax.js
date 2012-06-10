@@ -16,26 +16,91 @@ var AJAX = new function()
 	//failure.
 	this.get = function(url, data, success_fn, fail_fn, async)
 	{
+		ajax_request('GET', url, data, success_fn, fail_fn, async);
 	}
 
 	//make an AJAX post request, calling success_fn or fail_fn with the returned
 	//data
 	this.post = function(url, data, success_fn, fail_fn, async)
 	{
+		ajax_request('POST', url, data, success_fn, fail_fn, async);
 	}
 
 	//Make a streaming AJAX request, i.e. call update_fn when each chunk of data
 	//arrives and success_fn when all the data has arrived
-	this.stream = function(url, data, success_fn, update_fn, fail_fn, method)
+	this.stream = function(url, data, success_fn, update_fn, fail_fn, type)
 	{
+		//Calling without an update_fn is pointless -- you should use get or post
+		//above
+		if(update_fn==undefined)
+		{
+			console.error('AJAX.stream: called without update function');
+		}
+
+		ajax_request(type, url, data, success_fn, fail_fn, async, update_fn);
 	}
 
 	/*
 	 * Private functions
 	 */
 
-	var ajax_request(method, url, data, success_fn, fail_fn, async, update_fn)
+	var ajax_request = function(type, url, data, success_fn, fail_fn, async, update_fn)
 	{
+		//set sensible default arguments
+		//default to a POST request
+		if(type==undefined) type='POST';
+
+		//default to asynchronous
+		if(async==undefined) async = true;
+		
+		//default to the current URL
+		if(url==undefined) url = document.URL;
+
+		//make ajax request
+		var args = {
+			url: url,
+			data: data,
+			success: success_fn,
+			error: fail_fn,
+			async: async,
+		}
+
+		if(update_fn!=undefined)
+		{
+			args.xhr = function() {return makeUpdateXHR(update_function);};
+		}
+
+		$.ajax(args);
+
+	}
+
+	var makeUpdateXHR = function(update_fn)
+	{
+		var h = makeHttpObject();
+		h.onreadystatechange = update_fn;
+	}
+
+	var makeHttpObject= function() 
+	{
+		try 
+		{
+			return new XMLHttpRequest();
+		}
+		catch (error) {}
+		
+		try 
+		{
+			return new ActiveXObject("Msxml2.XMLHTTP");
+		}
+		catch (error) {}
+		
+		try 
+		{
+			return new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		catch (error) {}
+
+		throw new Error("Could not create HTTP request object.");
 	}
 
 }
