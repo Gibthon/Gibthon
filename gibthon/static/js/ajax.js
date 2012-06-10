@@ -24,7 +24,6 @@ var AJAX = new function()
 	//data
 	this.post = function(args)
 	{
-		console.log('AJAX.post({ url: ' + args.url + ',})');
 		args.type = 'POST';
 		ajax_request(args);
 	}
@@ -50,8 +49,6 @@ var AJAX = new function()
 	var ajax_request = function(args, update_fn)
 	{
 		//set sensible default arguments
-		console.log('ajax_request()');
-
 		if(update_fn!=undefined)
 		{
 			args.xhr = function() {return makeUpdateXHR(update_function);};
@@ -61,7 +58,6 @@ var AJAX = new function()
 		var s_fn = args.success;
 		args.success = function(data, textStatus, jqXHR)
 		{
-			console.log('args.success');
 			//check for error 
 			if(data[0] == AJAX_ERROR)
 				{
@@ -75,7 +71,6 @@ var AJAX = new function()
 					s_fn(data[1]);
 		}
 
-		console.log('$.ajax(args);');
 		$.ajax(args);
 	}
 
