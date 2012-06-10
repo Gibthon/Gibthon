@@ -17,239 +17,238 @@ from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 ## Helpful functions
 
 the_alphabet = {
-        'A': 'T',
-        'B': 'V',
-        'C': 'G',
-        'D': 'H',
-        'G': 'C',
-        'H': 'D',
-        'K': 'M',
-        'M': 'K',
-        'N': 'N',
-        'R': 'Y',
-        'S': 'S',
-        'T': 'A',
-        'V': 'B',
-        'W': 'W',
-        'Y': 'R',
-        'a': 't',
-        'b': 'v',
-        'c': 'g',
-        'd': 'h',
-        'g': 'c',
-        'h': 'd',
-        'k': 'm',
-        'm': 'k',
-        'n': 'n',
-        'r': 'y',
-        's': 's',
-        't': 'a',
-        'v': 'b',
-        'w': 'w',
-        'y': 'r',
-        }
+		'A': 'T',
+		'B': 'V',
+		'C': 'G',
+		'D': 'H',
+		'G': 'C',
+		'H': 'D',
+		'K': 'M',
+		'M': 'K',
+		'N': 'N',
+		'R': 'Y',
+		'S': 'S',
+		'T': 'A',
+		'V': 'B',
+		'W': 'W',
+		'Y': 'R',
+		'a': 't',
+		'b': 'v',
+		'c': 'g',
+		'd': 'h',
+		'g': 'c',
+		'h': 'd',
+		'k': 'm',
+		'm': 'k',
+		'n': 'n',
+		'r': 'y',
+		's': 's',
+		't': 'a',
+		'v': 'b',
+		'w': 'w',
+		'y': 'r',
+		}
 
 def get_alphabet():
-    return the_alphabet
+	return the_alphabet
 
 def get_gene(usr, fid):
-    try:
-        fid = int(fid)
-  except ValueError:
-      raise Http404
-  return Gene.objects.get(id = fid, owner=usr)
+	try:
+		fid = int(fid)
+	except ValueError:
+		raise Http404
+	return Gene.objects.get(id = fid, owner=usr)
 
 def read_meta(g):
-    """Return JSON-ready metadata about a fragment"""
-  refs = []
-  for r in g.references.all():
-      refs.append( {
-          'title': r.title,
-          'authors': r.authors,
-          'journal': r.journal,
-          'medline_id': r.medline_id,
-          'pubmed_id': r.pubmed_id,
-          })
-      annots = {}
-  for a in g.annotations.all():
-      annots[a.key] = a.value
+	"""Return JSON-ready metadata about a fragment"""
+	refs = []
+	for r in g.references.all():
+		refs.append( {
+			'title': r.title,
+			'authors': r.authors,
+			'journal': r.journal,
+			'medline_id': r.medline_id,
+			'pubmed_id': r.pubmed_id,
+			})
+	annots = {}
+	for a in g.annotations.all():
+		annots[a.key] = a.value
 
-  return {	'name': g.name,
-          'desc': g.description,
-          'refs': refs,
-          'annots': annots,
-          'origin': g.get_origin_display(),
-          'length': len(g.sequence)
-          }
+	return {	'name': g.name,
+			'desc': g.description,
+			'refs': refs,
+			'annots': annots,
+			'origin': g.get_origin_display(),
+			'length': len(g.sequence)
+			}
 
-  def write_meta(g, meta):
-      """save meta to g"""
-  g.name = meta.get('name', g.name)
-  g.description = meta.get('desc', g.description)
-  #only change references if they've been given
-  if meta.has_key('refs'):
-      #clear out previous references
-    Reference.remove(g)
-    Reference.add(g, meta['refs'])
-  if meta.has_key('annots'):
-      #clear out previous annotations
-    Annotation.remove(g)
-    for (key, value) in meta['annots']:
-        Annotation.add(g, key, value)
-  try:
-      g.save()
-  except Exception as e:
-      print "raised exception of type %s: %s" % (type(e), e)
+def write_meta(g, meta):
+	"""save meta to g"""
+	g.name = meta.get('name', g.name)
+	g.description = meta.get('desc', g.description)
+	#only change references if they've been given
+	if meta.has_key('refs'):
+		#clear out previous references
+		Reference.remove(g)
+		Reference.add(g, meta['refs'])
+	if meta.has_key('annots'):
+		#clear out previous annotations
+		Annotation.remove(g)
+		for (key, value) in meta['annots']:
+			Annotation.add(g, key, value)
+	try:
+		g.save()
+	except Exception as e:
+		print "raised exception of type %s: %s" % (type(e), e)
 
 def read_features(g):
-    """Read all the features of a fragment"""
-  data = []
-  for f in g.features.all():
-      quals = []
-    for q in f.qualifiers.all():
-        quals.append({	
-            'name': q.name,
-            'data': q.data,
-            })
-        s = None
-    if f.direction == 'f':
-        s = 1
-    elif f.direction == 'r':
-        s = -1
-    data.append({
-        'start': f.start,
-        'end': f.end,
-        'strand': s,
-        'type': f.type,
-        'id': f.id,
-        'qualifiers': quals,
-        })
-    return data
+	"""Read all the features of a fragment"""
+	data = []
+	for f in g.features.all():
+		quals = []
+		for q in f.qualifiers.all():
+			quals.append({	
+				'name': q.name,
+				'data': q.data,
+				})
+			s = None
+		if f.direction == 'f':
+			s = 1
+		elif f.direction == 'r':
+			s = -1
+		data.append({
+			'start': f.start,
+			'end': f.end,
+			'strand': s,
+			'type': f.type,
+			'id': f.id,
+			'qualifiers': quals,
+			})
+	return data
 
 def write_features(g, feats):
-    """Update the features in the database"""
-  #remove old features
-  Feature.remove(g)
-  for f in feats:
-      #make sure data makes sense
-    start = int(f.get('start',0))
-    end = int(f.get('end',0))
-    strand = int(f.get('strand', 1))
-    if strand not in [-1, 1]:
-        strand = 1
-    if strand == -1 and start < end:
-        t = end
-      end = start
-      start = t
-  elif strand == 1 and start > end:
-      t = end
-      end = start
-      start = t
+	"""Update the features in the database"""
+	#remove old features
+	Feature.remove(g)
+	for f in feats:
+		#make sure data makes sense
+		start = int(f.get('start',0))
+		end = int(f.get('end',0))
+		strand = int(f.get('strand', 1))
+		if strand not in [-1, 1]:
+			strand = 1
+		if strand == -1 and start < end:
+			t = end
+			end = start
+			start = t
+		elif strand == 1 and start > end:
+			t = end
+			end = start
+			start = t
 
-    quals = {}
-    for q in f.get('qualifiers'):
-        quals[q.get('name')] = q.get('value')
+		quals = {}
+		for q in f.get('qualifiers'):
+			quals[q.get('name')] = q.get('value')
 
-    ft = SeqFeature(
-            location=FeatureLoaction(start, end), 
-            type=f.get('type', ''), 
-            strand=strand,
-            id=f.get('id'), 
-            qualifiers=quals,
-            )
+			ft = SeqFeature(
+					location=FeatureLoaction(start, end), 
+					type=f.get('type', ''), 
+					strand=strand,
+					id=f.get('id'), 
+					qualifiers=quals,
+					)
 
-    Feature.add(ft, g)
+			Feature.add(ft, g)
 
 # Actual API stuff
 @login_required
 def get_fragment(request, fid):
-    """Return a small amount of information about the fragment"""
-    try:
-        fid = int(fid)
-    except ValueError:
-        return JSONResponse("Invalid fragment id: %s" % fid, ERROR)
-    g = get_gene(request.user, fid)
-    return JSONResponse({
-        id: fid,
-        name: g.name,
-        desc: g.description,
-        length: g.length(),
-    })
+	"""Return a small amount of information about the fragment"""
+	try:
+		fid = int(fid)
+	except ValueError:
+		return JsonResponse("Invalid fragment id: %s" % fid, ERROR)
+	g = get_gene(request.user, fid)
+	return JsonResponse({
+		id: fid,
+		name: g.name,
+		desc: g.description,
+		length: g.length(),
+		})
 
 @login_required
 def list_fragments(request):
-    """Return metadata of all fragments owned by a user"""
-  try:
-      frags = Gene.objects.filter(owner=request.user)
-  except ObjectDoesNotExist:
-      frags = []
-  ret = []
-  for f in frags:
-      ret.append(read_meta(f))
-  return JsonResponse(ret)
+	"""Return metadata of all fragments owned by a user"""
+	try:
+		frags = Gene.objects.filter(owner=request.user)
+	except ObjectDoesNotExist:
+		frags = []
+		ret = []
+	for f in frags:
+		ret.append(read_meta(f))
+	return JsonResponse(ret)
 
 @login_required
 def get_meta(request, fid):
-    """get a particular fragment's metadata"""
-  g = get_gene(request.user, fid)
-  return JsonResponse( read_meta(g))
+	"""get a particular fragment's metadata"""
+	g = get_gene(request.user, fid)
+	return JsonResponse( read_meta(g))
 
 @login_required
 def set_meta(request, fid):
-    """Update a fragment's metadata"""
-
-  if request.method == 'POST':
-      try:
-          g = get_gene(request.user, fid)
-      meta = json.loads(request.raw_post_data)
-      if meta:
-          write_meta(g, meta)
-        return get_meta(request, fid)
-    return JsonResponse("No metadata supplied.", ERROR)			
-except ObjectDoesNotExist:
-    return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
-raise Http404
+	"""Update a fragment's metadata"""
+	if request.method == 'POST':
+		try:
+			g = get_gene(request.user, fid)
+			meta = json.loads(request.raw_post_data)
+			if meta:
+				write_meta(g, meta)
+				return get_meta(request, fid)
+		return JsonResponse("No metadata supplied.", ERROR)			
+	except ObjectDoesNotExist:
+		return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
+	raise Http404
 
 @login_required
 def get_features(request, fid):
-    """Get a fragment's features"""
-  g = get_gene(request.user, fid)
-  return JsonResponse({
-      'feats': read_features(g),
-      'alpha': get_alphabet(),
-      'length': len(g.sequence),
-      })
+	"""Get a fragment's features"""
+	g = get_gene(request.user, fid)
+	return JsonResponse({
+		'feats': read_features(g),
+		'alpha': get_alphabet(),
+		'length': len(g.sequence),
+		})
 
 @login_required
 def set_features(request, fid):
-    """Save a fragment's features"""
-  if request.method == 'POST':
-      try:
-          g = get_gene(request.user, fid)
-      feats = request.POST.get('features')
-      if feats:
-          write_features(g, feats)
-        return JsonResponse('Done')
-    return JsonResponse('No features provided', ERROR)
-except ObjectDoesNotExist:
-    JsonResponse("Fragment with ID='%s' does not exist" % fid, ERROR)
-  raise Http404
+	"""Save a fragment's features"""
+	if request.method == 'POST':
+		try:
+			g = get_gene(request.user, fid)
+			feats = request.POST.get('features')
+			if feats:
+				write_features(g, feats)
+				return JsonResponse('Done')
+			return JsonResponse('No features provided', ERROR)
+		except ObjectDoesNotExist:
+			JsonResponse("Fragment with ID='%s' does not exist" % fid, ERROR)
+	raise Http404
 
 @login_required
 def get_sequence(request, fid):
-    """return a section of the sequence"""
-  try:
-      offset = int(request.GET.get('offset', 0))
-  except ValueError:
-      return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
-  try:
-      length = int(request.GET.get('length', 1000))
-  except ValueError:
-      return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
-  g = get_gene(request.user, fid)
-  if length <= 0:
-      return JsonResponse({
-          'sequence':g.sequence[offset:],
-          'alpha': get_alphabet(),
-          })
-      return JsonResponse(g.sequence[offset : offset+length])
+	"""return a section of the sequence"""
+	try:
+		offset = int(request.GET.get('offset', 0))
+	except ValueError:
+		return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
+	try:
+		length = int(request.GET.get('length', 1000))
+	except ValueError:
+		return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
+	g = get_gene(request.user, fid)
+	if length <= 0:
+		return JsonResponse({
+			'sequence':g.sequence[offset:],
+			'alpha': get_alphabet(),
+			})
+	return JsonResponse(g.sequence[offset : offset+length])
