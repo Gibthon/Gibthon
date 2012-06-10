@@ -16,7 +16,10 @@ var libFrag = new function()
 	{
 		AJAX.post({
 			url: '/api/'+id+'/', 
-			success: success,
+			success: function(data)
+			{
+				return new Fragment(data.id, data.name, data.desc, data.length);
+			},
 		});
 	}
 }
