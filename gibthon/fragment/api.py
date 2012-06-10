@@ -170,10 +170,10 @@ def get_fragment(request, fid):
 		return JsonResponse("Invalid fragment id: %s" % fid, ERROR)
 	g = get_gene(request.user, fid)
 	return JsonResponse({
-		id: fid,
-		name: g.name,
-		desc: g.description,
-		length: g.length(),
+		'id': fid,
+		'name': g.name,
+		'desc': g.description,
+		'length': g.length(),
 		})
 
 @login_required
@@ -204,9 +204,9 @@ def set_meta(request, fid):
 			if meta:
 				write_meta(g, meta)
 				return get_meta(request, fid)
-		return JsonResponse("No metadata supplied.", ERROR)			
-	except ObjectDoesNotExist:
-		return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
+			return JsonResponse("No metadata supplied.", ERROR)			
+		except ObjectDoesNotExist:
+			return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
 	raise Http404
 
 @login_required

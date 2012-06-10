@@ -12,13 +12,13 @@ var libFrag = new function()
 	 */
 
 	//fetch a fragment by its ID
-	this.getByID = function(id, success)
+	this.getByID = function(id, _suc)
 	{
 		AJAX.post({
-			url: '/api/'+id+'/', 
+			url: '/fragment/api/'+id+'/', 
 			success: function(data)
 			{
-				return new Fragment(data.id, data.name, data.desc, data.length);
+				_suc(new Fragment(data.id, data.name, data.desc, data.length));
 			},
 		});
 	}
@@ -35,14 +35,14 @@ function Fragment(_id, _name, _desc, _length)
 	 * Public Accessors
 	 *
 	 */
-	var getID = function() {return id;};
-	var getName = function() {return name;};
-	var getDesc = function() {return desc;};
-	var getLength = function() {return length;};
+	this.getID = function() {return id;};
+	this.getName = function() {return name;};
+  this.getDesc = function() {return desc;};
+	this.getLength = function() {return length;};
 
 	//if the sequence has not already been fetched, it will be streamed, otherwise
 	//complete_fn will be called immediately
-	var getSequence = function( update_fn, complete_fn)
+	this.getSequence = function( update_fn, complete_fn)
 	{
 		if(sequence!=null)
 		{
@@ -52,7 +52,7 @@ function Fragment(_id, _name, _desc, _length)
 
 		//stream the sequence from the server
 		AJAX.stream({
-			url: 'api/' + id + '/getSeq/',
+			url: '/fragment/api/' + id + '/getSeq/',
 			success: function(data)
 			{
 				sequence=data;
@@ -65,7 +65,7 @@ function Fragment(_id, _name, _desc, _length)
 
 	//if the metadata has not already been fetched, it will be fetched otherwise
 	//complete_fn will be called immediately
-	var getMeta = function(complete_fn)
+	this.getMeta = function(complete_fn)
 	{
 		if(metadata!=null)
 		{
@@ -75,7 +75,7 @@ function Fragment(_id, _name, _desc, _length)
 
 		//fetch the metadata from the server
 		AJAX.post({
-			url: 'api/' + id + '/getMeta/',
+			url: '/fragment/api/' + id + '/getMeta/',
 			success: function(ret){
 				meta = ret;
 				complete_fn(ret);
@@ -99,4 +99,3 @@ function Fragment(_id, _name, _desc, _length)
 	var sequence = null;
 	var metadata = null;
 }
-

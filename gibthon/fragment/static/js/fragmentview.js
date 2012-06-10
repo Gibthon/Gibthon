@@ -72,8 +72,17 @@ $.widget("ui.fragmentMeta", {
 			},
 		});
 		
-		get_meta(self.options.id, function(m) {self._display_metadata(m);});
-		
+		this.fragment = null;
+		libFrag.getByID(this.options.id, function(fr)
+										{
+											this.fragment = fr;
+											fr.getMeta( function(meta)
+																 {
+																	 self._display_metadata(meta);
+																 });
+										});
+																
+
 		this.visible = false;
 		this.was_visible = false;			
 	},
@@ -562,7 +571,6 @@ $.widget("ui.fragmentSequence", {
 	{
 		if(!this._selected)
 		{
-			console.log("self.get_sel return: ''");
 			return ""
 		}
 		return this.seq.substring(this._select_start - 1, this._select_end - 1);
@@ -636,11 +644,8 @@ $.widget("ui.fragmentSequence", {
 		
 		var smallnum = Math.floor((event.pageX - $(event.currentTarget).offset().left) / this.char_width);
 		smallnum = toUnPadded(smallnum);
-/*		console.log("_get_mouse_pos");
-		console.log("  smallnum = (" + event.pageX + ' - ' + $(event.currentTarget).offset().left + ") / " + this.char_width + " = " + smallnum);
-		console.log("  largenum + smallnum = " + largenum + ' + ' + smallnum + ' = ' + largenum + smallnum);
-		console.log("  event.currentTarget.id=" + event.currentTarget.id);
-*/		return largenum + smallnum;
+		
+		return largenum + smallnum;
 	},
 	_on_scroll: function(event)
 	{
