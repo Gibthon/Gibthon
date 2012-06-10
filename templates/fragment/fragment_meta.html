@@ -58,6 +58,9 @@
 </div>
 <script type='text/javascript'>
 $(window).ready( function() {
-	$('#fragmentmeta').fragmentMeta({ id: {{ id }}, });
+	libFrag.getByID( {{id}}, function(f)
+	{
+		$('#fragmentmeta').fragmentMeta({frag: f,});
+	});
 });
 </script>

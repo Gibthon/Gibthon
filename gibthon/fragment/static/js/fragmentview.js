@@ -17,7 +17,7 @@ function em2px(input)
 
 $.widget("ui.fragmentMeta", {
 	options: {
-		id: 0,
+		frag: undefined,
 	},
 	_create: function() {
 		//Init the element, and fetch the initial data
@@ -72,16 +72,11 @@ $.widget("ui.fragmentMeta", {
 			},
 		});
 		
-		this.fragment = null;
-		libFrag.getByID(this.options.id, function(fr)
-										{
-											this.fragment = fr;
-											fr.getMeta( function(meta)
-																 {
-																	 self._display_metadata(meta);
-																 });
-										});
-																
+		this.fragment = this.options.frag;
+		this.fragment.getMeta( function(meta)
+							 {
+								 self._display_metadata(meta);
+							 });
 
 		this.visible = false;
 		this.was_visible = false;			
@@ -283,7 +278,7 @@ var select_end = '</span>';
 
 $.widget("ui.fragmentSequence", {
 	options: {
-		id: 0,
+		frag: undefined,
 	},
 	_create: function() {
 		var self = this;
