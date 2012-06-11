@@ -93,7 +93,10 @@
 		}).click(function() {
 			$('#copy_dialog').dialog('close');
 		});
-		
-		$('#the_sequence').fragmentSequence({id: {{id}},});
+
+		libFrag.getByID( {{id}}, function(f)
+										{
+											$('#the_sequence').fragmentSequence({frag: f,});
+										});
 	});
 </script>

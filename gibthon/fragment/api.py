@@ -6,6 +6,7 @@ from fragment.models import *
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import condition
 from django.core.exceptions import ObjectDoesNotExist
 
 from Bio.Alphabet import IUPAC
@@ -162,12 +163,16 @@ def write_features(g, feats):
 
 def chunk_sequence(g, chunk_size):
 	"""return the sequence in chunks of size chunk_size"""
+	print 'chunk_sequence(g, %d)' % chunk_size
 	i = 0
-	while (i+chunk_size) < g.length:
-		yield g.seq[i:i+chunk_size]
+	length = len(g.sequence)
+	while (i+chunk_size) < length:
+		print 'yield i = %d' % i 
+		yield g.sequence[i:i+chunk_size]
 		i = i + chunk_size
 	#return the last piece
-	yield g.seq[i:]
+	print 'yield %s' % g.sequence[i:]
+	yield g.sequence[i:]
 	
 # Actual API stuff
 @login_required
@@ -252,6 +257,7 @@ def get_sequence(request, fid):
 	except ValueError:
 		return JsonResponse("ERROR: Invalid chunk_size '%s'." %
 				request.GET.get('chunk_size', 1024), ERROR)
+	print 'get_sequence(request, %s): chunk_size = %d' % (fid, chunk_size)
 	g = get_gene(request.user, fid)
 	if g:
 		resp = HttpResponse(chunk_sequence(g, chunk_size), mimetype="text/plain")

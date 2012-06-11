@@ -52,27 +52,40 @@ var AJAX = new function()
 
 	var ajax_request = function(args, update_fn)
 	{
-		//set sensible default arguments
+		//if we're expecting a streamed response
 		if(update_fn!=undefined)
 		{
-			args.xhr = function() {return makeUpdateXHR(update_function);};
-		}
-
-		//replace the success function with my own
-		var s_fn = args.success;
-		args.success = function(data, textStatus, jqXHR)
-		{
-			//check for error 
-			if(data[0] == AJAX_ERROR)
+			//args.xhr = function() {return makeUpdateXHR(update_function);};
+			args.xhrFields = {
+				'onreadystatechange': function(data, textStatus, jqXHR)
 				{
-					//call the error callback, if it exists
-					if(args.error!=undefined)
-						args.error(data[1]);
+					update_fn(data);
+				},
+			};
+			var s_fn = args.success;
+			args.success = function(data, textStatus, jqXHR)
+			{
+				s_fn(data);
+			};
+		}
+		//otherwise, replace the success function with my own
+		else
+		{
+			var s_fn = args.success;
+			args.success = function(data, textStatus, jqXHR)
+			{
+				//check for error 
+				if(data[0] == AJAX_ERROR)
+					{
+						//call the error callback, if it exists
+						if(args.error!=undefined)
+							args.error(data[1]);
+						else
+							console.error('AJAX Error: ' + data[1]);
+					}
 					else
-						console.error('AJAX Error: ' + data[1]);
-				}
-				else
-					s_fn(data[1]);
+						s_fn(data[1]);
+			}
 		}
 
 		//stringify the data correctly if it hasn't been already

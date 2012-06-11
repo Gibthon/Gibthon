@@ -282,6 +282,9 @@ $.widget("ui.fragmentSequence", {
 	_create: function() {
 		var self = this;
 		this.$el = $(this.element[0]);
+		this.fragment = this.options.frag;
+		if(this.fragment==undefined)
+			console.error('ui.fragmentSequence: Handed undefined Fragment object');
 		
 		this.$el.find('#copy_btn').button({
 			label: "Copy Selection",
@@ -342,53 +345,53 @@ $.widget("ui.fragmentSequence", {
 	},
 	_get_seq_meta: function(){
 		var self = this;
-		get_feats( this.options.id , function(d) {
+		this.fragment.getFeats(function(d) 
+		{
 			self.len = d.length;
 			self.$len.text(d.length);
-			if(self.len > 2000) //if we should load progressively 
+			if(self.len > 1024) //if we should load progressively 
 			{
 				self.$loader.slideDown(100);
 			}
 			
 			self.features = d.feats;
-			self.alphabet = alphabet;
-			self.alphabet[' '] = ' ';
 			
-			self._get_seq(0);
+			self._get_seq();
 		});
 	},
-	_get_seq: function(offset){
+	_get_seq: function()
+	{
 		var self = this;
-		get_sequence( self.options.id, offset, undefined, function(seq) {
-			
+		if(this.fragment == undefined)
+		{
+			console.error('Cannot get sequence for undefined Fragment');
+			return;
+		}
+
+		this.fragment.getSequence(function(seq) //update function
+		{
 			self.seq = self.seq + seq;
-			var flush = false;//should we flush all the sequence?
-			if(self.seq.length < self.len)//is there more data to come?
-			{
-				//get some more data
-				self._get_seq(self.seq.length);
-			}
-			else
-			{
-				flush = true;
-				self.$loader.slideUp(500);
-			}
-			
+		
 			//while we have enough data to make a complete row
 			while((self.seq.length - self.pos) > self.rowlength)
-			{
 				self.pos = self.pos + self._make_row(self.pos);
-			} 
-			if(flush)
-			{
-				self.pos = self.pos + self._make_row(self.pos);
-				self._label_features();
-				self._get_char_width();
-			}
-			
+		
 			self.$prog.text(self.seq.length);
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
+		}, function(seq) //Complete function
+		{
+			self.seq = self.seq + seq;
+			//we're done, so remove the progress bar
+			self.$loader.slideUp(500);
+			
+			//Use up all the remaining data
+			while(self.seq.length > self.pos)
+				self.pos = self.pos + self._make_row(self.pos);
+
+			self._label_features();
+			self._get_char_width();
 		});
+
 	},
 	_make_row: function(start){
 		var self = this;
@@ -665,7 +668,7 @@ $.widget("ui.fragmentSequence", {
 		var ret = "";
 		for(i in string)
 		{
-			ret = ret + this.alphabet[string[i]];
+			ret = ret + libFrag.alphabet[string[i]];
 		}
 		return ret;
 	},
@@ -681,7 +684,7 @@ $.widget("ui.fragmentSequence", {
 		var ret = "";
 		for(var i = string.length - 1; i >= 0; i = i-1)
 		{
-			ret = ret + this.alphabet[string[i]];
+			ret = ret + libFrag.alphabet[string[i]];
 		}
 		return ret;
 	},

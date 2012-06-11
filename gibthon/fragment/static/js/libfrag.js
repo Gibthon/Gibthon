@@ -21,6 +21,40 @@ var libFrag = new function()
 				_suc(new Fragment(data.id, data.name, data.desc, data.length));
 			},
 		});
+	};
+
+	//IUAPC Unambiguous Alphabet / Complement table
+	this.alphabet = {
+		'A': 'T',
+		'B': 'V',
+		'C': 'G',
+		'D': 'H',
+		'G': 'C',
+		'H': 'D',
+		'K': 'M',
+		'M': 'K',
+		'N': 'N',
+		'R': 'Y',
+		'S': 'S',
+		'T': 'A',
+		'V': 'B',
+		'W': 'W',
+		'Y': 'R',
+		'a': 't',
+		'b': 'v',
+		'c': 'g',
+		'd': 'h',
+		'g': 'c',
+		'h': 'd',
+		'k': 'm',
+		'm': 'k',
+		'n': 'n',
+		'r': 'y',
+		's': 's',
+		't': 'a',
+		'v': 'b',
+		'w': 'w',
+		'y': 'r',
 	}
 }
 
@@ -93,6 +127,19 @@ function Fragment(_id, _name, _desc, _length)
 			data: metadata,
 		});
 	};	
+
+	this.getFeats = function(success_fn)
+	{
+		AJAX.post({
+			url: '/fragment/api/' + id + '/getFeats/',
+			success: success_fn,
+			error: function(err)
+			{
+				console.error('Error getting features for ' + name);
+			},
+		});
+	};
+
 	/*
 	 *
 	 * Private data
