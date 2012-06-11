@@ -59,9 +59,8 @@ function Fragment(_id, _name, _desc, _length)
 				complete_fn(sequence);
 			},
 		},
-		update_fn);
-
-	}
+		update_fn );
+	};
 
 	//if the metadata has not already been fetched, it will be fetched otherwise
 	//complete_fn will be called immediately
@@ -82,8 +81,18 @@ function Fragment(_id, _name, _desc, _length)
 			},
 			error: function() {},
 		});
-	}
+	};
 
+	this.setMeta = function(new_meta, success_cb, fail_cb)
+	{
+		metadata = new_meta;
+		AJAX.post({
+			url: '/fragment/api/' + id + '/setMeta/',
+			success: success_cb,
+			error: fail_cb,
+			data: metadata,
+		});
+	};	
 	/*
 	 *
 	 * Private data

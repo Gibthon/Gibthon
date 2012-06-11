@@ -53,7 +53,8 @@ $.widget("ui.fragmentMeta", {
 				self.$annot_div.formExtender('disable');
 				
 				var meta = self.getMeta();
-				set_meta(self.options.id, meta, function(meta) {self._display_metadata(meta);});
+				self.fragment.setMeta(meta, function(){}, function(err) {console.error(
+					'Error setting metadata "'+err+'"');});
 			},
 		});
 		self.$annot_div.formExtender({
@@ -186,12 +187,10 @@ $.widget("ui.fragmentMeta", {
 		
 		$.each(self.$annotation.find('tr'), function(i, val){
 			var v = $(val);
-			ret.push( 
-				new Annotation(
-					v.find('#annot_key span').text(), 
-					v.find('#annot_value span').text()
-				)
-			);
+			ret.push([
+				v.find('#annot_key span').text(), 
+				v.find('#annot_value span').text()
+			]);
 		});
 		return ret;
 	},
@@ -254,13 +253,13 @@ $.widget("ui.fragmentMeta", {
 	getMeta: function() {
 		var self = this;
 		//get metadata
-		var meta = new Metadata(
-			self.options.id, 
-			self.$name.text(), 
-			self.$desc.text(), 
-			self.getRefs(), 
-			self.getAnnots()
-		);
+		var meta = {
+			'id': self.options.id, 
+			'name': self.$name.text(), 
+			'desc': self.$desc.text(), 
+			'refs': self.getRefs(), 
+			'annots': self.getAnnots(),
+		};
 		return meta;
 	},
 });
