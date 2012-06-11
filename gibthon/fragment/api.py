@@ -160,6 +160,15 @@ def write_features(g, feats):
 
 			Feature.add(ft, g)
 
+def chunk_sequence(g, chunk_size):
+	"""return the sequence in chunks of size chunk_size"""
+	i = 0
+	while (i+chunk_size) < g.length:
+		yield g.seq[i:i+chunk_size]
+		i = i + chunk_size
+	#return the last piece
+	yield g.seq[i:]
+	
 # Actual API stuff
 @login_required
 def get_fragment(request, fid):
@@ -235,20 +244,17 @@ def set_features(request, fid):
 	raise Http404
 
 @login_required
+@condition(etag_func=None)
 def get_sequence(request, fid):
-	"""return a section of the sequence"""
+	"""Stream the sequence in blocks of 1kB by default"""
 	try:
-		offset = int(request.GET.get('offset', 0))
+		chunk_size = int(request.GET.get('chunk_size', 1024))
 	except ValueError:
-		return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
-	try:
-		length = int(request.GET.get('length', 1000))
-	except ValueError:
-		return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
+		return JsonResponse("ERROR: Invalid chunk_size '%s'." %
+				request.GET.get('chunk_size', 1024), ERROR)
 	g = get_gene(request.user, fid)
-	if length <= 0:
-		return JsonResponse({
-			'sequence':g.sequence[offset:],
-			'alpha': get_alphabet(),
-			})
-	return JsonResponse(g.sequence[offset : offset+length])
+	if g:
+		resp = HttpResponse(chunk_sequence(g, chunk_size), mimetype="text/plain")
+		return resp
+	return JsonResponse('Could Not Stream Sequence', ERROR)
+		

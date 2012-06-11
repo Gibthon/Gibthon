@@ -39,6 +39,10 @@ var AJAX = new function()
 			console.error('AJAX.stream: called without update function');
 		}
 
+		//Assume that we're expecting a raw string in return -- not JSON
+		if(args.dataType==undefined)
+			args.dataType = 'text'
+
 		ajax_request(args, update_fn);
 	}
 
