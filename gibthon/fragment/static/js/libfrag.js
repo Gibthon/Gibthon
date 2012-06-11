@@ -55,6 +55,7 @@ var libFrag = new function()
 		'v': 'b',
 		'w': 'w',
 		'y': 'r',
+		' ': ' ',
 	}
 }
 
