@@ -163,15 +163,12 @@ def write_features(g, feats):
 
 def chunk_sequence(g, chunk_size):
 	"""return the sequence in chunks of size chunk_size"""
-	print 'chunk_sequence(g, %d)' % chunk_size
 	i = 0
 	length = len(g.sequence)
 	while (i+chunk_size) < length:
-		print 'yield i = %d' % i 
 		yield g.sequence[i:i+chunk_size]
 		i = i + chunk_size
 	#return the last piece
-	print 'yield %s' % g.sequence[i:]
 	yield g.sequence[i:]
 	
 # Actual API stuff
