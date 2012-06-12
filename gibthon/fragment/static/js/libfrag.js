@@ -94,7 +94,11 @@ function Fragment(_id, _name, _desc, _length)
 				complete_fn(sequence);
 			},
 		},
-		update_fn );
+		function(data)
+		{
+			sequence = data;
+			update_fn(data);
+		} );
 	};
 
 	//if the metadata has not already been fetched, it will be fetched otherwise
