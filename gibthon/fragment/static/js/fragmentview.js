@@ -370,6 +370,7 @@ $.widget("ui.fragmentSequence", {
 
 		this.fragment.getSequence(function(seq) //update function
 		{
+			console.log('fragment.getSequence(): update_fn called with ('+seq+')');
 			self.seq = self.seq + seq;
 		
 			//while we have enough data to make a complete row
@@ -380,6 +381,7 @@ $.widget("ui.fragmentSequence", {
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
 		}, function(seq) //Complete function
 		{
+			console.log('fragment.getSequence(): complete_fn called with ('+seq+')');
 			self.seq = self.seq + seq;
 			//we're done, so remove the progress bar
 			self.$loader.slideUp(500);
