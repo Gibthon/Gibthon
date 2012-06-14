@@ -370,7 +370,7 @@ $.widget("ui.fragmentSequence", {
 
 		this.fragment.getSequence(function(seq) //update function
 		{
-			console.log('fragment.getSequence(): update_fn called with ('+seq+')');
+			console.log('fragment.getSequence(): update_fn called with '+seq.length+' bases');
 			self.seq = seq;
 		
 			//while we have enough data to make a complete row
@@ -381,7 +381,7 @@ $.widget("ui.fragmentSequence", {
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
 		}, function(seq) //Complete function
 		{
-			console.log('fragment.getSequence(): complete_fn called with ('+seq+')');
+			console.log('fragment.getSequence(): complete_fn called with '+seq.length+' bases');
 			self.seq = seq;
 			//we're done, so remove the progress bar
 			self.$loader.slideUp(500);
@@ -415,7 +415,8 @@ $.widget("ui.fragmentSequence", {
 			var left= '';
 			for(var j = 0; j < toPadded(i); j = j+1)
 				left = left + ' ';
-			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' + left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
+			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' 
+				+ left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
 		}
 		var cseq = this._complement(seq);
 		
@@ -708,7 +709,7 @@ var make_feat_html = function(r_s, r_e, feature, f_id)
 		var t = f_e; f_e = f_s; f_s = t;
 	}
 	//check if the feature is not present in the row
-	if((f_e < r_s) || (f_s > r_e))
+	if((f_e < (r_s+1)) || (f_s > r_e))
 	{
 		return "";
 	}

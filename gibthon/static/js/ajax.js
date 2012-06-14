@@ -46,7 +46,6 @@ var AJAX = new function()
 
 		xhr.onreadystatechange = function()
 		{
-			console.log('xhr.onreadystatechange(): readyState = ' + this.readyState);
 			//If we're done
 			if(this.readyState==4)
 				{
