@@ -161,7 +161,7 @@ def write_features(g, feats):
 
 			Feature.add(ft, g)
 
-def chunk_sequence(g, chunk_size):
+def chunk_sequence(g, chunk_size, pad_char):
 	"""return the sequence in chunks of size chunk_size"""
 	print 'chunk_sequence(%d, %d)' % (g.id, chunk_size)
 	i = 0
@@ -169,6 +169,7 @@ def chunk_sequence(g, chunk_size):
 	while (i+chunk_size) < length:
 		print '\tyeild g.sequence[%d:%d]' % (i, i+chunk_size)
 		yield g.sequence[i:i+chunk_size]
+		yield pad_char * 1024
 		i = i + chunk_size
 	#return the last piece
 	print '\tyeild g.sequence[%d:]' % i
@@ -257,9 +258,11 @@ def get_sequence(request, fid):
 	except ValueError:
 		return JsonResponse("ERROR: Invalid chunk_size '%s'." %
 				request.GET.get('chunk_size', 1024), ERROR)
+	pad_char = request.GET.get('pad_char', ' ')
+
 	g = get_gene(request.user, fid)
 	if g:
-		resp = HttpResponse(chunk_sequence(g, chunk_size), mimetype="text/plain")
+		resp = HttpResponse(chunk_sequence(g, chunk_size, pad_char), mimetype="text/plain")
 		return resp
 	return JsonResponse('Could Not Stream Sequence', ERROR)
 		

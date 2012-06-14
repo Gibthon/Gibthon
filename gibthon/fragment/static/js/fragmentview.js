@@ -351,7 +351,7 @@ $.widget("ui.fragmentSequence", {
 			self.$len.text(d.length);
 			if(self.len > 1024) //if we should load progressively 
 			{
-				self.$loader.slideDown(100);
+				self.$loader.show();
 			}
 			
 			self.features = d.feats;

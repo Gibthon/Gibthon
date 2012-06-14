@@ -90,14 +90,29 @@ function Fragment(_id, _name, _desc, _length)
 			url: '/fragment/api/' + id + '/getSeq/',
 			success: function(data)
 			{
-				sequence=data;
+				sequence = new String();
+				for(i in data)
+				{
+					if(data[i] != ' ')
+						sequence = sequence + data[i];
+				}
 				complete_fn(sequence);
 			},
+			type: 'GET',
+			error: function(error)
+			{
+				console.error('Error fetching sequence: ' + error);
+			}
 		},
 		function(data)
 		{
-			sequence = data;
-			update_fn(data);
+			sequence = new String();
+			for(i in data)
+				{
+					if(data[i] != ' ')
+						sequence = sequence + data[i];
+				}
+			update_fn(sequence);
 		} );
 	};
 
