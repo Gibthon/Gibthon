@@ -163,12 +163,15 @@ def write_features(g, feats):
 
 def chunk_sequence(g, chunk_size):
 	"""return the sequence in chunks of size chunk_size"""
+	print 'chunk_sequence(%d, %d)' % (g.id, chunk_size)
 	i = 0
 	length = len(g.sequence)
 	while (i+chunk_size) < length:
+		print '\tyeild g.sequence[%d:%d]' % (i, i+chunk_size)
 		yield g.sequence[i:i+chunk_size]
 		i = i + chunk_size
 	#return the last piece
+	print '\tyeild g.sequence[%d:]' % i
 	yield g.sequence[i:]
 	
 # Actual API stuff
@@ -254,7 +257,6 @@ def get_sequence(request, fid):
 	except ValueError:
 		return JsonResponse("ERROR: Invalid chunk_size '%s'." %
 				request.GET.get('chunk_size', 1024), ERROR)
-	print 'get_sequence(request, %s): chunk_size = %d' % (fid, chunk_size)
 	g = get_gene(request.user, fid)
 	if g:
 		resp = HttpResponse(chunk_sequence(g, chunk_size), mimetype="text/plain")

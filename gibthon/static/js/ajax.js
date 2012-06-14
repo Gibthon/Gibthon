@@ -52,11 +52,13 @@ var AJAX = new function()
 					//and there are no errors
 					if(this.status==200)
 						{
-							args.success(this.responseText);
+							if(args.success!=undefined)
+								args.success(this.responseText);
 						}
 					else
 						{
-							args.error(this.statusText)
+							if(args.error!=undefined)
+								args.error(this.statusText)
 						}
 				}
 				//if more data arrived
@@ -65,8 +67,8 @@ var AJAX = new function()
 		}
 
 		//open and send
-		if(args.type==undefined) args.type == 'POST';
-		if(args.url==undefined) args.url == '';
+		if(args.type==undefined) args.type = 'POST';
+		if(args.url==undefined) args.url = '';
 		xhr.open(args.type, args.url);
 		xhr.send(args.data);
 	}
