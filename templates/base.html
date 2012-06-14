@@ -18,14 +18,18 @@
 var STATIC_URL = "{{ STATIC_URL }}";
 {% if user.is_authenticated %}
 $(document).ready(function () {
-	channel = new goog.appengine.Channel('{{ user.get_channel_key }}');
-	socket = channel.open();
-	socket.onopen = function() {};
-	socket.onmessage = function(message) {
-		inbox_refresh();
-	};
-	socket.onerror = function() {};
-	socket.onclose = function() {};	
+	try
+	{
+		channel = new goog.appengine.Channel('{{ user.get_channel_key }}');
+		socket = channel.open();
+		socket.onopen = function() {};
+		socket.onmessage = function(message) {
+			inbox_refresh();
+		};
+		socket.onerror = function() {};
+		socket.onclose = function() {};	
+	}
+	catch(error) {};
 });
 {% endif %}
 </script>
