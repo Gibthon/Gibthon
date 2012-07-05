@@ -23,6 +23,23 @@ var libFrag = new function()
 		});
 	};
 
+    //Fetch all available fragments, returned in a list
+	this.getAll = function(_suc)
+	{
+       AJAX.post({
+           url: '/fragment/api/listAll/',
+           success: function(data)
+           {
+               var frags = new Array();
+               for(f in data)
+                {
+                    frags.push(new Fragment(data[f].id, data[f].name, 
+                                            data[f].desc, data[f].length));
+                }
+                _suc(frags);
+           },
+       });
+	}
 	//IUAPC Unambiguous Alphabet / Complement table
 	this.alphabet = {
 		'A': 'T',
