@@ -20,7 +20,7 @@
 		</div>
         <div id='frag_select_holder'>
             <div id='frag_select'>
-
+                {%include 'fragment/jFragmentSelector.html' %}
             </div>
         </div>
         <div style="clear:both"></div>
@@ -32,6 +32,7 @@ $(window).ready( function() {
 	new Designer($('#cdesigner'),{{construct.id}});
     //Equlise the hight of the items
     console.log('Set #frag_select height to ' + $('#cdesigner').height());
+    $('#frag_select').jFragmentSelector();
     $('#frag_select').height($('#cdesigner').height());
 });
 

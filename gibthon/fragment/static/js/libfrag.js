@@ -192,3 +192,45 @@ function Fragment(_id, _name, _desc, _length)
 	var sequence = null;
 	var metadata = null;
 }
+
+// ============================================ Widgets
+
+/*
+ *  jFragment: draggable fragment
+ *
+ * */
+$.widget("ui.jFragment", $.ui.draggable, {
+    options: {
+        fragment: null,
+        constructFragment: null,
+        color: 'red',
+    },
+    _create: function() {
+        //$.ui.draggable.prototype._create.call(this);
+
+        this.$el = $(this.element[0]).draggable(this.options);
+        this.$el.html("<p class='jf-name'>"+this.options.fragment.name+"</p>");
+        this.$el.addClass('jFragment');
+        this.$el.css({'background-color':this.options.color,
+                     'border-color':this.options.color,'position':'absolute',});
+    }
+});  
+
+/*
+ *
+ * jFragmentSelector: Easily select fragment from the available using drag and
+ * drop
+ *
+ * */
+$.widget("ui.jFragmentSelector", {
+    options: {
+        droptarget: null,
+        containment: 'parent',
+        dragEnabled: true,
+    },
+    _create: function() {
+        this.$el = $(this.element[0]);
+        console.log('jFragmentSelect _created');
+    },
+});
+      
