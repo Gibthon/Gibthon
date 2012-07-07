@@ -1,7 +1,7 @@
 
 <div class="pad">
 	<div class="pad-content" style="padding:.2em;">
-		<div id='resize' style="position:relative;">
+		<div id='canvas_holder'>
 			<canvas id="cdesigner" style="display:block; height:100%; width:100%;"></canvas>
 					
 			<div id="fragment_clipping" style='display:none;'></div>
@@ -18,14 +18,21 @@
 			</div>
 			
 		</div>
+        <div id='frag_select_holder'>
+            <div id='frag_select'>
+
+            </div>
+        </div>
+        <div style="clear:both"></div>
 	</div>
 </div>
 
 <script type='text/javascript'>
 $(window).ready( function() {
-	//$('#resize').height($('#resize').width() * 0.618);
 	new Designer($('#cdesigner'),{{construct.id}});
-
+    //Equlise the hight of the items
+    console.log('Set #frag_select height to ' + $('#cdesigner').height());
+    $('#frag_select').height($('#cdesigner').height());
 });
 
 </script>

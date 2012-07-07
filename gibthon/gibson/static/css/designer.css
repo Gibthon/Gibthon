@@ -33,6 +33,20 @@ span.ui-icon
 	padding-left: 0.5em;
 }
 
+#canvas_holder
+{
+    position:relative;
+    float:left;
+    width:75%;
+}
+
+#frag_select_holder
+{
+    float:left;
+    width:25%;
+    padding:0px;
+}
+
 p.magic-text {display:inline;}
 .setting-conc:after {content:' M';}
 .setting-temp:after {content:' ᴼC';}
