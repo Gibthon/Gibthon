@@ -88,7 +88,7 @@ var AJAX = new function()
 				{
 					//call the error callback, if it exists
 					if(args.error!=undefined)
-						args.error(data[1]);
+						args.error(jqXHR, data[1], 'ServerError');
 					else
 						console.error('AJAX Error: ' + data[1]);
 				}

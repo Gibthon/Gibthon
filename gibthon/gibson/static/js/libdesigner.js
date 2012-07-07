@@ -1,29 +1,83 @@
 /*
-*	construct designer Javascript API. libfrag.js must also be included
-* 
-*	Functions: (cb = callback)
-* 		cd_add_fragment(cb, cid, fid, position = last) 
-* 			cb = function(construct fragment)
-* 
-* 		cd_rm_fragment(cb, cid, cfid)
-* 			cb = function()
-* 
-* 		cd_reorder_fragment(cb, cid, {Array[] cfid, Array[] direction})
-* 			cb = function()
-* 
-* 		cd_get_info(cb, cid, ecb)
-* 			cb = function({name, desc, Array[fragment] fs, Array[construct fragment] cfs})
-* 
-* 		cd_set_info(cb, cid, name, desc, ecb)
-* 			cb = function()
-* 
+* libDesigner api
+*
+*   depends on ajax.js & libfrag.js
+*
 */
-/*
- * construct fragment:
- * 		d = json data
- * 		frag = fragment, fetched from server if undefined or wrong
- * 
- * */
+
+var libDesigner = new function()
+{
+    this.getConstructByID = function(cid, _suc)
+    {
+        AJAX.post({
+            url: '/gibthon/api/' + cid + '/getInfo/', 
+            success: function(data)
+            {
+                _suc(new Construct(data));
+            }
+        });
+    }
+};
+
+function Construct(data)
+{
+    this.id = data.id;
+    this.name = data.name;
+    this.desc = data.desc;
+    this.length = data.length;
+    this.cfs = new Array();
+    this.fs = new Array();
+    this.modified = data.created;
+
+    for(var i = 0; i < data.cfs.length; i=i+1)
+    {
+        var f = new Fragment(data.fs[i]);
+        this.fs.push(f);
+        this.cfs.push(new ConstructFragment(cfs[i], f));
+    }
+
+   this.addFragment = function(fid, position, direction, _suc)
+    {
+        AJAX.post({
+            url: '/gibthon/api/' + this.id + '/addFragment/', 
+            data: {'fid': fid, 'pos': position, 'dir':direction,}, 
+            success: function() {if(_suc!=undefined) _suc();},
+            error: function(jqXHR, textStatus, errorThrown)
+            {
+                console.log('Could not addFragment: ' + textStatus);
+            },
+        });
+    }
+
+    this.rmFragment = function(fid, _suc)
+    {
+        AJAX.post({
+            url: '/gibthon/api/' + cid + '/rmFragment/', 
+            data: {'cfid': cfid,}, 
+            success: function() {if(_suc!=undefined) _suc();},
+        });
+    }
+
+    this.reorder = function(fids, _suc)
+    {
+        ajax.post({
+            url: '/gibthon/api/' + cid + '/saveOrder/', 
+            data: {'d[]': d,},
+            success: function() {if(_suc!=undefined) _suc();},
+        });
+    }
+
+    this.saveInfo = function()
+    {
+        ajax.post({
+            url: '/gibthon/api/' + cid + '/saveMeta/', 
+            data: {'name': this.name, 'desc': this.desc,}, 
+        });
+    }
+
+
+
+}
 
 function ConstructFragment(d, f)
 {		
@@ -64,46 +118,5 @@ function ConstructFragment(d, f)
 		return Math.abs(this.endPos() - this.startPos());
 	};
 	this.toString = function() {return '[ConstructFragment (id='+this.id+') ]';};
-}
 
-var CD_BASE_URL = '/gibthon/api/'
-
-var cd_add_fragment = function(cb, cid, fid, position, direction, ecb)
-{
-	make_request(	CD_BASE_URL + cid + '/addFragment/', 
-					JSON.stringify({'fid': fid, 'pos': position, 'dir':direction,}), 
-					'Adding fragment "' + fid + '"', 
-					cb);
-}
-
-var cd_rm_fragment = function(cb, cid, cfid, ecb)
-{
-	make_request(	CD_BASE_URL + cid + '/rmFragment/', 
-					JSON.stringify({'cfid': cfid,}), 
-					'Removing ConstructFragment "' + cfid + '"', 
-					cb);
-}
-
-var cd_reorder_fragments = function(cb, cid, d, ecb)
-{
-	make_request(	CD_BASE_URL + cid + '/saveOrder/', 
-					JSON.stringify({'d[]': d,}), 
-					'Reordering fragments', 
-					cb);
-}
-
-var cd_get_info = function(cb, cid, ecb)
-{
-	make_request(	CD_BASE_URL + cid + '/getInfo/', 
-					undefined, 
-					'Getting info on construct "'+cid+'"', 
-					cb);
-}
-
-var cd_set_info = function(cb, cid, name, desc, ecb)
-{
-	make_request(	CD_BASE_URL + cid + '/saveMeta/', 
-					JSON.stringify({'name': name, 'desc': desc,}), 
-					'Saving info on construct "'+fid+'"', 
-					cb);
-}
+ }

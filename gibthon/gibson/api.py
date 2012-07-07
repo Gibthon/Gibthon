@@ -2,7 +2,7 @@ import simplejson as json
 from gibthon.jsonresponses import JsonResponse, ERROR
 
 from fragment.models import *
-from fragment.api import get_gene, read_min_meta
+from fragment.api import get_gene
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from gibson.views import get_construct
 from fragment.views import get_fragment
@@ -88,6 +88,7 @@ def get_info(request, cid):
 			fs.append(read_meta(g))
 			
 		ret = {
+            'id': cid,
 			'name': c.name,
 			'desc': c.description,
 			'length': c.length(),

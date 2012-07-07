@@ -1882,28 +1882,16 @@ var s = Server.prototype = new Container();
 
 	//Public Functions
 
-	s.getInfo = function(cb, cid)
+	s.getInfo = function(cid, cb)
 	{
 		this._showMessage('Getting Info...');
 		
 		var self = this;
-		cd_get_info(function(data)
-			{
-				//data = {name, desc, Array[fragment] fs, Array[construct fragment] cfs}
-				if(data.fs.length != data.cfs.length)
-				{
-					self._handle_error('getting info', "Couldn't parse response", "number of fragment != number of constructFragments");
-					return;
-				}
-				var dfs = new Array();
-				for(var i=0; i < data.fs.length; i=i+1)
-				{
-					dfs.push( new DisplayFragment(data.fs[i], new ConstructFragment(data.cfs[i], data.fs[i])) );
-				}
-				self._hideMessage();
-				cb(data.name, data.desc, data.length, dfs);
-				
-			}, cid, this._handle_error);
+        libDesigner.getConstructByID(cid, function(c)
+        {
+             self._hideMessage();
+             cb(c);
+        });
 		return this;
 	}
 	
@@ -2030,7 +2018,7 @@ var d = Designer.prototype = new Container();
 		stage.enableMouseOver(15);
 		
 		var self = this;
-		self._server.getInfo(function(a,b,c,d) {self._gotInfo(a,b,c,d)}, self._cid);
+		self._server.getInfo(self._cid, function(c) {self._gotInfo(c)});
 		
 		self._initInfo();
 		
@@ -2195,11 +2183,17 @@ var d = Designer.prototype = new Container();
 		F.joinRadius = radius + 4.0 * F.width;
 	}
 	
-	d._gotInfo = function(name, desc, length, dfs)
+	d._gotInfo = function(con)
 	{
-		this.setName(name);
+		this.setName(con.name);
 	
-		this.setLength(length);
+		this.setLength(con.length);
+
+        var dfs = new Array();
+        for(i in con.cfs)
+            {
+                dfs.push(new DisplayFragment(con.cfs[i].f, con.cfs[i]));
+            }
 		
 		this._fc.addMulti(dfs);
 		
