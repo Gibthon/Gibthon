@@ -6,6 +6,7 @@ from fragment.models import *
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import condition
 from django.core.exceptions import ObjectDoesNotExist
 
 from Bio.Alphabet import IUPAC
@@ -17,37 +18,37 @@ from gibthon.jsonresponses import JsonResponse, RawJsonResponse, ERROR
 ## Helpful functions
 
 the_alphabet = {
-	'A': 'T',
-	'B': 'V',
-	'C': 'G',
-	'D': 'H',
-	'G': 'C',
-	'H': 'D',
-	'K': 'M',
-	'M': 'K',
-	'N': 'N',
-	'R': 'Y',
-	'S': 'S',
-	'T': 'A',
-	'V': 'B',
-	'W': 'W',
-	'Y': 'R',
-	'a': 't',
-	'b': 'v',
-	'c': 'g',
-	'd': 'h',
-	'g': 'c',
-	'h': 'd',
-	'k': 'm',
-	'm': 'k',
-	'n': 'n',
-	'r': 'y',
-	's': 's',
-	't': 'a',
-	'v': 'b',
-	'w': 'w',
-	'y': 'r',
-}
+		'A': 'T',
+		'B': 'V',
+		'C': 'G',
+		'D': 'H',
+		'G': 'C',
+		'H': 'D',
+		'K': 'M',
+		'M': 'K',
+		'N': 'N',
+		'R': 'Y',
+		'S': 'S',
+		'T': 'A',
+		'V': 'B',
+		'W': 'W',
+		'Y': 'R',
+		'a': 't',
+		'b': 'v',
+		'c': 'g',
+		'd': 'h',
+		'g': 'c',
+		'h': 'd',
+		'k': 'm',
+		'm': 'k',
+		'n': 'n',
+		'r': 'y',
+		's': 's',
+		't': 'a',
+		'v': 'b',
+		'w': 'w',
+		'y': 'r',
+		}
 
 def get_alphabet():
 	return the_alphabet
@@ -58,24 +59,6 @@ def get_gene(usr, fid):
 	except ValueError:
 		raise Http404
 	return Gene.objects.get(id = fid, owner=usr)
-	
-def read_min_meta(g):
-	"""Return JSON-ready minimal metadata about a fragment"""
-	f = {
-			'id': g.id,
-			'name': g.name,
-			'desc': g.description,
-			'origin': g.origin,
-			'length': len(g.sequence),
-		}
-
-def g2dict(g):
-	return {	'name': g.name,
-				'id': g.id,
-				'desc': g.description,
-				'origin': g.get_origin_display(),
-				'length': len(g.sequence),
-	}
 
 def read_meta(g):
 	"""Return JSON-ready metadata about a fragment"""
@@ -87,37 +70,19 @@ def read_meta(g):
 			'journal': r.journal,
 			'medline_id': r.medline_id,
 			'pubmed_id': r.pubmed_id,
-		})
+			})
 	annots = {}
 	for a in g.annotations.all():
 		annots[a.key] = a.value
-	feats = []	
-	for f in g.features.all():
-		d = 1
-		if f.direction == 'r':
-			d = -1
-		feat =  {
-			'id': f.id,
-			'type': f.type,
-			'start': f.start,
-			'end': f.end,
-			'strand': d,
-			'qualifiers': [],			
-		}
-		for q in f.qualifiers.all():
-			feat['qualifiers'].append({'name': q.name, 'value':q.data,})
-		feats.append(feat)
 
 	return {	'name': g.name,
-				'fid': g.id,
-				'desc': g.description,
-				'refs': refs,
-				'annots': annots,
-				'origin': g.get_origin_display(),
-				'length': len(g.sequence),
-				'feats': feats,
-	}
-	
+			'desc': g.description,
+			'refs': refs,
+			'annots': annots,
+			'origin': g.get_origin_display(),
+			'length': len(g.sequence)
+			}
+
 def write_meta(g, meta):
 	"""save meta to g"""
 	g.name = meta.get('name', g.name)
@@ -136,7 +101,7 @@ def write_meta(g, meta):
 		g.save()
 	except Exception as e:
 		print "raised exception of type %s: %s" % (type(e), e)
-	
+
 def read_features(g):
 	"""Read all the features of a fragment"""
 	data = []
@@ -146,8 +111,8 @@ def read_features(g):
 			quals.append({	
 				'name': q.name,
 				'data': q.data,
-			})
-		s = None
+				})
+			s = None
 		if f.direction == 'f':
 			s = 1
 		elif f.direction == 'r':
@@ -159,7 +124,7 @@ def read_features(g):
 			'type': f.type,
 			'id': f.id,
 			'qualifiers': quals,
-		})
+			})
 	return data
 
 def write_features(g, feats):
@@ -181,22 +146,50 @@ def write_features(g, feats):
 			t = end
 			end = start
 			start = t
-		
+
 		quals = {}
 		for q in f.get('qualifiers'):
 			quals[q.get('name')] = q.get('value')
-		
-		ft = SeqFeature(
-			location=FeatureLoaction(start, end), 
-			type=f.get('type', ''), 
-			strand=strand,
-			id=f.get('id'), 
-			qualifiers=quals,
-		)
-			
-		Feature.add(ft, g)
+
+			ft = SeqFeature(
+					location=FeatureLoaction(start, end), 
+					type=f.get('type', ''), 
+					strand=strand,
+					id=f.get('id'), 
+					qualifiers=quals,
+					)
+
+			Feature.add(ft, g)
+
+def chunk_sequence(g, chunk_size, pad_char):
+	"""return the sequence in chunks of size chunk_size"""
+	print 'chunk_sequence(%d, %d)' % (g.id, chunk_size)
+	i = 0
+	length = len(g.sequence)
+	while (i+chunk_size) < length:
+		print '\tyeild g.sequence[%d:%d]' % (i, i+chunk_size)
+		yield g.sequence[i:i+chunk_size]
+		yield pad_char * 1024
+		i = i + chunk_size
+	#return the last piece
+	print '\tyeild g.sequence[%d:]' % i
+	yield g.sequence[i:]
 	
 # Actual API stuff
+@login_required
+def get_fragment(request, fid):
+	"""Return a small amount of information about the fragment"""
+	try:
+		fid = int(fid)
+	except ValueError:
+		return JsonResponse("Invalid fragment id: %s" % fid, ERROR)
+	g = get_gene(request.user, fid)
+	return JsonResponse({
+		'id': fid,
+		'name': g.name,
+		'desc': g.description,
+		'length': g.length(),
+		})
 
 @login_required
 def list_fragments(request):
@@ -205,7 +198,7 @@ def list_fragments(request):
 		frags = Gene.objects.filter(owner=request.user)
 	except ObjectDoesNotExist:
 		frags = []
-	ret = []
+		ret = []
 	for f in frags:
 		ret.append(read_meta(f))
 	return JsonResponse(ret)
@@ -217,22 +210,8 @@ def get_meta(request, fid):
 	return JsonResponse( read_meta(g))
 
 @login_required
-def get_multi_meta(request):
-	"""return metadata for several fragments"""
-	fids = request.POST.getlist('fids[]')
-	if fids:
-		r = {}
-		for fid in fids:
-			g = get_gene(request.user, fid)
-			if g:
-				r[fid] = read_meta(g)
-		return JsonResponse(r)
-	raise Http404
-
-@login_required
 def set_meta(request, fid):
 	"""Update a fragment's metadata"""
-  
 	if request.method == 'POST':
 		try:
 			g = get_gene(request.user, fid)
@@ -253,7 +232,7 @@ def get_features(request, fid):
 		'feats': read_features(g),
 		'alpha': get_alphabet(),
 		'length': len(g.sequence),
-	})
+		})
 
 @login_required
 def set_features(request, fid):
@@ -271,34 +250,19 @@ def set_features(request, fid):
 	raise Http404
 
 @login_required
-def get_length(request, fid):
-	g = get_gene(request.user, fid)
-	return JsonResponse(len(g.seq))
-
-@login_required
+@condition(etag_func=None)
 def get_sequence(request, fid):
-	"""return a section of the sequence"""
+	"""Stream the sequence in blocks of 1kB by default"""
 	try:
-		offset = int(request.GET.get('offset', 0))
+		chunk_size = int(request.GET.get('chunk_size', 1024))
 	except ValueError:
-		return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
-	try:
-		length = int(request.GET.get('length', 1000))
-	except ValueError:
-		return JsonResponse("ERROR: Invalid length '%s'." % request.GET.get('length', 1000), ERROR)
-	g = get_gene(request.user, fid)
-	if length <= 0:
-		return JsonResponse({
-			'sequence':g.sequence[offset:],
-			'alpha': get_alphabet(),
-		})
-	return JsonResponse(g.sequence[offset : offset+length])
+		return JsonResponse("ERROR: Invalid chunk_size '%s'." %
+				request.GET.get('chunk_size', 1024), ERROR)
+	pad_char = request.GET.get('pad_char', ' ')
 
-# Editing of sequence data not yet supported
-#def set_sequence(request, fid):
-#	"""set the sequence"""
-#	try:
-#		offset = int(request.GET.get('offset', 0))
-#	except ValueError:
-#		return JsonResponse("ERROR: Invalid offset '%s'." % request.GET.get('offset', 0), ERROR)
-	
+	g = get_gene(request.user, fid)
+	if g:
+		resp = HttpResponse(chunk_sequence(g, chunk_size, pad_char), mimetype="text/plain")
+		return resp
+	return JsonResponse('Could Not Stream Sequence', ERROR)
+		

@@ -17,7 +17,7 @@ function em2px(input)
 
 $.widget("ui.fragmentMeta", {
 	options: {
-		id: 0,
+		frag: undefined,
 	},
 	_create: function() {
 		//Init the element, and fetch the initial data
@@ -53,7 +53,8 @@ $.widget("ui.fragmentMeta", {
 				self.$annot_div.formExtender('disable');
 				
 				var meta = self.getMeta();
-				set_meta(self.options.id, meta, function(meta) {self._display_metadata(meta);});
+				self.fragment.setMeta(meta, function(){}, function(err) {console.error(
+					'Error setting metadata "'+err+'"');});
 			},
 		});
 		self.$annot_div.formExtender({
@@ -72,8 +73,12 @@ $.widget("ui.fragmentMeta", {
 			},
 		});
 		
-		get_meta(self.options.id, function(m) {self._display_metadata(m);});
-		
+		this.fragment = this.options.frag;
+		this.fragment.getMeta( function(meta)
+							 {
+								 self._display_metadata(meta);
+							 });
+
 		this.visible = false;
 		this.was_visible = false;			
 	},
@@ -182,12 +187,10 @@ $.widget("ui.fragmentMeta", {
 		
 		$.each(self.$annotation.find('tr'), function(i, val){
 			var v = $(val);
-			ret.push( 
-				new Annotation(
-					v.find('#annot_key span').text(), 
-					v.find('#annot_value span').text()
-				)
-			);
+			ret.push([
+				v.find('#annot_key span').text(), 
+				v.find('#annot_value span').text()
+			]);
 		});
 		return ret;
 	},
@@ -250,13 +253,13 @@ $.widget("ui.fragmentMeta", {
 	getMeta: function() {
 		var self = this;
 		//get metadata
-		var meta = new Metadata(
-			self.options.id, 
-			self.$name.text(), 
-			self.$desc.text(), 
-			self.getRefs(), 
-			self.getAnnots()
-		);
+		var meta = {
+			'id': self.options.id, 
+			'name': self.$name.text(), 
+			'desc': self.$desc.text(), 
+			'refs': self.getRefs(), 
+			'annots': self.getAnnots(),
+		};
 		return meta;
 	},
 });
@@ -274,11 +277,14 @@ var select_end = '</span>';
 
 $.widget("ui.fragmentSequence", {
 	options: {
-		id: 0,
+		frag: undefined,
 	},
 	_create: function() {
 		var self = this;
 		this.$el = $(this.element[0]);
+		this.fragment = this.options.frag;
+		if(this.fragment==undefined)
+			console.error('ui.fragmentSequence: Handed undefined Fragment object');
 		
 		this.$el.find('#copy_btn').button({
 			label: "Copy Selection",
@@ -339,53 +345,55 @@ $.widget("ui.fragmentSequence", {
 	},
 	_get_seq_meta: function(){
 		var self = this;
-		get_feats( this.options.id , function(d) {
+		this.fragment.getFeats(function(d) 
+		{
 			self.len = d.length;
 			self.$len.text(d.length);
-			if(self.len > 2000) //if we should load progressively 
+			if(self.len > 1024) //if we should load progressively 
 			{
-				self.$loader.slideDown(100);
+				self.$loader.show();
 			}
 			
 			self.features = d.feats;
-			self.alphabet = alphabet;
-			self.alphabet[' '] = ' ';
 			
-			self._get_seq(0);
+			self._get_seq();
 		});
 	},
-	_get_seq: function(offset){
+	_get_seq: function()
+	{
 		var self = this;
-		get_sequence( self.options.id, offset, undefined, function(seq) {
-			
-			self.seq = self.seq + seq;
-			var flush = false;//should we flush all the sequence?
-			if(self.seq.length < self.len)//is there more data to come?
-			{
-				//get some more data
-				self._get_seq(self.seq.length);
-			}
-			else
-			{
-				flush = true;
-				self.$loader.slideUp(500);
-			}
-			
+		if(this.fragment == undefined)
+		{
+			console.error('Cannot get sequence for undefined Fragment');
+			return;
+		}
+
+		this.fragment.getSequence(function(seq) //update function
+		{
+			console.log('fragment.getSequence(): update_fn called with '+seq.length+' bases');
+			self.seq = seq;
+		
 			//while we have enough data to make a complete row
 			while((self.seq.length - self.pos) > self.rowlength)
-			{
 				self.pos = self.pos + self._make_row(self.pos);
-			} 
-			if(flush)
-			{
-				self.pos = self.pos + self._make_row(self.pos);
-				self._label_features();
-				self._get_char_width();
-			}
-			
+		
 			self.$prog.text(self.seq.length);
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
+		}, function(seq) //Complete function
+		{
+			console.log('fragment.getSequence(): complete_fn called with '+seq.length+' bases');
+			self.seq = seq;
+			//we're done, so remove the progress bar
+			self.$loader.slideUp(500);
+			
+			//Use up all the remaining data
+			while(self.seq.length > self.pos)
+				self.pos = self.pos + self._make_row(self.pos);
+
+			self._label_features();
+			self._get_char_width();
 		});
+
 	},
 	_make_row: function(start){
 		var self = this;
@@ -407,7 +415,8 @@ $.widget("ui.fragmentSequence", {
 			var left= '';
 			for(var j = 0; j < toPadded(i); j = j+1)
 				left = left + ' ';
-			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' + left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
+			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' 
+				+ left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
 		}
 		var cseq = this._complement(seq);
 		
@@ -562,7 +571,6 @@ $.widget("ui.fragmentSequence", {
 	{
 		if(!this._selected)
 		{
-			console.log("self.get_sel return: ''");
 			return ""
 		}
 		return this.seq.substring(this._select_start - 1, this._select_end - 1);
@@ -636,11 +644,8 @@ $.widget("ui.fragmentSequence", {
 		
 		var smallnum = Math.floor((event.pageX - $(event.currentTarget).offset().left) / this.char_width);
 		smallnum = toUnPadded(smallnum);
-/*		console.log("_get_mouse_pos");
-		console.log("  smallnum = (" + event.pageX + ' - ' + $(event.currentTarget).offset().left + ") / " + this.char_width + " = " + smallnum);
-		console.log("  largenum + smallnum = " + largenum + ' + ' + smallnum + ' = ' + largenum + smallnum);
-		console.log("  event.currentTarget.id=" + event.currentTarget.id);
-*/		return largenum + smallnum;
+		
+		return largenum + smallnum;
 	},
 	_on_scroll: function(event)
 	{
@@ -666,7 +671,7 @@ $.widget("ui.fragmentSequence", {
 		var ret = "";
 		for(i in string)
 		{
-			ret = ret + this.alphabet[string[i]];
+			ret = ret + libFrag.alphabet[string[i]];
 		}
 		return ret;
 	},
@@ -682,7 +687,7 @@ $.widget("ui.fragmentSequence", {
 		var ret = "";
 		for(var i = string.length - 1; i >= 0; i = i-1)
 		{
-			ret = ret + this.alphabet[string[i]];
+			ret = ret + libFrag.alphabet[string[i]];
 		}
 		return ret;
 	},
@@ -704,7 +709,7 @@ var make_feat_html = function(r_s, r_e, feature, f_id)
 		var t = f_e; f_e = f_s; f_s = t;
 	}
 	//check if the feature is not present in the row
-	if((f_e < r_s) || (f_s > r_e))
+	if((f_e < (r_s+1)) || (f_s > r_e))
 	{
 		return "";
 	}
