@@ -203,10 +203,13 @@ $.widget("ui.jFragment", $.ui.draggable, {
     options: {
         fragment: null,
         color: 'red',
+        draggable: true,
     },
     _create: function() {
         this.f = this.options.fragment;
-        this.$el = $(this.element[0]).draggable(this.options);
+        this.$el = $(this.element[0])
+        if(this.options.draggable)
+            this.$el.draggable(this.options);
         this.$el.html("<p class='jf-name'>"+this.f.getName()+"</p>");
         this.$el.addClass('jFragment');
         this.$el.css({'background-color':this.options.color,
@@ -261,7 +264,10 @@ $.widget("ui.jFragmentSelector", {
                 $('<div/>').addClass('JFS_fragHolder')
                 .append( $('<div/>').jFragment({
                     fragment: frags[f], 
-                    helper:'clone'
+                    helper: function(){
+                        return self._makeHelper(frags[f]);
+                    },
+                    zIndex:200,
                 }))
                 .appendTo(self.$fragView);
             }
@@ -274,7 +280,7 @@ $.widget("ui.jFragmentSelector", {
     height: function(h){
         console.log('jFragmentSelect height('+h+')');
         this.$fragView.height( h - 
-                              (this.$el.height() - this.$fragView.height()));        
+                              (this.$el.height() - this.$fragView.height()));
     },
     _onInputFocus: function(){
         this.$filterHint.hide();
@@ -285,6 +291,11 @@ $.widget("ui.jFragmentSelector", {
             this.$filterHint.show();
         this.$filterHolder.removeClass('ui-state-focus');
     },
-
+    _makeHelper: function(f){
+        return $('<div/>').jFragment({
+            draggable:false,
+            fragment: f,
+        }).appendTo(this.$el);
+    },
 });
       
