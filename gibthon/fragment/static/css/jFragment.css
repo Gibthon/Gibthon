@@ -73,6 +73,7 @@
 {
     padding: 0em 1em;
     position: relative;
+    background: none !important;
 }
 .JFS_filterHolder .ui-icon
 {
@@ -87,4 +88,10 @@
     top: 0em;
     font-style:italic;
     color:grey;
+}
+#JFS_loading
+{
+    margin: 1.5em 0;
+    color: grey;
+    font-style:italic;
 }

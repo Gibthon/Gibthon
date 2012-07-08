@@ -202,12 +202,9 @@ function Fragment(_id, _name, _desc, _length)
 $.widget("ui.jFragment", $.ui.draggable, {
     options: {
         fragment: null,
-        constructFragment: null,
         color: 'red',
     },
     _create: function() {
-        //$.ui.draggable.prototype._create.call(this);
-
         this.$el = $(this.element[0]).draggable(this.options);
         this.$el.html("<p class='jf-name'>"+this.options.fragment.name+"</p>");
         this.$el.addClass('jFragment');
@@ -245,7 +242,26 @@ $.widget("ui.jFragmentSelector", {
         this.$filterInput.on('blur', function() {
             self._onInputBlur();
         });
+        this.$filterInput.hover(function() {
+            self.$filterHolder.addClass('ui-state-hover');   
+        }, function() {
+            self.$filterHolder.removeClass('ui-state-hover');   
+        });
         console.log('jFragmentSelect _created');
+
+        //fetch the fragments
+        libFrag.getAll(function(frags){
+            //remove the loading screen
+            self.$fragView.empty();
+            //add in the fragments one by one
+            for(f in frags)
+            {
+                $('<div/>').jFragment({
+                    fragment: frags[f],
+                }).appendTo(self.$fragView);
+            }
+        });
+
 
     },
     //set height to fill the parent container
@@ -256,12 +272,12 @@ $.widget("ui.jFragmentSelector", {
     },
     _onInputFocus: function(){
         this.$filterHint.hide();
-        this.$filterHolder.addClass('ui-state-active');
+        this.$filterHolder.addClass('ui-state-focus');
     },
     _onInputBlur: function(){
         if(!this.$filterInput.val())
             this.$filterHint.show();
-        this.$filterHolder.removeClass('ui-state-active');
+        this.$filterHolder.removeClass('ui-state-focus');
     },
 
 });
