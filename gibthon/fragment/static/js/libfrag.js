@@ -267,6 +267,7 @@ $.widget("ui.jFragmentSelector", {
                     helper: function(){
                         return self._makeHelper(frags[f]);
                     },
+                    containment: self.options.containment,
                     zIndex:200,
                 }))
                 .appendTo(self.$fragView);
