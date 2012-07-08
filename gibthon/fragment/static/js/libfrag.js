@@ -177,6 +177,11 @@ function Fragment(_id, _name, _desc, _length)
 		});
 	};
 
+    this.toString = function()
+    {
+        return '[Fragment name="' + name + '"]';
+    }
+
 	/*
 	 *
 	 * Private data
@@ -214,13 +219,17 @@ $.widget("ui.jFragment", $.ui.draggable, {
         this.$el.addClass('jFragment');
         this.$el.css({'background-color':this.options.color,
                      'border-color':this.options.color,});
+    },
+    getFragment: function()
+    {
+        return this.f;
     }
 });  
 
 /*
  *
- * jFragmentSelector: Easily select fragment from the available using drag and
- * drop
+ * jFragmentSelector: Easily select fragment from the available ones 
+ * using drag and drop
  *
  * */
 $.widget("ui.jFragmentSelector", {
@@ -237,6 +246,8 @@ $.widget("ui.jFragmentSelector", {
         this.$filterHint = this.$filterHolder.find('p');
         this.$filterInput = this.$filterHolder.find('input');
         this.$numItems = $e.find('#JFS_num_items');
+
+        this.filter_timeout = null;
         //if we click the hint, we select the input
         this.$filterHint.on('click', function() {
             self.$filterInput.focus();
@@ -247,13 +258,22 @@ $.widget("ui.jFragmentSelector", {
         this.$filterInput.on('blur', function() {
             self._onInputBlur();
         });
+        this.$filterInput.keypress( function(){
+            if(self.filter_timeout != null){
+                clearTimeout(self.filter_timeout);
+                self.filter_timeout = null;
+            }
+            self.filter_timeout = setTimeout(function(){
+                self._filter();
+            }, 350);
+        });
         this.$filterInput.hover(function() {
             self.$filterHolder.addClass('ui-state-hover');   
         }, function() {
             self.$filterHolder.removeClass('ui-state-hover');   
         });
-        console.log('jFragmentSelect _created');
 
+        this.frags = new Array();
         //fetch the fragments
         libFrag.getAll(function(frags){
             //remove the loading screen
@@ -261,15 +281,20 @@ $.widget("ui.jFragmentSelector", {
             //add in the fragments one by one
             for(f in frags)
             {
+                self.frags.push(frags[f]);
                 $('<div/>').addClass('JFS_fragHolder')
                 .append( $('<div/>').jFragment({
                     fragment: frags[f], 
                     helper: function(){
-                        return self._makeHelper(frags[f]);
+                        return $('<div/>').jFragment({
+                            draggable:false,
+                            fragment: $(this).jFragment('getFragment'),
+                        }).appendTo(self.$el);
                     },
                     containment: self.options.containment,
                     zIndex:200,
                 }))
+                .data('f', f)
                 .appendTo(self.$fragView);
             }
             self.$numItems.text(frags.length);
@@ -279,7 +304,6 @@ $.widget("ui.jFragmentSelector", {
     },
     //set height to fill the parent container
     height: function(h){
-        console.log('jFragmentSelect height('+h+')');
         this.$fragView.height( h - 
                               (this.$el.height() - this.$fragView.height()));
     },
@@ -292,11 +316,33 @@ $.widget("ui.jFragmentSelector", {
             this.$filterHint.show();
         this.$filterHolder.removeClass('ui-state-focus');
     },
-    _makeHelper: function(f){
-        return $('<div/>').jFragment({
-            draggable:false,
-            fragment: f,
-        }).appendTo(this.$el);
+    _filter: function(){
+        var s = this.$filterInput.val();
+        var self = this;
+        var matches = 0;
+        if(s){
+            this.$el.find('.JFS_fragHolder').each(function(index, el){
+                //hide the element if it doesn't match s
+                if( self.frags[index].getName().toLowerCase()
+                   .indexOf(s.toLowerCase()) < 0)
+                {
+                    $(this).hide();
+                }
+                else
+                {
+                    $(this).show();
+                    matches = matches + 1;
+                }
+            });
+        }
+        else{
+            this.$el.find('.JFS_fragHolder').each(function(index, el){
+                //show all if s is empty
+                $(this).show();
+                matches = matches + 1;
+            });
+        }
+        this.$numItems.text(matches);
     },
 });
       
