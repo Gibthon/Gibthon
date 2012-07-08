@@ -71,7 +71,7 @@ def read_meta(g):
             'medline_id': r.medline_id,
             'pubmed_id': r.pubmed_id,
             })
-        annots = {}
+    annots = {}
     for a in g.annotations.all():
         annots[a.key] = a.value
 
@@ -197,8 +197,7 @@ def list_fragments(request):
     try:
         frags = Gene.objects.filter(owner=request.user)
     except ObjectDoesNotExist:
-        pass
-    frags = []
+        return JsonResponse('Could not read fragments', ERROR)
     ret = []
     for f in frags:
         ret.append(read_meta(f))
