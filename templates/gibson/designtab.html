@@ -31,9 +31,8 @@
 $(window).ready( function() {
 	new Designer($('#cdesigner'),{{construct.id}});
     //Equlise the hight of the items
-    console.log('Set #frag_select height to ' + $('#cdesigner').height());
-    $('#frag_select').jFragmentSelector();
-    $('#frag_select').height($('#cdesigner').height());
+    $('#frag_select').jFragmentSelector()
+        .jFragmentSelector('height', $('#cdesigner').height());
 });
 
 </script>

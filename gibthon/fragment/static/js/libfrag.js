@@ -227,21 +227,41 @@ $.widget("ui.jFragmentSelector", {
         droptarget: null,
         containment: 'parent',
         dragEnabled: true,
-        autoResize: true,
     },
     _create: function() {
-        this.$el = $(this.element[0]);
-        console.log('jFragmentSelect _created');
         var self = this;
-        if(this.options.autoResize)
-            this.$el.on('resize', function(){
-                self._resize();
-            });
+        var $e = this.$el = $(this.element[0]);
+        this.$fragView = $e.find('.JFS_fragView');
+        this.$filterHolder = $e.find('.JFS_filterHolder');
+        this.$filterHint = this.$filterHolder.find('p');
+        this.$filterInput = this.$filterHolder.find('input');
+        //if we click the hint, we select the input
+        this.$filterHint.on('click', function() {
+            self.$filterInput.focus();
+        });
+        this.$filterInput.on('focus', function() {
+            self._onInputFocus();
+        });
+        this.$filterInput.on('blur', function() {
+            self._onInputBlur();
+        });
+        console.log('jFragmentSelect _created');
 
     },
     //set height to fill the parent container
-    _resize: function(){
-        console.log('jFragmentSelect _resize()');
+    height: function(h){
+        console.log('jFragmentSelect height('+h+')');
+        this.$fragView.height( h - 
+                              (this.$el.height() - this.$fragView.height()));        
+    },
+    _onInputFocus: function(){
+        this.$filterHint.hide();
+        this.$filterHolder.addClass('ui-state-active');
+    },
+    _onInputBlur: function(){
+        if(!this.$filterInput.val())
+            this.$filterHint.show();
+        this.$filterHolder.removeClass('ui-state-active');
     },
 
 });
