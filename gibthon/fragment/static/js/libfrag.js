@@ -227,10 +227,22 @@ $.widget("ui.jFragmentSelector", {
         droptarget: null,
         containment: 'parent',
         dragEnabled: true,
+        autoResize: true,
     },
     _create: function() {
         this.$el = $(this.element[0]);
         console.log('jFragmentSelect _created');
+        var self = this;
+        if(this.options.autoResize)
+            this.$el.on('resize', function(){
+                self._resize();
+            });
+
     },
+    //set height to fill the parent container
+    _resize: function(){
+        console.log('jFragmentSelect _resize()');
+    },
+
 });
       
