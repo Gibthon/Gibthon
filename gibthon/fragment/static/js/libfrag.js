@@ -233,6 +233,7 @@ $.widget("ui.jFragmentSelector", {
         this.$filterHolder = $e.find('.JFS_filterHolder');
         this.$filterHint = this.$filterHolder.find('p');
         this.$filterInput = this.$filterHolder.find('input');
+        this.$numItems = $e.find('#JFS_num_items');
         //if we click the hint, we select the input
         this.$filterHint.on('click', function() {
             self.$filterInput.focus();
@@ -258,9 +259,13 @@ $.widget("ui.jFragmentSelector", {
             for(f in frags)
             {
                 $('<div/>').addClass('JFS_fragHolder')
-                .append( $('<div/>').jFragment({fragment: frags[f],}))
+                .append( $('<div/>').jFragment({
+                    fragment: frags[f], 
+                    helper:'clone'
+                }))
                 .appendTo(self.$fragView);
             }
+            self.$numItems.text(frags.length);
         });
 
 
