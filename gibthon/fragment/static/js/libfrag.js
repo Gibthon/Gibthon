@@ -223,7 +223,11 @@ $.widget("ui.jFragment", $.ui.draggable, {
     getFragment: function()
     {
         return this.f;
-    }
+    },
+    getColor: function()
+    {
+        return this.$el.css('background-color');
+    },
 });  
 
 /*

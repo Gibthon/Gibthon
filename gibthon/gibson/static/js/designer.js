@@ -2018,15 +2018,15 @@ var d = Designer.prototype = new Container();
             accept: '.jFragment',
             over: function(event, ui) {
                 var jf = ui.draggable;
-                console.log('jFragment "' + 
-                           jf.jFragment('getFragment') + '" entered');
                 jf.bind('drag', function(event, ui) {
                     var p = self._fc.globalToLocal( event.pageX - o.left, 
                                                    event.pageY - o.top);
                     if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
                     {
                         self.join(jf);
+                        return false;
                     }
+                    return true;
                 });
             },
         });
@@ -2091,18 +2091,24 @@ var d = Designer.prototype = new Container();
 	d.join = function($jf)
 	{	
 		var f = $jf.jFragment('getFragment')
-        var c = $jf.jFragment('option', 'color');
+        var c = $jf.jFragment('getColor');
+        console.log('setting color to '+c);
 
 		//remove the jFragment from the DOM
-		$(document)
+	/*	$(document)
 			.unbind('mousemove.draggable')
 			.unbind('mouseup.draggable')
 			.unbind('mousedown.draggable')
 			.unbind('click.draggable');
-		$jf.remove();
+		//$jf.remove();
 
-        $jf.jFragment('destroy');
-		
+        //$jf.jFragment('destroy');
+		try
+        {
+            $jf.jFragment('cancel');
+        }
+        catch(e){};
+*/
         //add the fragment into the construct, with dragging
 		
         //TODO: try and get cf from somewhere else
