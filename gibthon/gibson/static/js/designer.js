@@ -2023,6 +2023,30 @@ var d = Designer.prototype = new Container();
 		self._initInfo();
 		
 		stage.update();
+
+        //listen for items being dragged into the canvas
+		var o = this._$canvas.parent().offset();
+        $canvas.droppable({
+            accept: '.jFragment',
+            over: function(event, ui) {
+                var jf = ui.draggable;
+                console.log('jFragment "' + 
+                           jf.jFragment('getFragment') + '" entered');
+                jf.bind('drag', function(event, ui) {
+                    console.log('event: '+event);
+                    for(i in event)
+                        console.log(' event.'+i+' = '+event[i]);
+                    console.log('drag at: ('+event.pageX+', '+event.pageY+')');
+                    var p = self._fc.globalToLocal( event.pageX - o.left, 
+                                                   event.pageY - o.top);
+                    if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
+                    {
+                        self.join(jf);
+                    }
+                });
+            },
+        });
+
 	}
 	
 	d.getName = function()
