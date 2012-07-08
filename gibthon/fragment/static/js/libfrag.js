@@ -89,7 +89,7 @@ function Fragment(_id, _name, _desc, _length)
 	 */
 	this.getID = function() {return id;};
 	this.getName = function() {return name;};
-  this.getDesc = function() {return desc;};
+    this.getDesc = function() {return desc;};
 	this.getLength = function() {return length;};
 
 	//if the sequence has not already been fetched, it will be streamed, otherwise
@@ -205,11 +205,12 @@ $.widget("ui.jFragment", $.ui.draggable, {
         color: 'red',
     },
     _create: function() {
+        this.f = this.options.fragment;
         this.$el = $(this.element[0]).draggable(this.options);
-        this.$el.html("<p class='jf-name'>"+this.options.fragment.name+"</p>");
+        this.$el.html("<p class='jf-name'>"+this.f.getName()+"</p>");
         this.$el.addClass('jFragment');
         this.$el.css({'background-color':this.options.color,
-                     'border-color':this.options.color,'position':'absolute',});
+                     'border-color':this.options.color,});
     }
 });  
 
@@ -256,9 +257,9 @@ $.widget("ui.jFragmentSelector", {
             //add in the fragments one by one
             for(f in frags)
             {
-                $('<div/>').jFragment({
-                    fragment: frags[f],
-                }).appendTo(self.$fragView);
+                $('<div/>').addClass('JFS_fragHolder')
+                .append( $('<div/>').jFragment({fragment: frags[f],}))
+                .appendTo(self.$fragView);
             }
         });
 

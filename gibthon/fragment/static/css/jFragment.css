@@ -27,7 +27,7 @@
     content:' ';
     border-style:solid;
     border-width: 0.75em;
-    border-left-color: transparent;
+    border-left-color: inherit;
     border-right-color: transparent;
     border-top-color: inherit;
     border-bottom-color: inherit;
@@ -94,4 +94,9 @@
     margin: 1.5em 0;
     color: grey;
     font-style:italic;
+}
+.JFS_fragHolder
+{
+    position:relative;
+    margin: 0.5em;
 }
