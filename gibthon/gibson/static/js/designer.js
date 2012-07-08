@@ -2033,9 +2033,6 @@ var d = Designer.prototype = new Container();
                 console.log('jFragment "' + 
                            jf.jFragment('getFragment') + '" entered');
                 jf.bind('drag', function(event, ui) {
-                    console.log('event: '+event);
-                    for(i in event)
-                        console.log(' event.'+i+' = '+event[i]);
                     console.log('drag at: ('+event.pageX+', '+event.pageY+')');
                     var p = self._fc.globalToLocal( event.pageX - o.left, 
                                                    event.pageY - o.top);
@@ -2110,6 +2107,7 @@ var d = Designer.prototype = new Container();
 		var f = $jf.jFragment('option', 'fragment');
 		var cf = $jf.jFragment('option', 'constructFragment');
 		
+        console.log('d.join($jf): f = ' + f);
 		var df = new DisplayFragment(f,cf);
 		
 		df._fs.fill = $jf.jFragment('option', 'color');
@@ -2126,6 +2124,7 @@ var d = Designer.prototype = new Container();
 		$jf.jFragment('destroy');
 		
 		$jf.remove();
+        console.log('~d.join()');
 	}
 	
 	d._initInfo = function()
