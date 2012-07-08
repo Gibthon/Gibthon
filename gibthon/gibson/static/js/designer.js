@@ -898,7 +898,11 @@ var df = DisplayFragment.prototype = new Container();
 				this._area = Area.CCW;
 		}
 
-		this._fl = new FragmentLabel(this._f.name, F.radii[this._area] + F.ldelta[this._area], this._props.angle / 2.0);
+		this._fl = new FragmentLabel(
+            this._f.getName(), 
+            F.radii[this._area] + F.ldelta[this._area], 
+            this._props.angle / 2.0);
+
 		this._fs = new FragmentShape(0,0,F.radii[this._area]);
 		this._props.radius = F.radii[this._area];
 		
@@ -1016,7 +1020,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.getLength = function()
 	{
-		if(this._cf)
+		if(this._cf != undefined)
 			return this._cf.length();
 		return this._f.length;
 	}
@@ -1082,12 +1086,6 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.animate = function(t, cb)
 	{
-	/*	out = ['  '+this+'.animate({',];
-		for(i in t)
-			out.push(' ' + i +': '+t[i]+',');
-		out.push('});\n');
-		console.log(out.join(''));
-	*/	
 		var change = false;
 		var hide = false; //should the label be hidden?
 		var self = this;
@@ -1156,12 +1154,6 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.set = function(t)
 	{
-	/*	out = ['  '+this+'.set({',];
-		for(i in t)
-			out.push(' ' + i +': '+t[i]+',');
-		out.push('});\n');
-		console.log(out.join(''));
-	*/	
 		//set rotation
 		if(t.rotation != undefined)
 		{
@@ -1200,7 +1192,7 @@ var df = DisplayFragment.prototype = new Container();
 	
 	df.toString = function()
 	{
-		return '[DisplayFragment (f.name = "'+this._f.name+'")]'; 
+		return '[DisplayFragment (f.name = "'+this._f.getName()+'")]'; 
 	}
 	
 //Mouse Events
@@ -1211,7 +1203,6 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onMouseOver = function(ev)
 	{
-		//console.log('"'+this._f.name+'".onMouseOver('+ev.stageX+','+ev.stageY+')');
 		if(!this._drag && (get_cursor() == 'auto'))
 		{
 			set_cursor('pointer');
@@ -1227,7 +1218,6 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onMouseOut = function(ev)
 	{
-		//console.log('"'+this._f.name+'".onMouseOut('+ev.stageX+','+ev.stageY+')');
 		if(!this._drag && (get_cursor() == 'pointer'))
 		{
 			set_cursor();
@@ -1247,7 +1237,6 @@ var df = DisplayFragment.prototype = new Container();
 		if(!this._drag)
 		{
 			//do on-click stuff
-			//console.log('"'+this._f.name+'".onClick('+ev.stageX+','+ev.stageY+')');
 			this.parent.designer().showInfo(this);
 			return;
 		}
@@ -1264,7 +1253,6 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		var self = this;
 		
-		//console.log('"'+this._f.name+'".onPress('+ev.stageX+','+ev.stageY+')');
 		
 		this._mousedownEvent = ev;
 		this._mouse_down = this._get_mev(ev);
@@ -1346,7 +1334,6 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		stage.onMouseMove = null;
 		stage.onMouseUp = null;
-		//console.log('"'+this._f.name+'".onDrop('+ev.stageX+','+ev.stageY+')');
 		
 		this.parent.onDrop(this);
 		set_cursor();
@@ -1473,7 +1460,7 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc.addFragAt = function(df, pos)
 	{
-		if(pos == undefined)
+		if(!$.isNumeric(pos))
 			(df._cf == undefined) ? pos = 0 : pos = df._cf.order;
 		else
 			pos = this._bound(pos);
@@ -1840,6 +1827,7 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc._bound = function(i)
 	{
+        if(this.children.length == 0) return 0;
 		i = i % this.children.length;
 		if(i < 0) return i + this.children.length;
 		return i;
@@ -2033,7 +2021,6 @@ var d = Designer.prototype = new Container();
                 console.log('jFragment "' + 
                            jf.jFragment('getFragment') + '" entered');
                 jf.bind('drag', function(event, ui) {
-                    console.log('drag at: ('+event.pageX+', '+event.pageY+')');
                     var p = self._fc.globalToLocal( event.pageX - o.left, 
                                                    event.pageY - o.top);
                     if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
@@ -2102,29 +2089,29 @@ var d = Designer.prototype = new Container();
 	}
 	
 	d.join = function($jf)
-	{		
-		//add the fragment into the construct, with dragging
-		var f = $jf.jFragment('option', 'fragment');
-		var cf = $jf.jFragment('option', 'constructFragment');
-		
-        console.log('d.join($jf): f = ' + f);
-		var df = new DisplayFragment(f,cf);
-		
-		df._fs.fill = $jf.jFragment('option', 'color');
-		
-		this._fc.add(df);
-		
+	{	
+		var f = $jf.jFragment('getFragment')
+        var c = $jf.jFragment('option', 'color');
+
 		//remove the jFragment from the DOM
 		$(document)
 			.unbind('mousemove.draggable')
 			.unbind('mouseup.draggable')
 			.unbind('mousedown.draggable')
 			.unbind('click.draggable');
-			
-		$jf.jFragment('destroy');
-		
 		$jf.remove();
-        console.log('~d.join()');
+
+        $jf.jFragment('destroy');
+		
+        //add the fragment into the construct, with dragging
+		
+        //TODO: try and get cf from somewhere else
+        var cf = undefined;
+
+		var df = new DisplayFragment(f,cf);
+
+		df._fs.fill = c;		
+		this._fc.add(df);
 	}
 	
 	d._initInfo = function()
@@ -2145,8 +2132,8 @@ var d = Designer.prototype = new Container();
 	d.showInfo = function(df)
 	{
 		//set the title and description
-		this._$info.find('#fragment_name').text(df.f().name);
-		this._$info.find('#fragment_desc').text(df.f().desc);
+		this._$info.find('#fragment_name').text(df.f().getName());
+		this._$info.find('#fragment_desc').text(df.f().getDesc());
 		
 		var loc = ra2xy(df.getRadius(), df.getMid());
 		loc = this._fc.localToGlobal(loc.x, loc.y);
