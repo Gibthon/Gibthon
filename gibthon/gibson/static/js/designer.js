@@ -357,9 +357,9 @@ var fs = FragmentShape.prototype = new Shape();
 	 * into itself).
 	 **/
 	fs.draw = function(ctx, ignoreCache)
-	{/*
-		console.log('fs.draw(...)');
-		p = ['width', 'angle', 'radius'];
+	{
+	/*	console.log('fs.draw(...)');
+		p = ['width', 'angle', 'radius', 'fill'];
 		for(i in p)
 			console.log('	fs.'+p[i]+' = ' + this[p[i]]);
 		console.log('	fs.rotation = ' + d2r(this.rotation));
@@ -1022,7 +1022,7 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		if(this._cf != undefined)
 			return this._cf.length();
-		return this._f.length;
+		return this._f.getLength();
 	}
 	
 	/**
@@ -1500,6 +1500,8 @@ var fc = FragmentContainer.prototype = new Container();
 		
 		df._drag = true;
 		this.addFragAt(df, min_i);
+
+        console.log('df.setAngle(_2PI*'+df.getLength()+'/'+this._eff_length+');');
 		df.setAngle(_2PI*df.getLength()/this._eff_length);
 		//begin the dragging!
 		df.onDragStart($.Event('mousemove'));
