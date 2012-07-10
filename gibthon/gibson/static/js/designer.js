@@ -2068,7 +2068,8 @@ $(window).keypress(function() {self._fc.debug();});
 			'stop': function(event, ui) {
 				$jf.remove();
                 //Tell the server to remove the fragment
-                console.log('TODO: tell server to remove cf:'+df._cf.id);
+                if(df._cf!=undefined)
+                    console.log('TODO: tell server to remove cf:'+df._cf.id);
 			},
 		}).appendTo(this._$canvas.parent());
 	
@@ -2089,23 +2090,21 @@ $(window).keypress(function() {self._fc.debug();});
             'pageY':(o.top+stage.mouseY),
         });
 		
+        console.log('$jf.trigger(jev):');
+        for(var i in jev)
+            console.log('  jev.'+i+' = '+jev[i]);
 		$jf.trigger(jev);
     }
 	
 	d.join = function($jf)
 	{	
         console.log('join jf.data("cf") = '+$jf.data('cf'));
-        console.log('Suppressing join for debug');
-        return;
 
 		var f = $jf.jFragment('getFragment')
         var c = $jf.jFragment('getColor');
+        var cf = $jf.data('cf');
 
         //add the fragment into the construct, with dragging
-		
-        //TODO: try and get cf from somewhere else
-        var cf = undefined;
-
 		var df = new DisplayFragment(f,cf);
 
 		df._fs.fill = c;		
