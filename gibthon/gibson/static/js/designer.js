@@ -1086,7 +1086,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.animate = function(t, cb)
 	{
-		var change = false;
+        var change = false;
 		var hide = false; //should the label be hidden?
 		var self = this;
 		
@@ -1126,15 +1126,15 @@ var df = DisplayFragment.prototype = new Container();
 		}
 		
 		if(!change) return;
-		
+
 		//update the saved values
 		this._set(t);
 		this._props.rotation = bound_degs(this._props.rotation);
 		
 		var done = function() {
-			self._fs.rotation = bound_degs(self._fs.rotation);
-			self._setLabelRadius();
-			self._fl.show();
+            self._fs.rotation = bound_degs(self._fs.rotation);
+            self._setLabelRadius();
+            self._fl.show();
 		};
 		if(hide) this._fl.hide();
 		
@@ -1144,6 +1144,7 @@ var df = DisplayFragment.prototype = new Container();
 		 .call(done)
 		 .call(clearAnim); //disable global animation
 		if(cb != undefined) tween.call(cb);
+        stage.update();
 	}
 	
 	/**
@@ -1236,7 +1237,6 @@ var df = DisplayFragment.prototype = new Container();
 		//if we were about to start dragging
 		if(!this._drag)
 		{
-            console.log(this+'.onClick()');
 			//do on-click stuff
 			this.parent.designer().showInfo(this);
 			return;
@@ -1252,9 +1252,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onPress = function(ev)
 	{
-        console.log(this+'.onPress()');
 		var self = this;
-		
 		
 		this._mousedownEvent = ev;
 		this._mouse_down = this._get_mev(ev);
@@ -1266,7 +1264,6 @@ var df = DisplayFragment.prototype = new Container();
 	
 	df.onDragStart = function(ev)
 	{
-		console.log(this+' - dragStart, ev.type = ' + ev.type);
 		this._drag = true;
 		this.setRadius(F.dradii[this._area]);
 		this._setLabelRadius();
@@ -1279,7 +1276,6 @@ var df = DisplayFragment.prototype = new Container();
 		//listen for mouse ups
 		stage.onMouseMove = function(e) {self.onDrag(e);};
 		stage.onMouseUp = function(e) {
-            console.log('stage.onMouseUp()');
             self.onDrop(e);
         };
 	}
@@ -1301,7 +1297,6 @@ var df = DisplayFragment.prototype = new Container();
 			{
 				if(area != undefined)
 				{
-					//console.log('Area '+a2s(this._area)+' -> '+a2s(area));
 					this.setArea(area);
 				}
 				else
@@ -1341,16 +1336,15 @@ var df = DisplayFragment.prototype = new Container();
 	df.onDrop = function(ev)
 	{
         var self = this;
-        console.log(this+'.onDrop() vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv');
 		stage.onMouseMove = null;
 		stage.onMouseUp = null;
 		
-		this.parent.onDrop(this);
+        t = {radius: F.radii[this._area],};
+		t.rotation = this.parent.onDrop(this);
 		this._mousedownEvent = null;
 	    set_cursor();
-		this.animate({radius: F.radii[this._area],}, function() 
+		this.animate(t, function() 
         {
-            console.log(self+'._drag = false; ----------------------');
             //stop dragging when the animation finishes to prevent erroneous
             //clicks from being generated
             self._drag = false;
@@ -1362,10 +1356,7 @@ var df = DisplayFragment.prototype = new Container();
 	
 	df._setLabelRadius = function()
 	{
-		var r = 0;
-		this._drag ? r = F.dradii[this._area] : r = F.radii[this._area]; 
-		(this._area == Area.CCW) ? r = r + F.ldelta[this._area] : r = r + F.ldelta[this._area];
-		
+		var r = this.getRadius() + F.ldelta[this._area];
 		this._fl.setRadius(r);
 	}
 	
@@ -1387,9 +1378,9 @@ var df = DisplayFragment.prototype = new Container();
 	 * */
 	df._set = function(t)
 	{
-		for(i in this._props)
+        for(var i in this._props)
 		{
-			if(t[i])
+			if(t[i]!=undefined)
 			{
 				this._props[i] = t[i];
 			}
@@ -1503,6 +1494,8 @@ var fc = FragmentContainer.prototype = new Container();
             var c = this.getFragAt(i);
             console.log('  ['+i+'] - '+c+' '+c._f.getLength()+'bp '+
                         c.getStart()+' -> '+c.getEnd()+' _drag = '+c._drag);
+            console.log('  ._props.rotation: '+c._props.rotation);
+            console.log('  ._fc.rotation: '+c._fs.rotation);
         }
         console.log('----------------------------------------------');
     }
@@ -1580,9 +1573,8 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc.onDrop = function(df)
 	{
-		df.animate({rotation: this.getFragAt(this.getChildIndex(df)-1).getEnd()});
 		this._datum = NaN;
-		return this;
+		return this.getFragAt(this.getChildIndex(df)-1).getEnd();
 	}
 	
 	/**
@@ -1681,25 +1673,10 @@ var fc = FragmentContainer.prototype = new Container();
 			r = r + a;
 			targets.push(t);
 		}
-/*		
-		console.log('fc._updateLayout(startFrag = '+startFrag+',startAngle = '+startAngle+',animate = '+animate+');');
-		console.log('  result:');
-		for(var t = 0; t < targets.length; t = t+1)
-		{
-			var f = this.getFragAt(t + startFrag);
-			console.log(this._bound(t+startFrag) + ' ' + targets[t].rotation + ' -> ' + (targets[t].rotation + targets[t].angle));
-		}
-*/		
 
 		//apply the targets all at once
 		if(animate)
 		{
-			/*console.log(this+'._updateLayout('+startFrag+')');
-			for(var t = 0; t < targets.length; t = t+1)
-			{
-				console.log('  ('+this._bound(t + startFrag)+') '+this.getFragAt(t+startFrag)+' '+this.getFragAt(t + startFrag).getStart()+' -> '+ targets[t].rotation);
-			}*/
-			
 			for(var t = 0; t < targets.length; t = t+1)
 			{
 				this.getFragAt(t + startFrag).animate(targets[t]);
@@ -2128,7 +2105,6 @@ $(window).keypress(function() {self._fc.debug();});
 
 		var f = $jf.jFragment('getFragment')
         var c = $jf.jFragment('getColor');
-        console.log('setting color to '+c);
 
         //add the fragment into the construct, with dragging
 		
