@@ -1236,6 +1236,7 @@ var df = DisplayFragment.prototype = new Container();
 		//if we were about to start dragging
 		if(!this._drag)
 		{
+            console.log(this+'.onClick()');
 			//do on-click stuff
 			this.parent.designer().showInfo(this);
 			return;
@@ -1251,6 +1252,7 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onPress = function(ev)
 	{
+        console.log(this+'.onPress()');
 		var self = this;
 		
 		
@@ -1276,7 +1278,10 @@ var df = DisplayFragment.prototype = new Container();
 		var self = this;
 		//listen for mouse ups
 		stage.onMouseMove = function(e) {self.onDrag(e);};
-		stage.onMouseUp = function(e) {self.onDrop(e);};
+		stage.onMouseUp = function(e) {
+            console.log('stage.onMouseUp()');
+            self.onDrop(e);
+        };
 	}
 	
 	/**
@@ -1335,14 +1340,21 @@ var df = DisplayFragment.prototype = new Container();
 	 **/
 	df.onDrop = function(ev)
 	{
+        var self = this;
+        console.log(this+'.onDrop() vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv');
 		stage.onMouseMove = null;
 		stage.onMouseUp = null;
 		
 		this.parent.onDrop(this);
-		this._drag = false;
 		this._mousedownEvent = null;
 	    set_cursor();
-		this.animate({radius: F.radii[this._area],});
+		this.animate({radius: F.radii[this._area],}, function() 
+        {
+            console.log(self+'._drag = false; ----------------------');
+            //stop dragging when the animation finishes to prevent erroneous
+            //clicks from being generated
+            self._drag = false;
+        });
 	}
 	
 
@@ -1481,7 +1493,8 @@ var fc = FragmentContainer.prototype = new Container();
 	
     fc.debug = function()
     {
-        console.log('FragmentContainer debug information:');
+        console.log('----------------------------------------------\n'+
+                    'FragmentContainer debug information:');
         console.log('  ._length = '+this._length);
         console.log('  ._eff_length = '+this._eff_length);
         console.log('  numChildren: '+this.getNumChildren());
@@ -1491,6 +1504,7 @@ var fc = FragmentContainer.prototype = new Container();
             console.log('  ['+i+'] - '+c+' '+c._f.getLength()+'bp '+
                         c.getStart()+' -> '+c.getEnd()+' _drag = '+c._drag);
         }
+        console.log('----------------------------------------------');
     }
 
 	fc.add = function(df)
@@ -1568,7 +1582,6 @@ var fc = FragmentContainer.prototype = new Container();
 	{
 		df.animate({rotation: this.getFragAt(this.getChildIndex(df)-1).getEnd()});
 		this._datum = NaN;
-        this.debug();
 		return this;
 	}
 	
@@ -1808,7 +1821,6 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc._updateLength = function()
 	{
-        console.log('_updateLength: ');
 		var _old = this._length;
 		
 		//find the new real length, and store all the lengths
@@ -1818,7 +1830,6 @@ var fc = FragmentContainer.prototype = new Container();
 		{
 			var l = this.getChildAt(i).getLength();
 			this._length = this._length + l;
-            console.log('  '+i+': length = '+l+', cum = '+this._length);
 			lengths.push(l);
 		}
 		
@@ -2006,6 +2017,7 @@ var d = Designer.prototype = new Container();
 		this._tlen.maxWidth = 1000;
 		
 		this._fc = new FragmentContainer(this);
+$(window).keypress(function() {self._fc.debug();});
 		
 		this._server = new Server();
 		
@@ -2226,7 +2238,6 @@ var d = Designer.prototype = new Container();
 		this._fc.addMulti(dfs);
 		
 		stage.update();
-        this._fc.debug();
 	}
 	
 	d.toString = function() {return '[Designer '+this._width+'x'+this._height+' (cid='+this._cid+') ]';};
