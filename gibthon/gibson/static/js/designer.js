@@ -1301,8 +1301,6 @@ var df = DisplayFragment.prototype = new Container();
 				}
 				else
 				{
-                    console.log('Suppressing leave for debug');
-                    /*
 					stage.onMouseMove = null;
 					stage.onMouseUp = null;
 					ev.onMouseMove = null;
@@ -1310,7 +1308,6 @@ var df = DisplayFragment.prototype = new Container();
 					set_cursor();
 					this.parent.designer().leave(this);
 					return;
-                    */
 				}
 			}
 			
@@ -1899,16 +1896,16 @@ var s = Server.prototype = new Container();
 			} , cid, fid, pos, dir, this._handle_error)
 	}
 	
-	s.rmFrag = function(cb, cid, cfid)
+	s.rmFrag = function(cid, cfid, cb)
 	{
 		this._showMessage('Removing Fragment...');
 		var self = this;
-		cd_rm_fragment(function(data)
+/*		cd_rm_fragment(function(data)
 			{
 				self._hideMessage();
 				cb();
 			} , cid, cfid, this._handle_error)
-	}
+*/	}
 
 	//Private functions
 	
@@ -2030,6 +2027,7 @@ $(window).keypress(function() {self._fc.debug();});
                     if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
                     {
                         self.join(jf);
+                        jf.remove(); //prevent the 'stop' event from triggering
                         return false;
                     }
                     return true;
@@ -2058,6 +2056,7 @@ $(window).keypress(function() {self._fc.debug();});
 	
 	d.leave = function(df)
 	{
+        console.log('leave('+df+')');
 		var o = this._$canvas.parent().offset();
 		var self = this;
 		
@@ -2066,26 +2065,19 @@ $(window).keypress(function() {self._fc.debug();});
 			'containment':'parent',
 			'scroll':false,
 			'color':df._fs.fill,
-			/*'stop': function(event, ui) {
+			'stop': function(event, ui) {
 				$jf.remove();
-			},*/
-			'drag': function(event, ui) {
-				var p = self._fc.globalToLocal( event.pageX - o.left, event.pageY - o.top);
-				if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
-				{
-					self.join($jf);
-                    return false;
-				}
-                return true;
-			},	
+                //Tell the server to remove the fragment
+                console.log('TODO: tell server to remove cf:'+df._cf.id);
+			},
 		}).appendTo(this._$canvas.parent());
-		
+	
 		var l = stage.mouseX - 0.5 * $jf.outerWidth();
 		var t = stage.mouseY - 0.5 * $jf.height();
 
-        console.log('{"left":'+l+', "top":'+t+',}');
+        console.log('{"position":absolute, "left":'+l+', "top":'+t+',}');
 		
-		$jf.css({'left':l, 'top':t,});
+		$jf.css({'position':'absolute', 'left':l, 'top':t,});
 		
 		this._fc.rm(df);
 		
@@ -2096,7 +2088,7 @@ $(window).keypress(function() {self._fc.debug();});
         });
 		
 		$jf.trigger(jev);
-	}
+    }
 	
 	d.join = function($jf)
 	{	
