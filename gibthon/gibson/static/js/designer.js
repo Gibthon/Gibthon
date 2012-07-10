@@ -2072,6 +2072,8 @@ $(window).keypress(function() {self._fc.debug();});
 			},
 		}).appendTo(this._$canvas.parent());
 	
+        $jf.data('cf', df._cf);
+        
 		var l = stage.mouseX - 0.5 * $jf.outerWidth();
 		var t = stage.mouseY - 0.5 * $jf.height();
 
@@ -2092,6 +2094,7 @@ $(window).keypress(function() {self._fc.debug();});
 	
 	d.join = function($jf)
 	{	
+        console.log('join jf.data("cf") = '+$jf.data('cf'));
         console.log('Suppressing join for debug');
         return;
 
