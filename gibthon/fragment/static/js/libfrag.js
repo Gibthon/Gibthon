@@ -33,8 +33,7 @@ var libFrag = new function()
                var frags = new Array();
                for(f in data)
                 {
-                    frags.push(new Fragment(data[f].id, data[f].name, 
-                                            data[f].desc, data[f].length));
+                    frags.push(new Fragment(data[f]));
                 }
                 _suc(frags);
            },
@@ -81,7 +80,7 @@ var libFrag = new function()
  * An actual fragment object
  *
  */
-function Fragment(_id, _name, _desc, _length)
+function Fragment(data)
 {
 	/*
 	 * Public Accessors
@@ -188,10 +187,10 @@ function Fragment(_id, _name, _desc, _length)
 	 *
 	 */
 
-	var id = _id;
-	var name = _name;
-	var desc = _desc;
-	var length = _length;
+	var id = data.id;
+	var name = data.name;
+	var desc = data.desc;
+	var length = data.length;
 
 	//Data which might get filled in by subsequent AJAX calls
 	var sequence = null;

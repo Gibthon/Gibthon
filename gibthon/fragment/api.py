@@ -75,7 +75,9 @@ def read_meta(g):
     for a in g.annotations.all():
         annots[a.key] = a.value
 
-    return {	'name': g.name,
+    return {
+            'id': g.id,
+            'name': g.name,
             'desc': g.description,
             'refs': refs,
             'annots': annots,

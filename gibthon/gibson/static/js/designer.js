@@ -1021,7 +1021,7 @@ var df = DisplayFragment.prototype = new Container();
 	df.getLength = function()
 	{
 		if(this._cf != undefined)
-			return this._cf.length();
+			return this._cf.getLength();
 		return this._f.getLength();
 	}
 	
@@ -1301,6 +1301,8 @@ var df = DisplayFragment.prototype = new Container();
 				}
 				else
 				{
+                    console.log('Suppressing leave for debug');
+                    /*
 					stage.onMouseMove = null;
 					stage.onMouseUp = null;
 					ev.onMouseMove = null;
@@ -1308,6 +1310,7 @@ var df = DisplayFragment.prototype = new Container();
 					set_cursor();
 					this.parent.designer().leave(this);
 					return;
+                    */
 				}
 			}
 			
@@ -1479,12 +1482,14 @@ var fc = FragmentContainer.prototype = new Container();
     fc.debug = function()
     {
         console.log('FragmentContainer debug information:');
+        console.log('  ._length = '+this._length);
+        console.log('  ._eff_length = '+this._eff_length);
         console.log('  numChildren: '+this.getNumChildren());
         for(var i = 0; i<this.getNumChildren(); i=i+1)
         {
             var c = this.getFragAt(i);
-            console.log('  ['+i+'] - '+c+' '+c.getStart()+' -> '+c.getEnd()+
-                       ' _drag = '+c._drag);
+            console.log('  ['+i+'] - '+c+' '+c._f.getLength()+'bp '+
+                        c.getStart()+' -> '+c.getEnd()+' _drag = '+c._drag);
         }
     }
 
@@ -1525,10 +1530,9 @@ var fc = FragmentContainer.prototype = new Container();
 		for(i in dfs)
 			this.addChild(dfs[i]);
 		
-		for(i in this.children)
-		{
-			this.children[i].getCf().order = i;
-		}
+        this.children.sort(function(a,b){
+            return a.getCf().order - b.getCf().order;
+        });
 		
 		this._updateLength();
 		this._updateLayout(0,0,false);
@@ -1804,6 +1808,7 @@ var fc = FragmentContainer.prototype = new Container();
 	 **/
 	fc._updateLength = function()
 	{
+        console.log('_updateLength: ');
 		var _old = this._length;
 		
 		//find the new real length, and store all the lengths
@@ -1813,6 +1818,7 @@ var fc = FragmentContainer.prototype = new Container();
 		{
 			var l = this.getChildAt(i).getLength();
 			this._length = this._length + l;
+            console.log('  '+i+': length = '+l+', cum = '+this._length);
 			lengths.push(l);
 		}
 		
@@ -2105,6 +2111,9 @@ var d = Designer.prototype = new Container();
 	
 	d.join = function($jf)
 	{	
+        console.log('Suppressing join for debug');
+        return;
+
 		var f = $jf.jFragment('getFragment')
         var c = $jf.jFragment('getColor');
         console.log('setting color to '+c);
@@ -2201,6 +2210,9 @@ var d = Designer.prototype = new Container();
 	
 	d._gotInfo = function(con)
 	{
+        //replace with a test construct
+        con = libDesigner.getTestConstruct();
+
 		this.setName(con.name);
 	
 		this.setLength(con.length);
@@ -2214,6 +2226,7 @@ var d = Designer.prototype = new Container();
 		this._fc.addMulti(dfs);
 		
 		stage.update();
+        this._fc.debug();
 	}
 	
 	d.toString = function() {return '[Designer '+this._width+'x'+this._height+' (cid='+this._cid+') ]';};
