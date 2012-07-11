@@ -738,7 +738,9 @@ var fl = FragmentLabel.prototype = new Container();
 		if(this._outward) r = - Math.abs(r);
 		else r = Math.abs(r);
 		
+    //console.log('this.rotation = r2d((d2r('+this.rotation+') + 0.5 * '+this._angle+') - 0.5 * '+r+');');
 		this.rotation = r2d((d2r(this.rotation) + 0.5 * this._angle) - 0.5 * r);
+    //console.log('  = '+this.rotation);
 		this._angle = r;
 		
 		//cache the result
@@ -951,11 +953,13 @@ var df = DisplayFragment.prototype = new Container();
 	df.setRotation = function(rads)
 	{
 		this._props.rotation = this._fs.rotation = r2d(bound_rads(rads));
+        this._fl.setRotation(this.getMid());
 	}
 	
 	df.setAngle = function(angle)
 	{
 		this._props.angle = this._fs.angle = angle;
+        this._fl.setRotation(this.getMid());
 	}
 	
 	df.setRadius = function(px)
@@ -1099,6 +1103,7 @@ var df = DisplayFragment.prototype = new Container();
 			var r = bound_degs(r2d(t.rotation) - this._props.rotation); //r is the distance and direction of shortest rotation
 			t.rotation = this._props.rotation + r;
 			if(Math.abs(r) > delta) change = true;
+            hide = true;
 		}
 		//angle
 		if(t.angle != undefined)
@@ -1132,7 +1137,7 @@ var df = DisplayFragment.prototype = new Container();
 		this._props.rotation = bound_degs(this._props.rotation);
 		
 		var done = function() {
-            self._fs.rotation = bound_degs(self._fs.rotation);
+            self.setRotation(d2r(self._fs.rotation));
             self._setLabelRadius();
             self._fl.show();
 		};
@@ -1158,7 +1163,7 @@ var df = DisplayFragment.prototype = new Container();
 		//set rotation
 		if(t.rotation != undefined)
 		{
-			this.setRotation(bound_rads(t.rotation));
+			this.setRotation(t.rotation);
 		}
 		//set angle
 		if(t.angle != undefined)
@@ -1180,15 +1185,6 @@ var df = DisplayFragment.prototype = new Container();
 		{
 			this.setClockwise(t.clockwise);
 		}
-	}
-	
-	/**
-	 * Called just before draw() - update label position
-	 * @method tick
-	 **/
-	df.tick = function()
-	{
-		this._fl.setRotation(this.getMid());
 	}
 	
 	df.toString = function()
