@@ -2035,6 +2035,8 @@ $(window).keypress(function() {self._fc.debug();});
                             });
                         }
                         self.join(jf);
+                        //stop ui.mouse from getting confused...
+                        $(document).mouseup();
                         return false; //triggers 'stop'
                     }
                     return true;
