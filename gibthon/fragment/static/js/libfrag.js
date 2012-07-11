@@ -223,6 +223,10 @@ $.widget("ui.jFragment", $.ui.draggable, {
     {
         return this.f;
     },
+    getName: function()
+    {
+        return this.f.getName();
+    },
     getColor: function()
     {
         return this.$el.css('background-color');

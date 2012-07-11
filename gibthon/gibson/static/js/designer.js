@@ -1520,7 +1520,6 @@ var fc = FragmentContainer.prototype = new Container();
 		df._drag = true;
 		this.addFragAt(df, min_i);
 		df.setRotation(p.a - df._mouse_offset);
-    console.log('df.setRotation('+(p.a+ - df._mouse_offset)+');');
 		df.setAngle(_2PI*df.getLength()/this._eff_length);
 
 		//begin the dragging!
@@ -2026,11 +2025,14 @@ $(window).keypress(function() {self._fc.debug();});
             accept: '.jFragment',
             over: function(event, ui) {
                 var jf = ui.draggable;
-                jf.bind('drag', function(event, ui) {
+                jf.on('drag', function(event, ui) {
                     var p = self._fc.globalToLocal( event.pageX - o.left, 
                                                    event.pageY - o.top);
                     if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
                     {
+                        //try and avoid being clobbered by high speed
+                        //mice
+                        jf.off('drag');
                         if(jf.data('cf'))
                         {
                             jf.off('dragstop');
