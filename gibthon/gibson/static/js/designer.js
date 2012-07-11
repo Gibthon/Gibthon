@@ -1503,7 +1503,8 @@ var fc = FragmentContainer.prototype = new Container();
 		//mouse position
 		var xy = this.globalToLocal(stage.mouseX, stage.mouseY);
 		var p = xy2ra(xy.x,xy.y);
-		df.setRotation(p.a);
+
+
 		var min_v = _2PI; var min_i = 0;
 		for(var i = 0; i < this.children.length; i = i + 1)
 		{
@@ -1518,8 +1519,10 @@ var fc = FragmentContainer.prototype = new Container();
 		
 		df._drag = true;
 		this.addFragAt(df, min_i);
-
+		df.setRotation(p.a - df._mouse_offset);
+    console.log('df.setRotation('+(p.a+ - df._mouse_offset)+');');
 		df.setAngle(_2PI*df.getLength()/this._eff_length);
+
 		//begin the dragging!
 		df.onDragStart($.Event('mousemove'));
 	}
