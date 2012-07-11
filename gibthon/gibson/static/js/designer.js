@@ -2102,6 +2102,9 @@ $(window).keypress(function() {self._fc.debug();});
        // console.log('$jf.trigger(jev):');
         //for(var i in jev)
           //  console.log('  jev.'+i+' = '+jev[i]);
+        
+        console.log('Break here plox');
+
 		$jf.trigger(jev);
     }
 	
