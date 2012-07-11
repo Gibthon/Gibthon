@@ -1807,6 +1807,8 @@ var fc = FragmentContainer.prototype = new Container();
 			lengths.push(l);
 		}
 		
+        this._designer.setLength(this._length);
+        
 		//find the minimum length
 		this._lmin = Math.ceil(this._length * F.minAngle / (_2PI));
 		
