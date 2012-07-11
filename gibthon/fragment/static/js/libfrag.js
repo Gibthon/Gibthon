@@ -227,6 +227,13 @@ $.widget("ui.jFragment", $.ui.draggable, {
     {
         return this.$el.css('background-color');
     },
+    option: function(name, value)
+    {
+        if(value == undefined)
+            return this.options[name];
+        console.log('setting '+name);
+        this.options[name] = value;
+    },
 });  
 
 /*
@@ -346,6 +353,13 @@ $.widget("ui.jFragmentSelector", {
             });
         }
         this.$numItems.text(matches);
+    },
+    option: function(name, value)
+    {
+        if(value == undefined)
+            return this.options[name];
+        console.log('setting '+name);
+        this.options[name] = value;
     },
 });
       

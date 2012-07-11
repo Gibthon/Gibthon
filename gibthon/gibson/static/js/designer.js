@@ -2026,9 +2026,16 @@ $(window).keypress(function() {self._fc.debug();});
                                                    event.pageY - o.top);
                     if( (p.x*p.x + p.y*p.y) < F.joinRadius * F.joinRadius )
                     {
+                        if(jf.data('cf'))
+                        {
+                            jf.off('dragstop');
+                            jf.on('dragstop', function(ev,ui){
+                                jf.remove(); //remove from the DOM
+                                //but don't tell the server anything
+                            });
+                        }
                         self.join(jf);
-                        jf.remove(); //prevent the 'stop' event from triggering
-                        return false;
+                        return false; //triggers 'stop'
                     }
                     return true;
                 });
@@ -2065,14 +2072,16 @@ $(window).keypress(function() {self._fc.debug();});
 			'containment':'parent',
 			'scroll':false,
 			'color':df._fs.fill,
-			'stop': function(event, ui) {
+			
+		}).appendTo(this._$canvas.parent());
+	    
+        $jf.on('dragstop', function(event, ui) {
 				$jf.remove();
                 //Tell the server to remove the fragment
                 if(df._cf!=undefined)
                     console.log('TODO: tell server to remove cf:'+df._cf.id);
-			},
-		}).appendTo(this._$canvas.parent());
-	
+		});
+        
         $jf.data('cf', df._cf);
         
 		var l = stage.mouseX - 0.5 * $jf.outerWidth();
@@ -2090,9 +2099,9 @@ $(window).keypress(function() {self._fc.debug();});
             'pageY':(o.top+stage.mouseY),
         });
 		
-        console.log('$jf.trigger(jev):');
-        for(var i in jev)
-            console.log('  jev.'+i+' = '+jev[i]);
+       // console.log('$jf.trigger(jev):');
+        //for(var i in jev)
+          //  console.log('  jev.'+i+' = '+jev[i]);
 		$jf.trigger(jev);
     }
 	
