@@ -130,11 +130,11 @@ function Construct(data)
         });
     }
 
-    this.reorder = function(fids, _suc)
+    this.reorder = function(cfids, dirs, _suc)
     {
         ajax.post({
             url: '/gibthon/api/' + cid + '/saveOrder/', 
-            data: {'d[]': d,},
+            data: {'d[]': {'cfid':cfid, 'direction':dirs,},},
             success: function() {if(_suc!=undefined) _suc();},
         });
     }

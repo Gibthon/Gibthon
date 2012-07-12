@@ -392,7 +392,7 @@ class Construct(models.Model):
 		except Exception:
 			pass #probably not found
 			
-		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction=direction, start_feature=None, end_feature=None, start_offset=0, end_offset=0)
+		cf = ConstructFragment.objects.create(construct=self,fragment=fragment, order = order, direction=direction, start_feature=None, end_feature=None, start_offset=0, end_offset=0)
 		self.processed = False
 		self.save()
 		return cf

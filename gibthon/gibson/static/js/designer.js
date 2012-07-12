@@ -1044,6 +1044,11 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		return this._cf;
 	}
+
+    df.getServer = function()
+    {
+        return this.parent.getServer();
+    }
 	
 	/**
 	 * Get the angle (rads) at which the fragment starts
@@ -1342,6 +1347,17 @@ var df = DisplayFragment.prototype = new Container();
             //clicks from being generated
             self._drag = false;
         });
+
+        if(this._cf == undefined)
+            {
+                var d = (this._area == Area.CW) ? 1 : -1;
+                this.getServer().addFrag(this._f.getID(),
+                            this.parent.getChildIndex(this), d);
+            }
+        else
+            {
+                this.getServer().reorder(this.parent.children);
+            }
 	}
 	
 
@@ -1474,6 +1490,11 @@ var fc = FragmentContainer.prototype = new Container();
 		
 		return this;
 	}
+
+    fc.getServer = function()
+    {
+        return this._designer.getServer();
+    }
 	
     fc.debug = function()
     {
@@ -1853,6 +1874,8 @@ var s = Server.prototype = new Container();
 	
 	s._text = new Text('', FONT.M, COL.BLACK);
 	s._sm_text = new Text('', FONT.SM, COL.RED);
+    
+    s._con = null;
 
 
 	s._container_init = s.initialize;
@@ -1879,33 +1902,52 @@ var s = Server.prototype = new Container();
 		var self = this;
         libDesigner.getConstructByID(cid, function(c)
         {
+             self._con = c;
              self._hideMessage();
-             cb(c);
+             if($.isFunction(cb)) cb(c);
         });
 		return this;
 	}
 	
-	s.addFrag = function(cb, cid, fid, pos, dir)
+	s.addFrag = function(fid, pos, dir, cb)
 	{
 		this._showMessage('Adding Fragment...');
 		var self = this;
-		cd_add_fragment(function(data)
+		this._con.addFragment(fid, pos, dir, function(data)
 			{
 				self._hideMessage();
-				cb(data);
-			} , cid, fid, pos, dir, this._handle_error)
+                if($.isFunction(cb)) cb(data);
+			});
 	}
 	
-	s.rmFrag = function(cid, cfid, cb)
+	s.rmFrag = function(cfid, cb)
 	{
 		this._showMessage('Removing Fragment...');
 		var self = this;
-/*		cd_rm_fragment(function(data)
+		this._con.rmFragment(cfid, function(data)
 			{
 				self._hideMessage();
-				cb();
-			} , cid, cfid, this._handle_error)
-*/	}
+				if($.isFunction(cb)) cb();
+			});
+	}
+
+    s.reorder = function(cfs, cb)
+    {
+        this._showMessage('Reordering Fragments...');
+        var self = this;
+        var cfids = [];
+        var dirs = [];
+        for(var i in cfs)
+            {
+                cfids.push(cfs[i].id);
+                dirs.push(cfs[i].strand);
+            }
+        this._con.reorder(cfids,dirs,function()
+          {
+              self._hideMessage();
+              if($.isFunction(cb)) cb();
+          });
+    }
 
 	//Private functions
 	
@@ -2065,7 +2107,10 @@ $(window).keypress(function() {self._fc.debug();});
 	{
 		return this._fc.getLength();
 	}
-	
+    d.getServer = function()
+    {
+        return this._server;
+    }
 	d.leave = function(df)
 	{
         console.log('leave('+df+')');
@@ -2084,7 +2129,9 @@ $(window).keypress(function() {self._fc.debug();});
 				$jf.remove();
                 //Tell the server to remove the fragment
                 if(df._cf!=undefined)
-                    console.log('TODO: tell server to remove cf:'+df._cf.id);
+                {
+                   self._server.rmFrag(df._cf.id);
+                }
 		});
         
         $jf.data('cf', df._cf);
@@ -2092,8 +2139,6 @@ $(window).keypress(function() {self._fc.debug();});
 		var l = stage.mouseX - 0.5 * $jf.outerWidth();
 		var t = stage.mouseY - 0.5 * $jf.height();
 
-        console.log('{"position":absolute, "left":'+l+', "top":'+t+',}');
-		
 		$jf.css({'position':'absolute', 'left':l, 'top':t,});
 		
 		this._fc.rm(df);
@@ -2104,19 +2149,11 @@ $(window).keypress(function() {self._fc.debug();});
             'pageY':(o.top+stage.mouseY),
         });
 		
-       // console.log('$jf.trigger(jev):');
-        //for(var i in jev)
-          //  console.log('  jev.'+i+' = '+jev[i]);
-        
-        console.log('Break here plox');
-
 		$jf.trigger(jev);
     }
 	
 	d.join = function($jf)
 	{	
-        console.log('join jf.data("cf") = '+$jf.data('cf'));
-
 		var f = $jf.jFragment('getFragment')
         var c = $jf.jFragment('getColor');
         var cf = $jf.data('cf');
@@ -2210,7 +2247,7 @@ $(window).keypress(function() {self._fc.debug();});
 	d._gotInfo = function(con)
 	{
         //replace with a test construct
-        con = libDesigner.getTestConstruct();
+        //con = libDesigner.getTestConstruct();
 
 		this.setName(con.name);
 	
