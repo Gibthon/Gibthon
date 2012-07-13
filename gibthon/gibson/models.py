@@ -375,7 +375,10 @@ class Construct(models.Model):
 			name=self.name,
 			description=self.description
 		)
-		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features()]
+		g.features = [SeqFeature(
+			FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), 
+			f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) 
+			for f in self.features()]
 		return g.format('genbank')
 		
 	def add_fragment(self, fragment, order = 0, direction='f'):
@@ -392,7 +395,10 @@ class Construct(models.Model):
 		except Exception:
 			pass #probably not found
 			
-		cf = ConstructFragment.objects.create(construct=self,fragment=fragment, order = order, direction=direction, start_feature=None, end_feature=None, start_offset=0, end_offset=0)
+		cf = ConstructFragment.objects.create(construct=self,fragment=fragment, 
+				order = order, direction=direction, start_feature=None, 
+				end_feature=None, start_offset=0, end_offset=0)
+
 		self.processed = False
 		self.save()
 		return cf
