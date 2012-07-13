@@ -213,7 +213,9 @@ class Primer(models.Model):
 	def self_prime_check(self):
 		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
 		ret, image = u.self_prime(str(self.seq()))
-		os.rename(image, settings.MEDIA_ROOT+'unafold/p-'+str(self.id))
+		print image
+		print os.path.join(settings.MEDIA_ROOT, 'unafold/p-%s' % self.id)
+		os.rename(image, os.path.join(settings.MEDIA_ROOT, 'unafold/p-%s' % self.id))
 		
 		self.warning.all().filter(type='sp').delete()
 		self.save()
