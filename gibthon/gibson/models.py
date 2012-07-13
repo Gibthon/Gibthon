@@ -382,13 +382,14 @@ class Construct(models.Model):
 		return g.format('genbank')
 		
 	def add_fragment(self, fragment, order = 0, direction='f'):
+		print "Add_fragment at %d" % order 
 		if(order > len(self.fragments.all())):
 			order = len(self.fragments.all())
 		if(order < 0):
-			order = order % len(self.fragments.all()) + 1;
+			order = len(self.fragments.all())
 		# update all the orders which have changed
 		try:
-			inc = self.fragments.objects.filter(ConstructFragment__order__gte=(order));
+			inc = self.cf.filter(order__gte=(order))
 			for i in inc:
 				i.order = i.order + 1
 				i.save()

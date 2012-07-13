@@ -108,12 +108,15 @@ function Construct(data)
         this.cfs.push(new ConstructFragment(data.cfs[i], f));
     }
 
-   this.addFragment = function(fid, position, direction, _suc)
+   this.addFragment = function(f, position, direction, _suc)
     {
+        console.log('AddingFragment at ' + position);
         AJAX.post({
             url: '/gibthon/api/' + this.id + '/addFragment/', 
-            data: {'fid': fid, 'pos': position, 'dir':direction,}, 
-            success: function() {if(_suc!=undefined) _suc();},
+            data: {'fid': f.getID(), 'pos': position, 'dir':direction,}, 
+            success: function(cf) {
+                if($.isFunction(_suc)) _suc(new ConstructFragment(cf, f));
+            },
             error: function(jqXHR, textStatus, errorThrown)
             {
                 console.log('Could not addFragment: ' + textStatus);
@@ -121,10 +124,10 @@ function Construct(data)
         });
     }
 
-    this.rmFragment = function(fid, _suc)
+    this.rmFragment = function(cfid, _suc)
     {
         AJAX.post({
-            url: '/gibthon/api/' + cid + '/rmFragment/', 
+            url: '/gibthon/api/' + this.id + '/rmFragment/', 
             data: {'cfid': cfid,}, 
             success: function() {if(_suc!=undefined) _suc();},
         });
@@ -132,9 +135,9 @@ function Construct(data)
 
     this.reorder = function(cfids, dirs, _suc)
     {
-        ajax.post({
-            url: '/gibthon/api/' + cid + '/saveOrder/', 
-            data: {'d[]': {'cfid':cfid, 'direction':dirs,},},
+        AJAX.post({
+            url: '/gibthon/api/' + this.id + '/saveOrder/', 
+            data: {'d[]': {'cfid':cfids, 'direction':dirs,},},
             success: function() {if(_suc!=undefined) _suc();},
         });
     }
@@ -142,7 +145,7 @@ function Construct(data)
     this.saveInfo = function()
     {
         ajax.post({
-            url: '/gibthon/api/' + cid + '/saveMeta/', 
+            url: '/gibthon/api/' + this.id + '/saveMeta/', 
             data: {'name': this.name, 'desc': this.desc,}, 
         });
     }
@@ -176,14 +179,14 @@ function ConstructFragment(d, f)
 	};
 	this.endPos = function()
 	{
-		if(this.id == undefined) return f.getLength();
+		if(this.id == undefined) return this.f.getLength();
 		if(this.e_feat > 0)
 		{
-			var ef = f.getFeatById(this.e_feat);
+			var ef = this.f.getFeatById(this.e_feat);
 			if(ef != null)
 				return this.e_offset + ef.end;
 		}
-		return f.getLength() - this.s_offset;
+		return this.f.getLength() - this.s_offset;
 	};
 	this.getLength = function()
 	{
@@ -195,5 +198,4 @@ function ConstructFragment(d, f)
         return this.getLength();
     }
 	this.toString = function() {return '[ConstructFragment (id='+this.id+') ]';};
-
  }

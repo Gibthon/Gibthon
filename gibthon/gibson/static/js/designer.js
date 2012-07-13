@@ -939,6 +939,8 @@ var df = DisplayFragment.prototype = new Container();
 	{
 		this.x = 0; this.y = 0;
 		this._area = _a;
+        if(this._cf)
+            this._cf.strand = (this._area == Area.CW) ? 1 : -1;
 		this._drag ?
 			this.setRadius(F.dradii[_a]) :
 			this.setRadius(F.radii[_a]);
@@ -1350,9 +1352,7 @@ var df = DisplayFragment.prototype = new Container();
 
         if(this._cf == undefined)
             {
-                var d = (this._area == Area.CW) ? 1 : -1;
-                this.getServer().addFrag(this._f.getID(),
-                            this.parent.getChildIndex(this), d);
+                this.getServer().addFrag(this);
             }
         else
             {
@@ -1500,16 +1500,16 @@ var fc = FragmentContainer.prototype = new Container();
     {
         console.log('----------------------------------------------\n'+
                     'FragmentContainer debug information:');
-        console.log('  ._length = '+this._length);
+        //console.log('  ._length = '+this._length);
         console.log('  ._eff_length = '+this._eff_length);
-        console.log('  numChildren: '+this.getNumChildren());
+        //console.log('  numChildren: '+this.getNumChildren());
         for(var i = 0; i<this.getNumChildren(); i=i+1)
         {
             var c = this.getFragAt(i);
             console.log('  ['+i+'] - '+c+' '+c._f.getLength()+'bp '+
                         c.getStart()+' -> '+c.getEnd()+' _drag = '+c._drag);
-            console.log('  ._props.rotation: '+c._props.rotation);
-            console.log('  ._fc.rotation: '+c._fs.rotation);
+            //console.log('  ._props.rotation: '+c._props.rotation);
+            //console.log('  ._fc.rotation: '+c._fs.rotation);
         }
         console.log('----------------------------------------------');
     }
@@ -1909,14 +1909,17 @@ var s = Server.prototype = new Container();
 		return this;
 	}
 	
-	s.addFrag = function(fid, pos, dir, cb)
+	s.addFrag = function(df)
 	{
 		this._showMessage('Adding Fragment...');
+        var d = (df._area == Area.CW) ? 1 : -1;
 		var self = this;
-		this._con.addFragment(fid, pos, dir, function(data)
+		this._con.addFragment(df._f, df.parent.getChildIndex(this), d, 
+            function(cf)
 			{
 				self._hideMessage();
-                if($.isFunction(cb)) cb(data);
+                console.log('setting _cf = '+cf);
+                df._cf = cf;
 			});
 	}
 	
@@ -1931,16 +1934,17 @@ var s = Server.prototype = new Container();
 			});
 	}
 
-    s.reorder = function(cfs, cb)
+    s.reorder = function(dfs, cb)
     {
         this._showMessage('Reordering Fragments...');
         var self = this;
         var cfids = [];
         var dirs = [];
-        for(var i in cfs)
+        for(var i in dfs)
             {
-                cfids.push(cfs[i].id);
-                dirs.push(cfs[i].strand);
+                cfids.push(dfs[i]._cf.id);
+                console.log('dfs['+i+']._cf.strand: '+dfs[i]._cf.strand);
+                dirs.push(dfs[i]._cf.strand);
             }
         this._con.reorder(cfids,dirs,function()
           {

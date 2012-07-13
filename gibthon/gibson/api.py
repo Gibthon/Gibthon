@@ -15,7 +15,8 @@ def cf2dict(cf):
 	"""
 		Convert a ConstructFragment to a dictionary suitable for JSON encoding
 	"""
-	ret = {	'id': cf.id,
+	ret = {	
+			'id': cf.id,
 			'fid': cf.fragment.id,
 			'order': cf.order,
 			'direction': 1,
@@ -124,7 +125,8 @@ def fragment_add(request, cid):
 			if cf:
 				return JsonResponse(cf2dict(cf))
 			else:
-				return JsonResponse('Could not add fragment %s to construct %s' % (fid, cid))
+				return JsonResponse('Could not add fragment %s to construct %s' % (fid,
+					cid), ERROR)
 		else:
 			if request.is_ajax():
 				return JsonResponse('Could not find fragment "%s"' % fid, ERROR)
