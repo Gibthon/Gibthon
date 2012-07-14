@@ -370,25 +370,27 @@ $.widget("ui.fragmentSequence", {
 
 		this.fragment.getSequence(function(seq) //update function
 		{
-			console.log('fragment.getSequence(): update_fn called with '+seq.length+' bases');
-			self.seq = seq;
+			self.seq = ' ' + seq;
 		
 			//while we have enough data to make a complete row
 			while((self.seq.length - self.pos) > self.rowlength)
+            {
 				self.pos = self.pos + self._make_row(self.pos);
+            }
 		
 			self.$prog.text(self.seq.length);
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
 		}, function(seq) //Complete function
 		{
-			console.log('fragment.getSequence(): complete_fn called with '+seq.length+' bases');
-			self.seq = seq;
+			self.seq = ' ' + seq;
 			//we're done, so remove the progress bar
 			self.$loader.slideUp(500);
 			
 			//Use up all the remaining data
 			while(self.seq.length > self.pos)
+            {
 				self.pos = self.pos + self._make_row(self.pos);
+            }
 
 			self._label_features();
 			self._get_char_width();
@@ -397,15 +399,10 @@ $.widget("ui.fragmentSequence", {
 	},
 	_make_row: function(start){
 		var self = this;
-		var s = "";
+        var len = this.rowlength;
 		var end = start + this.rowlength;
-		if( start == 0)
-		{
-			s = " " + this.seq.substr(start, this.rowlength - 1);
-			end = end - 1;
-		}
-		else
-			s = this.seq.substr(start - 1, this.rowlength);
+
+		var s = this.seq.substr(start, len);
 		
 		var seq = "";
 		var label = "";
@@ -456,7 +453,7 @@ $.widget("ui.fragmentSequence", {
 		this.seq_disp.push($row.find('.seq-fwd'));
 		this.seq_text.push(seq);
 	
-		return this.rowlength;
+		return len;
 	},
 	_label_features: function()
 	{
@@ -573,7 +570,7 @@ $.widget("ui.fragmentSequence", {
 		{
 			return ""
 		}
-		return this.seq.substring(this._select_start - 1, this._select_end - 1);
+		return this.seq.substring(this._select_start, this._select_end);
 	},
 	get_rev: function() {return this._reverse(this.get_sel());},
 	get_cmp: function() {return this._complement(this.get_sel());},
