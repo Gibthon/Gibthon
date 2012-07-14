@@ -1895,6 +1895,10 @@ var s = Server.prototype = new Container();
 
 	//Public Functions
 
+    s.getConstruct = function()
+    {
+        return this._con;
+    }
 	s.getInfo = function(cid, cb)
 	{
 		this._showMessage('Getting Info...');
@@ -2037,7 +2041,7 @@ var d = Designer.prototype = new Container();
 		this._tlen.maxWidth = 1000;
 		
 		this._fc = new FragmentContainer(this);
-$(window).keypress(function() {self._fc.debug();});
+//$(window).keypress(function() {self._fc.debug();});
 		
 		this._server = new Server();
 		
@@ -2099,6 +2103,14 @@ $(window).keypress(function() {self._fc.debug();});
 
 	}
 	
+    d.getConstruct = function()
+    {
+        return this._server.getConstruct();
+    }
+    d.updateStage = function()
+    {
+        stage.update();
+    }
 	d.getName = function()
 	{
 		return this._tname.text;

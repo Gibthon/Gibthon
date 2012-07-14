@@ -137,14 +137,18 @@ function Construct(data)
     {
         AJAX.post({
             url: '/gibthon/api/' + this.id + '/saveOrder/', 
-            data: {'d[]': {'cfid':cfids, 'direction':dirs,},},
+            data: {'cfid[]':cfids, 'direction[]':dirs,},
             success: function() {if(_suc!=undefined) _suc();},
         });
     }
 
-    this.saveInfo = function()
+    this.saveMeta = function(name, desc)
     {
-        ajax.post({
+        if(name)//can't have an empty string for name
+            this.name = name;
+        if(desc!=undefined)
+            this.desc = desc;
+        AJAX.post({
             url: '/gibthon/api/' + this.id + '/saveMeta/', 
             data: {'name': this.name, 'desc': this.desc,}, 
         });

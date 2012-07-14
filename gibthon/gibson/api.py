@@ -45,10 +45,14 @@ def save_meta(request, cid):
 	if request.method == 'POST':
 		con = get_construct(request.user, cid)
 		if not con:
-			return JsonResponse({'errors': {'all': "Construct with id '%s' not found" % cid,}}, ERROR)
+			return JsonResponse({'errors': 
+				{'all': "Construct with id '%s' not found" % cid,}}, ERROR)
 		name = request.POST.get('name', con.name)
 		desc = request.POST.get('desc', con.description)
+		print 'got name: "%s" desc: "%s"' %(name, desc)
+		print 'post data: %s' % request.POST	
 		if (name != con.name) or (desc != con.description):
+			print 'saving name: "%s" desc: "%s"' %(name, desc)
 			con.name = name
 			con.description = desc
 			try:
@@ -56,7 +60,8 @@ def save_meta(request, cid):
 			except Exception as e:
 				return JsonResponse('One or more fields are too long.', ERROR)
 				
-		return JsonResponse({'modified': con.last_modified(), 'fields': {'name': con.name, 'desc': con.desc}});
+		return JsonResponse({'modified': con.last_modified(), 
+			'fields': {'name': con.name, 'desc': con.description}});
 		
 	raise Http404
 	
@@ -106,15 +111,26 @@ def get_info(request, cid):
 def fragment_add(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
-		post = json.loads(request.raw_post_data)
-		fid = post.get('fid')
+		fid = request.POST.get('fid')
 		
 		if not fid:
 			return JsonResponse("No fragment id provided", ERROR)
 		f = get_fragment(request.user, fid)
 		
-		pos = post.get('pos', 0);
-		strand = post.get('dir', 1);
+		pos = request.POST.get('pos', 0);
+		strand = request.POST.get('dir', 1);
+
+		try:
+			pos = int(pos)
+		except ValueError as e:
+			return JsonResponse('Position must be an integer, not "%s"' % pos, ERROR)
+		try:
+			strand = int(strand)
+		except ValueError as e:
+			return JsonResponse('Direction must be an integer, not "%s"' % strand,
+					ERROR)
+		if strand not in [-1, 1]:
+			return JsonResponse('Strand must be 1 or -1, not "%s"' %strand, ERROR)
 		
 		direction = 'f'
 		if strand == -1:
@@ -137,8 +153,8 @@ def fragment_add(request, cid):
 @login_required
 def fragment_remove(request, cid):
 	con = get_construct(request.user, cid)
-	post = json.loads(request.raw_post_data)
-	cfid = post.get('cfid')
+	#post = json.loads(request.raw_post_data)
+	cfid = request.POST.get('cfid')
 	if not cfid:
 		return JsonResponse('No ConstructFragment ID specified', ERROR)
 	if con:
@@ -156,20 +172,24 @@ directions = {1:'f', -1:'r',}
 @login_required
 def save_order(request, cid):
 	con = get_construct(request.user, cid)
-	post = json.loads(request.raw_post_data)
-	order = post.get('d[]')
-	if not order:
-		return JsonResponse('No order provided.', ERROR)
-	if len(order['cfid']) != len(con.cf.all()):
-		return JsonResponse('Only %s ConstructFragments provided, %s required.' % (len(order['cfid']), len(con.cf.all())), ERROR)
-	if len(order['direction']) != len(con.cf.all()):
-		return JsonResponse('Only %s directions provided, %s required.' % (len(order['direction']), len(con.cf.all())), ERROR)
+	cfid = request.POST.getlist('cfid[]', [])
+	direction = request.POST.getlist('direction[]', [])
+	if not cfid:
+		return JsonResponse('No cfids provided.', ERROR)
+	if not direction:
+		return JsonResponse('No directions provided', ERROR)
+	if len(cfid) != len(con.cf.all()):
+		return JsonResponse('Only %s ConstructFragments provided, %s required.' 
+				% (len(cfid), len(con.cf.all())), ERROR)
+	if len(direction) != len(con.cf.all()):
+		return JsonResponse('Only %s directions provided, %s required.' 
+				% (len(direction), len(con.cf.all())), ERROR)
 	
 	if con:
 		dirs = []
-		for d in order['direction']:
+		for d in direction:
 			dirs.append(directions.get(d, ' '))
-		con.reorder_cfragments(order['cfid'], dirs)
+		con.reorder_cfragments(cfid, dirs)
 		return JsonResponse({'modified': con.last_modified(),});
 	else:
 		return HttpResponseNotFound()

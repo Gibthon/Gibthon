@@ -154,7 +154,8 @@ var httppat = /^http:\/\//i;
 
 $.widget("ui.magicForm", {
 	options: {
-		submit_on_save: true, //whether to submit the form on save, or whether to allow the save handler to do it
+		submit_on_save: true, //whether to submit the form on save, 
+        //  or whether to allow the save handler to do it
 		save: function(ev, data) {}, //called on save
 		cancel: function() {},//called on cancel
 		edit: function() {},

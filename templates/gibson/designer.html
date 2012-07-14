@@ -157,9 +157,15 @@
 		});
 		
 		$('#meta_form').magicForm({
+            //don't automatically submit
+            submit_on_save: false,
 			save: function(e, data) {
-				update(data[1].modified); 
-				$('#cdesigner').designer('changeName', $('#c_name').text());
+                var name = $('#c_name').text();
+                var desc = $('#desc_text').text();
+                g_designer.setName(name);
+                g_designer.updateStage();
+                g_designer.getConstruct().saveMeta(name, desc);
+                console.log('setMeta('+name+', '+desc+')');
 			},
 		});
 		
