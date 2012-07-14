@@ -50,7 +50,7 @@
 		<div id='tabs' class='left'>
 			<ul>
 				<li>
-					<a href="design/" class='tab-link'>
+					<a href="#design-tab" class='tab-link'>
 						<span class='ui-icon ui-icon-pencil tab-icon'></span>
 						Designer
 					</a>
@@ -75,6 +75,9 @@
 					</a>
 				</li>
 			</ul>
+            <div id='design-tab'>
+                {% include 'designtab.html' %}
+            </div>
 	<!--	<div id='tabs-process'>
 				<div class='center' style='height:200px;'>
 					<div style='margin-top:50px;'>
@@ -106,6 +109,10 @@
 
 {% block js %}
 <script type='text/javascript'>
+
+    //global designer
+    var g_designer = null;
+
 	$(window).ready( function() {
 		//tabs
 		$( "#tabs" ).tabs({
@@ -156,6 +163,12 @@
 			},
 		});
 		
+        //load designer
+        g_designer = new Designer($('#cdesigner'),{{construct.id}});
+        //Make the selector and equalise the height
+        $('#frag_select').jFragmentSelector({
+            containment: $('.pad-content'),
+        }).jFragmentSelector('height', $('#cdesigner').height());
 	/*Process tab*/
 	/*	$('#progress_bar').progressbar({ value: 0 });
 	
