@@ -41,7 +41,7 @@ class UnaFolder():
 		if not self.process(cline):
 			print('Could not hybridise')
 			return (False, None)
-		cline = '%s -t "Energy dotplot" %s%s.plot' % (settings.BOXPLOT_NG_PATH, self.wd, self.name)
+		cline = '%s -t "Energy Dotplot " %s%s.plot' % (settings.BOXPLOT_NG_PATH, self.wd, self.name)
 		if not self.process(cline):
 			print('Could not convert boxplot')
 			return (False, None)
