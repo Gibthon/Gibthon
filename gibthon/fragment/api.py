@@ -51,131 +51,128 @@ the_alphabet = {
         }
 
 def get_alphabet():
-    return the_alphabet
+	return the_alphabet
 
 def get_gene(usr, fid):
-    try:
-        fid = int(fid)
-    except ValueError:
-        raise Http404
-    return Gene.objects.get(id = fid, owner=usr)
+	try:
+		fid = int(fid)
+	except ValueError:
+		raise Http404
+	return Gene.objects.get(id = fid, owner=usr)
 
 def read_meta(g):
-    """Return JSON-ready metadata about a fragment"""
-    refs = []
-    for r in g.references.all():
-        refs.append( {
-            'title': r.title,
-            'authors': r.authors,
-            'journal': r.journal,
-            'medline_id': r.medline_id,
-            'pubmed_id': r.pubmed_id,
-            })
-    annots = {}
-    for a in g.annotations.all():
-        annots[a.key] = a.value
+	"""Return JSON-ready metadata about a fragment"""
+	refs = []
+	for r in g.references.all():
+		refs.append( {
+			'title': r.title,
+			'authors': r.authors,
+			'journal': r.journal,
+			'medline_id': r.medline_id,
+			'pubmed_id': r.pubmed_id,
+			})
+	annots = {}
+	for a in g.annotations.all():
+		annots[a.key] = a.value
 
-    return {
-            'id': g.id,
-            'name': g.name,
-            'desc': g.description,
-            'refs': refs,
-            'annots': annots,
-            'origin': g.get_origin_display(),
-            'length': len(g.sequence)
-            }
+	return {
+			'id': g.id,
+			'name': g.name,
+			'desc': g.description,
+			'refs': refs,
+			'annots': annots,
+			'origin': g.get_origin_display(),
+			'length': len(g.sequence)
+			}
 
-    def write_meta(g, meta):
-        """save meta to g"""
-    g.name = meta.get('name', g.name)
-    g.description = meta.get('desc', g.description)
-    #only change references if they've been given
-    if meta.has_key('refs'):
-        #clear out previous references
-        Reference.remove(g)
-        Reference.add(g, meta['refs'])
-    if meta.has_key('annots'):
-        #clear out previous annotations
-        Annotation.remove(g)
-        for (key, value) in meta['annots']:
-            Annotation.add(g, key, value)
-    try:
-        g.save()
-    except Exception as e:
-        print "raised exception of type %s: %s" % (type(e), e)
+def write_meta(g, meta):
+	"""save meta to g"""
+	g.name = meta.get('name', g.name)
+	g.description = meta.get('desc', g.description)
+	#only change references if they've been given
+	if meta.has_key('refs'):
+		#clear out previous references
+		Reference.remove(g)
+		Reference.add(g, meta['refs'])
+	if meta.has_key('annots'):
+		#clear out previous annotations
+		Annotation.remove(g)
+		for (key, value) in meta['annots']:
+			Annotation.add(g, key, value)
+	try:
+		g.save()
+	except Exception as e:
+		print "raised exception of type %s: %s" % (type(e), e)
 
 def read_features(g):
-    """Read all the features of a fragment"""
-    data = []
-    for f in g.features.all():
-        quals = []
-        for q in f.qualifiers.all():
-            quals.append({	
-                'name': q.name,
-                'data': q.data,
-                })
-            s = None
-        if f.direction == 'f':
-            s = 1
-        elif f.direction == 'r':
-            s = -1
-        data.append({
-            'start': f.start,
-            'end': f.end,
-            'strand': s,
-            'type': f.type,
-            'id': f.id,
-            'qualifiers': quals,
-            })
-        return data
+	"""Read all the features of a fragment"""
+	data = []
+	for f in g.features.all():
+		quals = []
+		for q in f.qualifiers.all():
+			quals.append({	
+				'name': q.name,
+				'data': q.data,
+				})
+		s = None
+		if f.direction == 'f':
+			s = 1
+		elif f.direction == 'r':
+			s = -1
+		data.append({
+			'start': f.start,
+			'end': f.end,
+			'strand': s,
+			'type': f.type,
+			'id': f.id,
+			'qualifiers': quals,
+			})
+	return data
 
 def write_features(g, feats):
-    """Update the features in the database"""
-    #remove old features
-    Feature.remove(g)
-    for f in feats:
-        #make sure data makes sense
-        start = int(f.get('start',0))
-        end = int(f.get('end',0))
-        strand = int(f.get('strand', 1))
-        if strand not in [-1, 1]:
-            strand = 1
-        if strand == -1 and start < end:
-            t = end
-            end = start
-            start = t
-        elif strand == 1 and start > end:
-            t = end
-            end = start
-            start = t
+	"""Update the features in the database"""
+	#remove old features
+	Feature.remove(g)
+	for f in feats:
+		#make sure data makes sense
+		start = int(f.get('start',0))
+		end = int(f.get('end',0))
+		strand = int(f.get('strand', 1))
+		if strand not in [-1, 1]:
+			strand = 1
+		if strand == -1 and start < end:
+			t = end
+			end = start
+			start = t
+		elif strand == 1 and start > end:
+			t = end
+			end = start
+			start = t
 
-        quals = {}
-        for q in f.get('qualifiers'):
-            quals[q.get('name')] = q.get('value')
+		quals = {}
+		for q in f.get('qualifiers'):
+			quals[q.get('name')] = q.get('value')
 
-            ft = SeqFeature(
-                    location=FeatureLoaction(start, end), 
-                    type=f.get('type', ''), 
-                    strand=strand,
-                    id=f.get('id'), 
-                    qualifiers=quals,
-                    )
+			ft = SeqFeature(
+					location=FeatureLoaction(start, end), 
+					type=f.get('type', ''), 
+					strand=strand,
+					id=f.get('id'), 
+					qualifiers=quals,
+					)
 
-            Feature.add(ft, g)
+			Feature.add(ft, g)
 
 def chunk_sequence(g, chunk_size, pad_char):
-    """return the sequence in chunks of size chunk_size"""
-    print 'chunk_sequence(%d, %d)' % (g.id, chunk_size)
-    i = 0
-    length = len(g.sequence)
-    while (i+chunk_size) < length:
-        print '\tyeild g.sequence[%d:%d]' % (i, i+chunk_size)
-        yield g.sequence[i:i+chunk_size]
-        yield pad_char * 1024
-        i = i + chunk_size
-    #return the last piece
-    print '\tyeild g.sequence[%d:]' % i
-    yield g.sequence[i:]
+	"""return the sequence in chunks of size chunk_size"""
+	i = 0
+	length = len(g.sequence)
+	while (i+chunk_size) < length:
+		yield g.sequence[i:i+chunk_size]
+		yield pad_char * 1024
+		i = i + chunk_size
+	#return the last piece
+	yield g.sequence[i:]
 
 # Actual API stuff
 @login_required
