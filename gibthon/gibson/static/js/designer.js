@@ -2093,6 +2093,10 @@ $(window).keypress(function() {self._fc.debug();});
             },
         });
 
+
+        //debug
+        $canvas.on('mouseup', function(){ console.log('canvas mouseup');});
+
 	}
 	
 	d.getName = function()
@@ -2126,17 +2130,18 @@ $(window).keypress(function() {self._fc.debug();});
 			'containment':'parent',
 			'scroll':false,
 			'color':df._fs.fill,
+            'distance':0,
 			
-		}).appendTo(this._$canvas.parent());
-	    
-        $jf.on('dragstop', function(event, ui) {
+		}).on('dragstop', function(event, ui) {
+                console.log('dragstop called');
 				$jf.remove();
                 //Tell the server to remove the fragment
                 if(df._cf!=undefined)
                 {
                    self._server.rmFrag(df._cf.id);
                 }
-		});
+		}).appendTo(this._$canvas.parent());
+
         
         $jf.data('cf', df._cf);
         
@@ -2152,7 +2157,7 @@ $(window).keypress(function() {self._fc.debug();});
             'pageX':(o.left+stage.mouseX),
             'pageY':(o.top+stage.mouseY),
         });
-		
+		console.log('firing mousedown event');
 		$jf.trigger(jev);
     }
 	
