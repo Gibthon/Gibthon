@@ -254,17 +254,17 @@ def set_features(request, fid):
 @login_required
 @condition(etag_func=None)
 def get_sequence(request, fid):
-    """Stream the sequence in blocks of 1kB by default"""
-    try:
-        chunk_size = int(request.GET.get('chunk_size', 1024))
-    except ValueError:
-        return JsonResponse("ERROR: Invalid chunk_size '%s'." %
-                request.GET.get('chunk_size', 1024), ERROR)
-        pad_char = request.GET.get('pad_char', ' ')
+	"""Stream the sequence in blocks of 1kB by default"""
+	try:
+		chunk_size = int(request.GET.get('chunk_size', 1024))
+	except ValueError:
+		return JsonResponse("ERROR: Invalid chunk_size '%s'." %
+				request.GET.get('chunk_size', 1024), ERROR)
 
-    g = get_gene(request.user, fid)
-    if g:
-        resp = HttpResponse(chunk_sequence(g, chunk_size, pad_char), mimetype="text/plain")
-        return resp
-    return JsonResponse('Could Not Stream Sequence', ERROR)
+	pad_char = request.GET.get('pad_char', ' ')
+	g = get_gene(request.user, fid)
+	if g:
+		resp = HttpResponse(chunk_sequence(g, chunk_size, pad_char), mimetype="text/plain")
+		return resp
+	return JsonResponse('Could Not Stream Sequence', ERROR)
 

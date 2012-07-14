@@ -18,7 +18,7 @@ var libFrag = new function()
 			url: '/fragment/api/'+id+'/', 
 			success: function(data)
 			{
-				_suc(new Fragment(data.id, data.name, data.desc, data.length));
+				_suc(new Fragment(data));
 			},
 		});
 	};
