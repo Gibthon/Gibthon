@@ -227,7 +227,8 @@ class Primer(models.Model):
 			)		
 	
 	def misprime_check(self):
-		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
+		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, 
+				mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
 		if(self.stick.top):
 			target = str(self.stick.cfragment.sequence())
 		else:
