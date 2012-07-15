@@ -1,0 +1,66 @@
+<style type='text/css'>
+
+.crop-settings
+{
+    margin: 1em;
+    padding-left: 1em;
+}
+.suboption
+{
+    margin-left: 2em;
+}
+</style>
+
+<div id='cropform'>
+    <div id='beforecrop'>
+        <h4>Operation</h4>
+        <div class='crop-settings'>
+            <p>
+                Crop to range <span id='range_from'></span>bp to 
+                <span id='range_to'></span>bp.
+            </p>
+            <input id='cb_internal' type='checkbox' name='feature_settings'
+                value='preserve_internal' checked='yes' />
+            <label for='cb_internal'>
+                    Preserve features
+            </label><br />
+            <div id='disableme'>
+                <input class='suboption' id='cb_all' type='checkbox' 
+                    name='feature_settings' value='preserve_all' /> 
+                <label for='cb_all'>
+                    Preserve features not entirely within selection
+                </label>
+            </div>
+        </div>
+        <h4>Result</h4>
+        <div class='crop-settings'>
+            <div class='center'>
+                <select id='result_type' name='result_type'>
+                    <option value='new' selected='selected'>Create New</option>
+                    <option value='overwrite'>Overwrite This Fragment</option>
+                </select>
+            </div>
+            <div id='new_settings'>
+                <label for='new_name'>Name</label> <br/>
+                <input id='new_name' class='suboption' type='text' 
+                    name='new_name' ></input><br/>
+                <label for='new_desc'>Description</label><br/>
+                <textarea id='new_desc' class='suboption' rows="4" cols="35" 
+                    name='new_desc'></textarea><br/>
+
+                <input id='go_new' type='checkbox' checked='yes' />
+                    Take me to the new fragment
+            </div>
+        </div>
+        <div class='right'>
+            <button id='cr_cancel_btn'>Cancel</button>
+            <button id='cr_crop_btn'>Crop</button>
+        </div>
+    </div>
+    <div id='cropwait' style='display:none;padding-top:2em;' class='center'>
+        <img src='{{ STATIC_URL }}/images/spinner.gif' alt='cropping' />
+        <h4>Cropping...</h4>
+    </div>
+</div>
+
+

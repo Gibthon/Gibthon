@@ -298,6 +298,14 @@ $.widget("ui.fragmentSequence", {
 		}).click( function() {
 			self._select(1, self.len + 1);
 		});
+        this.$el.find('#crop_btn').button({
+            label: 'Crop to Selection',
+            icons: {primary: 'ui-icon-scissors',},
+        }).click( function() {
+            self.cropform.cropform('setRange', self._select_start, 
+                                  self._select_end);
+            $('#crop_dlg').dialog('open');
+        });
 		
 		this.$el.find('#view').buttonset();
 		this.$el.find('#ds').click(function(){
@@ -341,7 +349,24 @@ $.widget("ui.fragmentSequence", {
 		this.seq_text = new Array();
 		this._selected = false;
 		this._update_toolbar();
-		
+
+        $('#crop_dlg').dialog({
+            title: 'Crop',
+            autoOpen: false,
+            modal: true,
+            draggable: false,
+            resizable: false,
+            width: 450,
+        });
+	
+        this.cropform = $('#cropform').cropform({
+            fragment: this.fragment,
+            cancel: function()
+            {
+                $('#crop_dlg').dialog('close');
+            },
+        });
+	
 	},
 	_get_seq_meta: function(){
 		var self = this;

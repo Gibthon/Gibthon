@@ -176,6 +176,32 @@ function Fragment(data)
 		});
 	};
 
+    /*
+     * cropsettings = {
+     *  start: start position,
+     *  end: end position,
+     *  f_internal: keep internal features?,
+     *  f_all: keep all features
+     *  result: in ['new', 'overwrite']
+     *  new_name: defined if result == new
+     *  new_desc: defined if result == new
+     *  };
+     *
+     *  */
+    this.crop = function(cropsettings, cb)
+    {
+        AJAX.post({
+            url: '/fragment/api/'+ id + '/crop/',
+            data: cropsettings,
+            success: function(data){
+                if($.isFunction(cb)) cb(data);
+            },
+            error: function() {
+                console.error('Error cropping fragment');
+            },
+        });
+    };
+
     this.toString = function()
     {
         return '[Fragment name="' + name + '"]';
