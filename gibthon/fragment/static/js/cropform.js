@@ -84,8 +84,8 @@ $.widget('ui.cropform', {
         this.el.find('#cropwait').slideDown(500);
 
         this.options.fragment.crop({
-            start: this.start.text(),
-            end: this.end.text(),
+            start: this.start.text()-1,
+            end: this.end.text()-1,
             f_internal: this.cb_internal.is(':checked'),
             f_all: (this.cb_internal.is(':checked') && 
                     this.cb_all.is(':checked')),
@@ -93,7 +93,10 @@ $.widget('ui.cropform', {
             new_name: this.name.val(),
             new_desc: this.desc.val(),
         }, function(id){
-            console.log('id = '+id);
+            if($('#go_new').is(':checked'))
+                window.location = '/fragment/'+id;
+            else
+                location.reload();
         });
 
     }

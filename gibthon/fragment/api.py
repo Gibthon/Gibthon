@@ -265,3 +265,88 @@ def get_sequence(request, fid):
 		return resp
 	return JsonResponse('Could Not Stream Sequence', ERROR)
 
+@login_required
+def crop(request, fid):
+	"""crop the fragment as specified"""
+	try:
+		fid = int(fid)
+	except ValueError:
+		return JsonResponse("Invalid fragment id: %s" % fid, ERROR)
+	g = get_gene(request.user, fid)
+	if not g:
+		return JsonResponse('Could not get fragment %s'%fid, ERROR)
+	try:
+		start = int(request.POST.get('start'))
+		end = int(request.POST.get('end'))
+	except ValueError:
+		return JsonResponse('Start and end must be valid integers', ERROR)
+	
+	f_internal = request.POST.get('f_internal', True)
+	f_all = request.POST.get('f_all', False)
+	if f_all and not f_internal:
+		return JsonResponse(
+			'Cannot keep all features without keeping internal ones', ERROR)
+	result = request.POST.get('result', 'new')
+	if result not in ['new', 'overwrite']:
+		return JsonResponse(
+			'Result type must be \'new\' or \'overwrite\', not %s' % result,
+				ERROR)
+	new_name = request.POST.get('new_name')
+	new_desc = request.POST.get('new_desc')
+	if (result == 'new') and not new_name:
+		return JsonResponse(
+			'Must specify non-empty new_name when result type is new', ERROR)
+
+	#build a list of features we want to keep
+	feats = []
+	if f_internal:
+		for f in g.features.all():
+			#internal features
+			if (f.start >= start) and (f.end <= end):
+				feats.append(f)
+			elif f_all:
+				if ( ((f.start > start) and (f.start < end)) or 
+						((f.end < end) and (f.end > start)) ): 
+					feats.append(f)
+
+	print '%s feats will be kept' % len(feats)
+
+	if result == 'new':
+		target = Gene(owner=request.user,
+			name=new_name,
+			description=new_desc,
+			sequence=g.sequence[start:end])
+		target.save()
+		#copy references
+		for r in g.references.all():
+			nr = Reference(gene=target,
+				title=r.title,
+				authors=r.authors,
+				journal=r.journal,
+				medline_id=r.medline_id,
+				pubmed_if=r.pubmed_id)
+			nr.save()
+		#copy annotations
+		for a in g.annotations.all():
+			na = Annotation(gene=target,
+				key=a.key,
+				value=a.value)
+			na.save()
+	elif result == 'overwrite':
+		target = g
+		g.sequence = g.sequence[start:end]
+		#clear out old features
+		Feature.remove(g)
+
+	#copy the features for adding onto the new fragment
+	for f in feats:
+		nf = Feature(gene=target,
+			type=f.type,
+			direction=f.direction,
+			start=max(f.start - start, 0),
+			end=min(f.end - start, end))
+		nf.save()
+
+	target.save()
+	
+	return JsonResponse(target.id)
