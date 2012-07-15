@@ -27,7 +27,7 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 	if request.user.is_authenticated():
 		return HttpResponseRedirect('/')
 	redirect_to = request.REQUEST.get(redirect_field_name, '')
-	
+
 	if request.method == "POST":
 		form = AuthenticationForm(data=request.POST)
 		if form.is_valid():
@@ -36,10 +36,10 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 			elif '//' in redirect_to and re.match(r'[^\?]*//', redirect_to):
 				redirect_to = settings.LOGIN_REDIRECT_URL
 			auth_login(request, form.get_user())
-	
-		if request.session.test_cookie_worked():
-			request.session.delete_test_cookie()
-    		return HttpResponseRedirect(redirect_to)
+
+			if request.session.test_cookie_worked():
+				request.session.delete_test_cookie()
+				return HttpResponseRedirect(redirect_to)
 	else:
 		form = AuthenticationForm(request)
 	request.session.set_test_cookie()
@@ -48,7 +48,7 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 		'form':form,
 		'title':'Login',
 		redirect_field_name:redirect_to,
-	})
+		})
 	return HttpResponse(t.render(c))
 
 def logout(request):
