@@ -281,8 +281,11 @@ def crop(request, fid):
 	except ValueError:
 		return JsonResponse('Start and end must be valid integers', ERROR)
 	
-	f_internal = request.POST.get('f_internal', True)
-	f_all = request.POST.get('f_all', False)
+	try:
+		f_internal = bool(int(request.POST.get('f_internal', 1)))
+		f_all = bool(int(request.POST.get('f_all', 0)))
+	except ValueError:
+		return JsonResponse('f_internal and f_all must be 1 or 0', ERROR)
 	if f_all and not f_internal:
 		return JsonResponse(
 			'Cannot keep all features without keeping internal ones', ERROR)
@@ -305,12 +308,12 @@ def crop(request, fid):
 			if (f.start >= start) and (f.end <= end):
 				feats.append(f)
 			elif f_all:
-				if ( ((f.start > start) and (f.start < end)) or 
-						((f.end < end) and (f.end > start)) ): 
+				if ( ((f.start > start) and (f.start < end)) or #starts in selection 
+						((f.end < end) and (f.end > start)) or #ends in selection
+						((f.start < start) and (f.end > end)) ): #selection is subset
 					feats.append(f)
 
-	print '%s feats will be kept' % len(feats)
-
+	#get or make the target gene
 	if result == 'new':
 		target = Gene(owner=request.user,
 			name=new_name,
@@ -344,7 +347,7 @@ def crop(request, fid):
 			type=f.type,
 			direction=f.direction,
 			start=max(f.start - start, 0),
-			end=min(f.end - start, end))
+			end=min(f.end - start, end - start))
 		nf.save()
 
 	target.save()
