@@ -10,6 +10,7 @@ echo "Post Recieve"
 # install requirements
 
 cd ..
+pwd
 pip-python install -r deployment/requirements.pip
 
 #gather static files
