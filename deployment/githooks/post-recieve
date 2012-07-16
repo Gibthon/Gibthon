@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Post Recieve"
+
+
+# install requirements
+
+cd ..
+pip install -r requirement.pip
+
+#gather static files
+
+#apply south migrations
+
+#restore apache config

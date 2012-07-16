@@ -1,0 +1,7 @@
+# Deployment readme
+
+This directory contains the scripts used for deployment.
+Once set-up they should not need to be modified often.
+
+In order for them to work, git hooks must be installed in the production
+repository.
