@@ -2,6 +2,8 @@
 
 ROOT_DIR = '/home/gibthon'
 
+unset GIT_DIR
+
 echo "Post Recieve"
 
 
