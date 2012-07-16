@@ -13,3 +13,7 @@ pip install -r requirement.pip
 #apply south migrations
 
 #restore apache config
+sudo cp deployment/apache/httpd.conf.production /etc/httpd/conf.d/gibthon.conf
+
+sudo service httpd restart
+
