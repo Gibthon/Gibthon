@@ -6,7 +6,7 @@ echo "Post Recieve"
 # install requirements
 
 cd ..
-pip install -r requirement.pip
+pip-python install -r requirement.pip
 
 #gather static files
 
