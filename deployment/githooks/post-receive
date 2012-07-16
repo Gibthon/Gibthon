@@ -6,7 +6,7 @@ echo "Post Recieve"
 
 
 # install requirements
-pip-python install -r deployment/requirements.pip
+sudo pip-python install -r deployment/requirements.pip
 
 #gather static files
 
