@@ -1,3 +1,5 @@
+LoadModule wsgi_module modules/mod_wsgi.so
+
 <VirtualHost *:80>
     DocumentRoot /home/gibthon
     ServerName ec2-54-247-118-121.eu-west-1.compute.amazonaws.com 
