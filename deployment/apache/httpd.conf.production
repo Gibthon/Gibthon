@@ -1,0 +1,27 @@
+<VirtualHost *:80>
+    DocumentRoot /home/gibthon
+    ServerName ec2-54-247-118-121.eu-west-1.compute.amazonaws.com 
+    ErrorLog /home/gibthon/logs/apache_error.log
+    CustomLog /home/gibthon/logs/apache_access.log combined
+    WSGIScriptAlias / /home/gibthon/site/wsgi.py
+
+    <Directory /home/gibthon/media>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    <Directory /home/gibthon/static>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    <Directory /home/djangotest/helloworld/apache>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    LogLevel warn
+
+    Alias /media/ /home/gibthon/media/
+    Alias /static/ /home/gibthon/static/
+</VirtualHost>
