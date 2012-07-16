@@ -1,19 +1,21 @@
 #!/bin/bash
 
+ROOT_DIR = '/home/gibthon'
+
 echo "Post Recieve"
 
 
 # install requirements
 
 cd ..
-pip-python install -r deployment/requirements.pip
+pip-python install -r ${ROOT_DIR}/site/deployment/requirements.pip
 
 #gather static files
 
 #apply south migrations
 
 #restore apache config
-sudo cp deployment/apache/httpd.conf.production /etc/httpd/conf.d/gibthon.conf
+sudo cp ${ROOT_DIR}/site/deployment/apache/httpd.conf.production /etc/httpd/conf.d/gibthon.conf
 
 sudo service httpd restart
 
