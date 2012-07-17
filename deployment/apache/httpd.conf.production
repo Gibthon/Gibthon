@@ -4,9 +4,9 @@ WSGIPythonHome /home/gibthon/.environments/BASELINE
 
 <VirtualHost *:80>
     DocumentRoot /home/gibthon
-    ServerName ec2-54-247-118-121.eu-west-1.compute.amazonaws.com 
-    ErrorLog /home/gibthon/logs/apache_error.log
-    CustomLog /home/gibthon/logs/apache_access.log combined
+    ServerName ec2-54-247-118-121.eu-west-1.compute.amazonaws.com
+    ErrorLog /home/gibthon/log/apache_error.log
+    CustomLog /home/gibthon/log/apache_access.log combined
     WSGIScriptAlias / /home/gibthon/site/gibthon/wsgi_handler.py
 
     <Directory /home/gibthon/media>
