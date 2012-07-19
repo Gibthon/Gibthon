@@ -17,5 +17,5 @@ pip install -r deployment/requirements.pip
 #restore apache config
 cp deployment/apache/httpd.conf.production ../httpd.conf
 
-sudo service httpd restart
+su --session-command="/sbin/httpd -k restart" root
 
