@@ -1,8 +1,8 @@
 import os, sys
 
 import site
-site.addsitedir('/home/gibthon/.environments/gibthon-env/lib/python2.7/site-packages')
-site.addsitedir('/home/gibthon/.environments/gibthon-env/lib64/python2.7/site-packages')
+site.addsitedir('/usr/local/pythonenv/gibthon-env/lib/python2.7/site-packages')
+site.addsitedir('/usr/local/pythonenv/gibthon-env/lib64/python2.7/site-packages')
 
 gibthon_path = '/home/gibthon/site'
 

@@ -5,7 +5,7 @@ unset GIT_DIR
 echo "Post Recieve"
 
 #source the correct environment
-source ../.environments/gibthon-env/bin/activate
+source /usr/local/pythonenv/gibthon-env/bin/activate
 
 # install requirements
 pip install -r deployment/requirements.pip

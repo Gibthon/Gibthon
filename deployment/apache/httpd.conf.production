@@ -1,6 +1,6 @@
 LoadModule wsgi_module modules/mod_wsgi.so
 
-WSGIPythonHome /home/gibthon/.environments/BASELINE
+WSGIPythonHome /usr/local/pythonenv/BASELINE
 
 <VirtualHost *:80>
     DocumentRoot /home/gibthon
