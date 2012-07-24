@@ -18,3 +18,4 @@ xhtml2pdf==0.0.3
 yolk==0.4.1
 boto>=2.1.0
 django-ses>=0.4.1
+south>=0.7.5
