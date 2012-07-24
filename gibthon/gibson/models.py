@@ -49,6 +49,27 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 
 from annoying.fields import AutoOneToOneField
+rules = [
+		(
+			(AutoOneToOneField,),
+			[],
+			{
+				"to": ["rel.to", {}],
+				"to_field": ["rel.field_name",
+					{"default_attr":
+						"rel.to._meta.pk.name"}],
+					"related_name":
+					["rel.related_name",
+						{"default": None}],
+					"db_index":
+					["db_index",
+						{"default": True}],
+					},
+			)
+		]
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules(rules, ["^annoying\.fields\.AutoOneToOneField"]) 
+
 
 from fragment.models import Gene
 
