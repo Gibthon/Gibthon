@@ -171,25 +171,25 @@ function ConstructFragment(d, f)
 	
 	this.startPos = function()
 	{
-		if(this.id == undefined) return 0;
+		/*if(this.id == undefined) return 0;
 		//console.log('startPos: s_feat: '+this.s_feat+' s_offset: '+this.s_offset);
 		if(this.s_feat > 0)
 		{
-			var sf = f.getFeatById(this.s_feat);
+			//var sf = f.getFeatById(this.s_feat);
 			if(sf != null)
 				return this.s_offset + sf.start;
-		}
+		}*/
 		return this.s_offset;
 	};
 	this.endPos = function()
 	{
-		if(this.id == undefined) return this.f.getLength();
+		/*if(this.id == undefined) return this.f.getLength();
 		if(this.e_feat > 0)
 		{
 			var ef = this.f.getFeatById(this.e_feat);
 			if(ef != null)
 				return this.e_offset + ef.end;
-		}
+		}*/
 		return this.f.getLength() - this.s_offset;
 	};
 	this.getLength = function()
