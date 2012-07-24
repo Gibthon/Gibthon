@@ -1,0 +1,4 @@
+<option value="0">---</option>
+{% for brandedenzyme in brandedenzymes %}
+<option value="{{ brandedenzyme.id }}">{{ brandedenzyme.manufacturer.name }}</option>
+{% endfor %}

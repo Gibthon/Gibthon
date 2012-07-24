@@ -1,0 +1,38 @@
+{% extends 'tools/digest/base.html' %}
+
+
+{% block js-include %}
+{{ block.super }}
+<script type="text/javascript">
+$(document).ready(function () {
+	$('input').change( function () {
+		$('input[name="enzyme"]').removeAttr( "disabled" );
+		var enzymes = [];
+		$('input[name="enzyme"]:checked').each( function( i, o ) {
+			enzymes.push( o.value );
+		});
+		$('div#enzymetable').load( 'manufacturers', { 'manufacturer':this.value, 'enzymes':enzymes } );
+	});
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="content fixed-width">
+<h1>Enzymes</h1>
+<ul>
+	<li>Showing enzymes from:<br />
+	{% for manufacturer in manufacturers %}
+		<input type="radio" name="manufacturer" value="{{ manufacturer.id }}" />{{ manufacturer.name }}<br />
+	{% endfor %}
+	</li>
+	<li>Enzymes</li>
+	{% for enzyme in enzymes %}
+		<input type="checkbox" name="enzyme" value="{{ enzyme.id }}" checked disabled />{{ enzyme.name }}<br />
+	{% endfor %}
+	</li>
+</ul>
+<div id="enzymetable">
+</div>
+</div>
+{% endblock %}

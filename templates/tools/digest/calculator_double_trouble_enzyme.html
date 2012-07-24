@@ -1,0 +1,6 @@
+{% include "tools/digest/calculator_double_enzyme_table.html" with buffers=buffers1 enzyme1=enzyme1 enzyme2=enzyme2 enzyme2in1=enzyme2in1 %}
+<br />
+OR
+<br /><br />
+{% include "tools/digest/calculator_double_enzyme_table.html" with buffers=buffers2 enzyme1=enzyme2 enzyme2=enzyme1 enzyme2in1=enzyme1in2  %}
+<span style="font-size:0.8em; font-style:italic;">Non-matching manufacturer activities are estimated from activity of equivalent enzyme activity. For example, performance of XbaI (NEB) in Fermentas Green is calculated from the activity of XbaI (NEB) in NEB's equivalent to Fermentas Green, which is NEBuffer 2. A value of 0% either means no activity or no matching buffer could be found.</span>

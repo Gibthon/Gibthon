@@ -1,0 +1,45 @@
+<i>Using {{ enzyme1.manufacturer.name }} buffers</i>
+<table>
+<tr>
+<th></th>
+{% for buffer in buffers %}
+<th>
+{{ buffer.name }}
+</th>
+{% endfor %}
+</tr>
+<tr>
+<th></th>
+{% for buffer in buffers %}
+<th>
+	<input type="radio" name="buffer" value="{{ buffer.id }}" />
+</th>
+{% endfor %}
+</tr>
+<tr>
+	<th>{{ enzyme1.enzyme.name }} ({{ enzyme1.manufacturer.name }})</th>
+	{% for activity in enzyme1.activities %}
+	<td>
+		{{ activity }}%
+	</td>
+	{% endfor %}
+</tr>
+<tr>
+	<th>{{ enzyme2.enzyme.name }} ({{ enzyme2.manufacturer.name }})</th>
+	{% for activity in enzyme2.related_activities %}
+	<td>
+		{{ activity }}%
+	</td>
+	{% endfor %}
+</tr>
+{% if enzyme2in1 %}
+<tr>
+	<th>{{ enzyme2in1.enzyme.name }} ({{ enzyme2in1.manufacturer.name }})</th>
+	{% for activity in enzyme2in1.activities %}
+	<td>
+		{{ activity }}%
+	</td>
+	{% endfor %}
+</tr>
+{% endif %}
+</table>

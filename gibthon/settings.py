@@ -116,7 +116,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'fragment',
+		'south',
+		'fragment',
     'gibson',
     'molcal',
     'captcha',
@@ -124,6 +125,7 @@ INSTALLED_APPS = (
     'ligcalc',
     'accounts',
     'pricalc',
+    'digest',
 )
 
 LOGIN_URL = '/user/login'

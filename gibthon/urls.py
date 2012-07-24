@@ -2,6 +2,8 @@ from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
 from django.contrib import admin
 from django.views.generic.simple import direct_to_template
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 
 admin.autodiscover()
 
@@ -12,6 +14,7 @@ toolpatterns = patterns('gibthon.views',
 	(r'^ligcalc/', include('gibthon.ligcalc.urls')),
 	(r'^molcalc/', include('gibthon.molcal.urls')),
 	(r'^molcal/$', 'molcal'),
+	(r'^digest/', include( 'gibthon.digest.urls' ) ),
 )
 
 urlpatterns = patterns('',
@@ -33,8 +36,11 @@ urlpatterns = patterns('',
 
 
 if settings.DEBUG:
-    urlpatterns += patterns('',
-        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-   )
+	urlpatterns += patterns('',
+		url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+		'document_root': settings.MEDIA_ROOT,
+		}),
+	)
+	urlpatterns += staticfiles_urlpatterns()
+
+

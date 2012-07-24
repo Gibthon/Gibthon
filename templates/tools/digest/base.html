@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block css-include %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/datatable.css" />
+<style type="text/css">
+table.buffertable {
+	text-align:center;
+	width:auto;
+}
+
+table.buffertable td {
+	width:150px;
+}
+
+table.buffertable th.buffer {
+	width:150px;
+}
+
+td.header {
+	font-weight:bold;
+}
+</style>
+{% endblock %}
+
+{% block js-include %}
+<script type="text/javascript">
+$(document).ready( function() {
+	$('button#base')
+		.click(function(event){
+			window.location.href="/tools/digest/";
+		})
+		.button({
+			icons:{primary:'ui-icon-arrowthick-1-e'}
+		});
+	$('button#buffers')
+		.click( function( event ) {
+			window.location.href="/tools/digest/buffers/";
+		})
+		.button({
+			icons:{ primary:'ui-icon-battery-0' }
+		});
+	$('button#enzymes')
+		.click( function( event ) {
+			window.location.href="/tools/digest/enzymes/";
+		})
+		.button({
+			icons:{ primary:'ui-icon-seek-next' }
+		});
+	$('button#calculator')
+		.click( function( event ) {
+			window.location.href="/tools/digest/calculator/";
+		})
+		.button({
+			icons:{ primary:'ui-icon-calculator' }
+		});
+});
+</script>
+{% endblock %}
+
+{% block app-menu %}
+<button id="base">Base</button>
+<button id="buffers">Buffers</button>
+<button id="enzymes">Enzymes</button>
+<button id="calculator">Calculator</button>
+{% endblock %}
+
+{% block content %}
+
+<div class="content fixed-width">
+<h1>Digestion Calculator</h1>
+<p>This app is designed to aid you in chosing the right buffers for your digestion reactions. You can check compatibility between different manufacturers, and easily produce protocols tailored to your needs.</p>
+
+</div>
+{% endblock %}
