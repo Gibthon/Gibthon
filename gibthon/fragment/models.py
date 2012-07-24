@@ -192,7 +192,7 @@ class Reference(models.Model):
 class Annotation(models.Model):
 	gene = models.ForeignKey('Gene', related_name='annotations')
 	key = models.CharField(max_length=30)
-	value = models.CharField(max_length=1024, blank=True)
+	value = models.CharField(max_length=5120, blank=True)
 
 	def add(_gene, _key, _value):
 		"""add an annotation. Does not accept references"""
