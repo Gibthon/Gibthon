@@ -11,8 +11,12 @@ source /usr/local/pythonenv/gibthon-env/bin/activate
 pip install -r deployment/requirements.pip
 
 #gather static files
+python gibthon/manage.py collectstatic
 
 #apply south migrations
+python gibthon/manage.py migrate gibson
+python gibthon/manage.py migrate fragment
+python gibthon/manage.py migrate accounts
 
 #restore apache config
 cp deployment/apache/httpd.conf.production ../httpd.conf
