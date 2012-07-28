@@ -21,6 +21,7 @@ passwordpatterns = patterns('django.contrib.auth.views',
 	(r'^reset/$', 'password_reset', {
 		'template_name': 'user/password_reset_form.html', 
 		'email_template_name':'user/password_reset_email.html',
+		'from_email': 'admin@gibthon.org',
 		'post_reset_redirect' : '/user/password/reset/done/'
 	}),
 	(r'^reset/done/$', 'password_reset_done', {
