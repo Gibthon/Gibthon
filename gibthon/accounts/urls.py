@@ -1,5 +1,7 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
+from django.contrib.auth.views import (password_reset, password_reset_done,
+	password_reset_confirm, password_reset_complete)
 
 messagepatterns = patterns('accounts.views',
 	(r'^detail$', 'message_detail'),
@@ -15,6 +17,25 @@ inboxpatterns = patterns('accounts.views',
 	(r'^(?P<mid>\d+)/', include(messagepatterns)),
 )
 
+passwordpatterns = patterns('django.contrib.auth.views',
+	(r'^reset/$', 'password_reset', {
+		'template_name': 'user/password_reset_form.html', 
+		'email_template_name':'user/password_reset_email.html',
+		'post_reset_redirect' : '/user/password/reset/done/'
+	}),
+	(r'^reset/done/$', 'password_reset_done', {
+		'template_name': 'user/password_reset_done.html'
+	}),
+	(r'^reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$',
+		'password_reset_confirm', {
+			'template_name': 'user/password_reset_confirm.html',
+			'post_reset_redirect' : '/user/password/done/'
+	}),
+	(r'^done/$',	'password_reset_complete', {
+		'template_name': 'user/password_reset_complete.html',
+	}),
+)
+
 urlpatterns = patterns('accounts.views',
 	(r'^$', 'redirect_home'),
 	(r'^login/$', 'login'),
@@ -24,4 +45,5 @@ urlpatterns = patterns('accounts.views',
 	(r'^register/$', 'register'),
 	(r'^register/(?P<email_hash>\w+)/$', 'create'),
 	(r'^inbox/', include(inboxpatterns)),
+	(r'^password/', include(passwordpatterns)),
 )
