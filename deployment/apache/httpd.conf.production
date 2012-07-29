@@ -28,4 +28,5 @@ WSGIPythonHome /usr/local/pythonenv/BASELINE
 
     Alias /media/ /home/gibthon/media/
     Alias /static/ /home/gibthon/static/
+    Alias /favicon.ico /home/gibthon/static/images/favicon.ico
 </VirtualHost>
