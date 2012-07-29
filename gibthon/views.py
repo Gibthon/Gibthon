@@ -19,3 +19,8 @@ def about(request):
 	t = loader.get_template('about.html')
 	c = RequestContext(request)
 	return HttpResponse(t.render(c))
+
+def changes(request):
+	t = loader.get_template('recent_changes.html')
+	c = RequestContext(request)
+	return HttpResponse(t.render(c))

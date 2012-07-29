@@ -4,24 +4,46 @@
 {% endblock %}
 
 {% block content %}
-<div class="ui-corner-all content fixed-width"
-	style="background-image:url('{{STATIC_URL}}/images/banner.jpg');
-		   height:200px; margin-bottom:0px;"><span style="font-size:2em; font-weight:bold; color:#eee; position:relative;
-		   top:160px; padding-left:10px;">Tools for Synthetic Biology</span>
-</div>
-<div class="content fixed-width">
-	<div class="ui-widget-content ui-corner-bottom frontbox">
-		<h2>What</h2>
-		Gibthon is a suite of web-based tools to aid in the design and manufacture of synthetic parts and devices for biological systems.
-	</div>
-	<div class="ui-widget-content ui-corner-bottom frontbox">
-		<h2>Why</h2>
-		The <a href="http://2010.igem.org/Team:Cambridge">2010 Cambridge iGEM</a> team found a need for an integrated toolkit to automate primer design for Gibson Assembly.
-	</div>
-	<div class="ui-widget-content ui-corner-bottom frontbox">
-		<h2>Contribute</h2>
-		Gibthon is an open-source project, and the development team are keen to welcome new members with new ideas. Please email <a href="mailto:bill@gibthon.org">bill@gibthon.org</a> and visit our public repo on <a href="http://github.com/mrginglymus/Gibthon">GitHub</a>
-	</div>
-  <div style='clear:both;'></div>
+<div class='fixed-width'>
+    <div class='ui-state-highlight ui-corner-all content'>
+        <h3>
+        Welcome to the new and improved version of gibthon.org!
+        </h3>
+        <p>
+        To see a list of new features, please see the 
+        <a href='/changes'>recent changes</a> page.
+        </p>
+    </div>
+
+    <div class="ui-corner-all content"
+        style="background-image:url('{{STATIC_URL}}/images/banner.jpg');
+        height:200px; margin-bottom:0px;">
+        <span style="font-size:2em; font-weight:bold; color:#eee; 
+            position:relative;top:160px; padding-left:10px;">
+            Tools for Synthetic Biology
+        </span>
+    </div>
+    <div class="content">
+        <div class="ui-widget-content ui-corner-bottom frontbox">
+            <h2>What</h2>
+            Gibthon is a suite of web-based tools to aid in the design and 
+            manufacture of synthetic parts and devices for biological systems.
+        </div>
+        <div class="ui-widget-content ui-corner-bottom frontbox">
+            <h2>Why</h2>
+            The <a href="http://2010.igem.org/Team:Cambridge">
+            2010 Cambridge iGEM</a> team found a need for an integrated 
+            toolkit to automate primer design for Gibson Assembly.
+        </div>
+        <div class="ui-widget-content ui-corner-bottom frontbox">
+            <h2>Contribute</h2>
+            Gibthon is an open-source project, and the development team is 
+            keen to welcome new members with new ideas. Please email 
+            <a href="mailto:bill@gibthon.org">bill@gibthon.org</a> and visit 
+            our public repo on 
+            <a href="http://github.com/mrginglymus/Gibthon">GitHub</a>.
+        </div>
+        <div style='clear:both;'></div>
+    </div>
 </div>
 {% endblock %}

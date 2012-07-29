@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block no-app-menu %}
+{% endblock %}
+
+{% block content %}
+<div class="fixed-width" >
+    <div>
+        <span style='float:left;'>
+            <img width='150px' src='/static/images/gibthon2.0beta.png'></img>
+        </span>
+        <span style='float:left;padding-top:60px'>
+            <h2>Recent Changes</h2>
+        </span>
+        <div style='clear:both;'></div>
+    </div>
+    <p>
+        Welcome to the latest gibthon release, codenamed 
+        '<span id='release_name'></span>'.<br/>
+        This page for letting you know what's been changed recently as well 
+        as what's in the works.
+    </p>
+
+    <h3>Changes and Improvements</h3>
+
+        <ul>
+            <li>
+                <h4>Construct Designer</h4>
+                <p>
+                    Many improvements have been made to the designer. Fragments
+                    are now added and ordered using drag-and-drop, making
+                    designing constucts a breeze.
+                </p>
+                <h5>Current Limitations</h5>
+                <ul>
+                    <li>
+                <p>
+                    The designer currently produces information about the
+                    primers as well as warnings for things like misprimings.
+                    However, it is not currently possible to manually edit
+                    primer lengths, although this is something which is being
+                    worked on, see 
+                    <a href='https://github.com/haydnKing/Gibthon/issues/22' 
+                        target='_blank'>this issue</a>.
+                </p>
+                    </li>
+                    <li>
+                <p>
+                    Currently the designer only works with whole fragments. It
+                is not possible to specify which sub-sequence you want to use
+                in your fragments. A workaround is to use the fragment view to
+                crop the fragment to the desired region. See
+                <a href='https://github.com/haydnKing/Gibthon/issues/10'
+                    target='_blank'>this issue</a>.
+                </p>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <h4>Fragment View</h4>
+                <p>
+                    A few mostly cosmetic improvements were made to the
+                    fragment view, particularly with the placement of features.
+                </p>
+                <p>
+                    One more notable change is that fragments can now be
+                    cropped to the current selection.
+                </p>
+            </li>
+        </ul>
+
+    <h3>Known Bugs</h3>
+    <p>
+        Please visit our issue tracker on 
+        <a href='https://github.com/haydnKing/Gibthon/issues?state=open'
+             target="_blank">github</a> to see the list of currently open bugs.
+    </p>
+
+</div>
+{% endblock %}
+{% block js %}
+<script type='text/javascript'>
+var ReleaseNames = [
+    'Enhanced E.Coli',
+    'Blistering Bacillus',
+    'Magic Marchantia',
+    'Cantankerous C. Elegans',
+];
+
+$(document).ready( function() {
+    var i = Math.round( Math.random() * ReleaseNames.length + 0.499);
+    console.log('i = ' + i);
+    $('#release_name').text(ReleaseNames[i]);
+});
+</script>
+{% endblock %}
