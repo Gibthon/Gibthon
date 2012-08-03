@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.views.generic.simple import direct_to_template
 from django.conf import settings
 
 primerpatterns = patterns('gibson.views',
@@ -42,5 +43,7 @@ urlpatterns = patterns('gibson.views',
 	(r'^(?P<cid>\d+)/primers/', include(primerpatterns)),
 	(r'^api/(?P<cid>\d+)/', include(apipatterns)),
 	(r'^(?P<cid>\d+)/', include(constructpatterns)),
+	(r'^walkthrough/$', direct_to_template, {
+		'template': 'gibson/walkthrough.html'}),
 )
 

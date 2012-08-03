@@ -26,6 +26,10 @@
 {% block content %}
 <div>
 	<div class="center fixed-width content">
+        <p>
+            First time using the designer? Click 
+            <a id='walkthrough_lnk' href='#'>here</a> for a quick walkthrough.
+        </p>
 		<div id="meta-box" class="ui-widget-content ui-corner-all left">
 			<form id='meta_form' action='saveMeta/' method='POST' onsubmit='return false;'>
 				{% csrf_token %}
@@ -107,6 +111,9 @@
 </div>
 
 <div id='primer_dlg' style='display:none'></div>
+
+<div id='walkthrough_dlg' style='display:none'></div>
+
 {% endblock %}
 
 {% block js %}
@@ -136,6 +143,22 @@
 			height:"auto",
 			width:"580",
 		});
+
+        $('#walkthrough_dlg').dialog({
+            autoOpen:false,
+            modal:true,
+            title:"A Quick Tour of the GCD",
+            height:'auto',
+            width: 800,
+            position:['center', 'top'],
+        });
+
+        $('#walkthrough_lnk').click(function(){
+            $('#walkthrough_dlg')
+                .load('/gibthon/walkthrough/')
+                .dialog('open');
+            return false;
+        });
 		
 		$('a#download').button({
 			icons:{primary:'ui-icon-link'}
