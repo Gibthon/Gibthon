@@ -26,10 +26,13 @@
 {% block content %}
 <div>
 	<div class="center fixed-width content">
-        <p>
-            First time using the designer? Click 
-            <a id='walkthrough_lnk' href='#'>here</a> for a quick walkthrough.
-        </p>
+        <div class='ui-state-highlight ui-corner-all' style='margin-bottom:1em;'>
+            <h4>First time using the designer?</h4>
+            <p>
+                Click 
+                <a id='walkthrough_lnk' href='#'>here</a> for a quick walkthrough.
+            </p>
+        </div>
 		<div id="meta-box" class="ui-widget-content ui-corner-all left">
 			<form id='meta_form' action='saveMeta/' method='POST' onsubmit='return false;'>
 				{% csrf_token %}
@@ -148,14 +151,18 @@
             autoOpen:false,
             modal:true,
             title:"A Quick Tour of the GCD",
-            height:'auto',
+            resizable: false,
+            draggable: false,
             width: 800,
-            position:['center', 'top'],
         });
 
-        $('#walkthrough_lnk').click(function(){
+        $('#walkthrough_lnk').mousedown(function(){
             $('#walkthrough_dlg')
                 .load('/gibthon/walkthrough/')
+                .dialog('option', 'height', 
+                    0.9 * $(window).height())
+                .dialog('option', 'position', 
+                    ['center', 0.05 * $(window).height()])
                 .dialog('open');
             return false;
         });
