@@ -11,6 +11,8 @@ from fragment.api import get_gene, read_meta
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 
+from forms import SettingsForm
+
 def cf2dict(cf):
 	"""
 		Convert a ConstructFragment to a dictionary suitable for JSON encoding
@@ -66,14 +68,19 @@ def save_meta(request, cid):
 	raise Http404
 	
 @login_required
-def update_settings(request, cid):
+def save_settings(request, cid):
+	print 'update_settings request.method = %s' % request.method
 	if request.method == 'POST':
 		con = get_construct(request.user, cid)
 		if not con:
-			return JsonResponse({'errors': {'all':"Construct with id '%s' not found",},} % cid, ERROR)
+			return JsonResponse({
+				'errors': {
+					'all':"Construct with id '%s' not found",
+					},} % cid, ERROR)
 		form = SettingsForm(request.POST, instance=con.settings)
 		if form.is_valid():
 			form.save()
+			con.reset()
 			data = {}
 			for key,value in form.cleaned_data.items():
 				data[key] = str(value);

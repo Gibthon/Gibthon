@@ -22,7 +22,7 @@ constructpatterns = patterns('gibson.designer',
 )
 
 apipatterns = patterns('gibson.api',
-	(r'^saveSettings/$', 'update_settings'),
+	(r'^saveSettings/$', 'save_settings'),
 	(r'^saveMeta/$', 'save_meta'),
 	(r'^getInfo/$', 'get_info'),
 	(r'^addFragment/$', 'fragment_add'),

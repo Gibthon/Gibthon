@@ -522,6 +522,11 @@ class Construct(models.Model):
 		self.save()
 		yield ':100'		
 
+	def reset(self):
+		"""Return the construct to an unprocessed state"""
+		self.processed = False
+		self.save()
+
 	def last_modified(self):
 		"""Return the date/time that the construct was last modified as a formatted string"""
 		return self.modified.strftime('%c')

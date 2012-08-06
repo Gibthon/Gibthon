@@ -45,6 +45,7 @@ def construct_settings(request, cid):
 		t = loader.get_template('gibson/settings.html')
 		s = con.settings
 		c = RequestContext(request, {
+			'cid': cid,
 			'settings':s,
 		})
 		return HttpResponse(t.render(c))

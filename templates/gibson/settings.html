@@ -1,6 +1,6 @@
 <div class='center fixed-width'>
 <div class='left'>
-	<form id='settings_form' action="saveSettings/" method="post">
+    <form id='settings_form' action="/gibthon/api/{{ cid }}/saveSettings/" method="post">
 		{% csrf_token %}
 
 		<div style="width:30em; padding:10px; height:25px; margin-left:auto; margin-right:auto;" class="ui-widget-header ui-corner-top left">
