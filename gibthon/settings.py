@@ -19,7 +19,7 @@ from localsettings import localsettings
 #	media_url (media url)
 #	static_url (static url)
 
-DEBUG = True
+DEBUG = localsettings.debug
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -116,7 +116,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'fragment',
+		'south',
+		'fragment',
     'gibson',
     'molcal',
     'captcha',
@@ -142,10 +143,13 @@ CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 
 # email settings
 
-EMAIL_HOST = 'smtp.gibthon.org'
-EMAIL_PORT = 25
-EMAIL_HOST_USER = 'site@gibthon.org'
-EMAIL_HOST_PASSWORD = localsettings.email_password
+#EMAIL_HOST = 'smtp.gibthon.org'
+#EMAIL_PORT = 25
+#EMAIL_HOST_USER = 'site@gibthon.org'
+#EMAIL_HOST_PASSWORD = localsettings.email_password
+AWS_ACCESS_KEY_ID = localsettings.ses_accesskey
+AWS_SECRET_ACCESS_KEY = localsettings.ses_secretaccesskey
+EMAIL_BACKEND = 'django_ses.SESBackend'
 EMAIL_USE_TLS = False
 EMAIL_SUBJECT_PREFIX = '[Gibthon.org] '
 

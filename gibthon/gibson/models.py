@@ -19,7 +19,7 @@
 # 1) PrimerHalf
 #	Each primer is stored as two primerhalfs, one for the sticky end, one for the flappy end
 #
-# 2) Setings
+# 2) Settings
 # 	A class separate from the Construct class for storing settings for each 
 #	construct. No huge benefit to it being separate from Construct, other than
 #	separating fairly different aspects. Also makes forms a bit easier.
@@ -49,6 +49,27 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 
 from annoying.fields import AutoOneToOneField
+rules = [
+		(
+			(AutoOneToOneField,),
+			[],
+			{
+				"to": ["rel.to", {}],
+				"to_field": ["rel.field_name",
+					{"default_attr":
+						"rel.to._meta.pk.name"}],
+					"related_name":
+					["rel.related_name",
+						{"default": None}],
+					"db_index":
+					["db_index",
+						{"default": True}],
+					},
+			)
+		]
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules(rules, ["^annoying\.fields\.AutoOneToOneField"]) 
+
 
 from fragment.models import Gene
 
@@ -56,18 +77,21 @@ from gibthon.unafold import UnaFolder
 
 import os, subprocess, shlex, sys, csv
 from subprocess import CalledProcessError
+from datetime import datetime
 
 def hybrid_options(t,settings):
 	return ' -n DNA -t %.2f -T %.2f -N %.2f -M %.2f --mfold=5,-1,100 ' %(t + settings.ss_safety, t + settings.ss_safety, settings.na_salt, settings.mg_salt)
 
 def run_subprocess(cline, primer):
 	try:
+		print "Popen(%s)" % cline
 		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	except IOError:
 		print 'aspifjoasijfoiaj'
 		return False
 	stdout, stderr = p.communicate()
 	if p.returncode > 0:
+		print 'Primer calculation failed with error %d\n%s\n%s'%(p.returncode,stderr,stdout)
 		w = Warning.objects.create(
 			primer = primer,
 			type = 'sy',
@@ -210,7 +234,10 @@ class Primer(models.Model):
 	def self_prime_check(self):
 		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
 		ret, image = u.self_prime(str(self.seq()))
-		os.rename(image, settings.MEDIA_ROOT+'unafold/p-'+str(self.id))
+		print image
+		print os.path.join(settings.MEDIA_ROOT, 'unafold/p-%s' % self.id)
+		os.rename(image, os.path.join(settings.MEDIA_ROOT, 'unafold/p-%s' % self.id))
+		
 		self.warning.all().filter(type='sp').delete()
 		self.save()
 		for warning in u.warnings:
@@ -221,7 +248,8 @@ class Primer(models.Model):
 			)		
 	
 	def misprime_check(self):
-		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
+		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, 
+				mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
 		if(self.stick.top):
 			target = str(self.stick.cfragment.sequence())
 		else:
@@ -242,12 +270,14 @@ class PrimerHalf(models.Model):
 	length = models.PositiveSmallIntegerField()
 	
 	def start(self):
+		"""return the start relative to the fragment's start"""
 		if self.top ^ self.isflap():
 			return self.cfragment.end() - self.length
 		else:
 			return self.cfragment.start()
 	
 	def end(self):
+		"""return end relative to the fragment's start"""
 		if self.top ^ self.isflap():
 			return self.cfragment.end()
 		else:
@@ -259,8 +289,9 @@ class PrimerHalf(models.Model):
 		else: return True
 		
 	def extend(self):
+		"""Extend my length by one while I'm within the fragment"""
 		self.length += 1
-		if self.start() < (self.cfragment.start_feature.start - self.cfragment.start_offset) or self.end() > (self.cfragment.end_feature.end + self.cfragment.end_offset):
+		if self.start() < self.cfragment.start() or self.end() > self.cfragment.end():
 			self.length -= 1
 			return False
 		else:
@@ -312,6 +343,7 @@ class Construct(models.Model):
 	shape = models.CharField(max_length=1, choices=SHAPE_CHOICES)
 	created = models.DateTimeField(auto_now_add=True)
 	modified = models.DateTimeField(auto_now=True)
+	processed = models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return self.name
@@ -367,17 +399,62 @@ class Construct(models.Model):
 			name=self.name,
 			description=self.description
 		)
-		g.features = [SeqFeature(FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) for f in self.features()]
+		g.features = [SeqFeature(
+			FeatureLocation(ExactPosition(f.start-1),ExactPosition(f.end)), 
+			f.type, qualifiers=dict([[q.name,q.data] for q in f.qualifiers.all()])) 
+			for f in self.features()]
 		return g.format('genbank')
 		
-	def add_fragment(self, fragment):
-		o = len(self.fragments.all())
-		cf = ConstructFragment.objects.create(construct=self, fragment=fragment, order = o, direction='f', start_feature=fragment.features.all()[0], end_feature=fragment.features.all()[0], start_offset=0, end_offset=0)
-		if cf:
-			return True
-		else:
-			return False
+	def add_fragment(self, fragment, order = 0, direction='f'):
+		print "Add_fragment at %d" % order 
+		if(order > len(self.fragments.all())):
+			order = len(self.fragments.all())
+		if(order < 0):
+			order = len(self.fragments.all())
+		# update all the orders which have changed
+		try:
+			inc = self.cf.filter(order__gte=(order))
+			for i in inc:
+				i.order = i.order + 1
+				i.save()
+		except Exception:
+			pass #probably not found
+			
+		cf = ConstructFragment.objects.create(construct=self,fragment=fragment, 
+				order = order, direction=direction, start_feature=None, 
+				end_feature=None, start_offset=0, end_offset=0)
+
+		self.processed = False
+		self.save()
+		return cf
 		
+	def delete_cfragment(self, cfid):
+		try:
+			cf = self.cf.get(id=cfid)
+			order = cf.order
+			cf.delete()
+			self.processed = False
+			for cf in self.cf.filter(order__gt=order):
+				cf.order -= 1
+				cf.save()
+			self.save()
+			return True
+		except:
+			return False
+	
+	def reorder_cfragments(self, cfids, directions):
+		for i,cfid in enumerate(cfids):
+			cf = self.cf.get(id=cfid)
+			if cf.order != i:
+				cf.order = i
+				cf.save()
+				self.processed = False
+			if directions[i] in ('f', 'r',):
+				cf.direction = directions[i]
+				cf.save()
+				self.processed = False
+		self.save()
+	
 	def process(self, reset=True, new=True):
 		if new:
 			# delete all existing primers
@@ -434,13 +511,26 @@ class Construct(models.Model):
 			if self.settings.min_primer_tm > 0:
 				p.tm_len_primer(self.settings.min_primer_tm)
 			p.self_prime_check()
+			print 'yield ":%d"' % (((2*i)+1)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+1)*(90.0/(4.0*n)))
 			yield ' '*1024
 			p.misprime_check()
+			print 'yield ":%d"' % (((2*i)+2)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
+		self.processed = True
+		self.save()
 		yield ':100'		
 
+	def reset(self):
+		"""Return the construct to an unprocessed state"""
+		self.processed = False
+		self.save()
+
+	def last_modified(self):
+		"""Return the date/time that the construct was last modified as a formatted string"""
+		return self.modified.strftime('%c')
+	
 class ConstructFragment(models.Model):
 	construct = models.ForeignKey('Construct', related_name='cf')
 	fragment = models.ForeignKey('fragment.Gene', related_name='cf')
@@ -450,10 +540,10 @@ class ConstructFragment(models.Model):
 		('r', 'Reverse'),
 	)
 	direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
-	start_feature = models.ForeignKey('fragment.Feature', related_name='start_feature')
-	start_offset = models.IntegerField()
-	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature')
-	end_offset = models.IntegerField()
+	start_feature = models.ForeignKey('fragment.Feature', related_name='start_feature', blank=True, null=True) #if blank, assume relative to fragment not feature
+	start_offset = models.IntegerField() #positive in direction of sequence
+	end_feature = models.ForeignKey('fragment.Feature', related_name='end_feature', blank=True, null=True) #if blank, assume relative to fragment not feature
+	end_offset = models.IntegerField() #positive in direction of sequence
 	concentration = models.DecimalField(default=100, max_digits=4, decimal_places=1)
 
 	class Meta:
@@ -486,23 +576,62 @@ class ConstructFragment(models.Model):
 					feat.append(f)
 		return feat
 	
-	def start(self):
+	def start_is_relative(self):
+		if self.start_feature:
+			return True
+		return False
+	
+	def end_is_relative(self):
+		if self.end_feature:
+			return True
+		return False
+	
+	def is_relative(self):
+		return (self.end_feature != None) and (self.start_feature != None)
+		
+	def limit(self, index):
+		"""limit the index so that it is within the sequence"""
+		return sorted([0, index, self.fragment.length() - 1])[1]
+	
+	def start(self): 
+		"""Note that feature indexes are stored in 'python' (0-offset, ends inclusive) not 'biologist' (1-offset, ends IDK)
+		   offsets are positive in the direction of the sequence
+		"""
+		r = 0
 		if self.direction == 'f':
-			return self.start_feature.start - self.start_offset
+			if self.start_feature:
+				r = self.start_feature.start + self.start_offset
+			else: #absolute
+				r = self.start_offset
 		else:
-			return self.fragment.length() - (self.start_feature.end - self.start_offset) + 1
+			if self.start_feature:
+				r = (self.fragment.length() - 1 - self.start_feature.end) + self.start_offset
+			else:
+				r = self.start_offset
+		return self.limit(r)
 	
 	def end(self):
+		"""Note that feature indexes are stored in 'python' (0-offset, ends inclusive) not 'biologist' (1-offset, ends IDK)
+		   offsets are positive in the direction of the sequence
+		"""
+		r = 0
 		if self.direction == 'f':
-			return self.end_feature.end + self.end_offset
+			if self.end_feature:
+				r = self.end_feature.end + self.end_offset
+			else:
+				r = (self.fragment.length() - 1) + self.end_offset
 		else:
-			return self.fragment.length() - (self.end_feature.start + self.end_offset) + 1
+			if self.end_feature:
+				r = self.fragment.length() - 1 - (self.end_feature.start - self.end_offset)
+			else:
+				r = (self.fragment.length() - 1) + self.end_offset
+		return self.limit(r)
 	
 	def sequence(self):
 		seq = self.fragment.sequence
 		if self.direction == 'r':
 			seq = str(reverse_complement(Seq(seq)))
-		return seq[self.start()-1:self.end()]
+		return seq[self.start():self.end()]
 	
 	def tm(self):
 		return ((self.primer_top().stick.tm() + self.primer_bottom().stick.tm())/2)-4
@@ -518,4 +647,4 @@ class ConstructFragment(models.Model):
 	
 	def __unicode__(self):
 		return self.construct.name + ' : ' + self.fragment.name + ' (' + str(self.order) + ')'
-	
+

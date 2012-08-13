@@ -1,0 +1,103 @@
+.jFragment
+{
+    position: relative;
+    display: inline-block;
+    min-width: 10em;
+    height:1.5em;
+    padding: 0 10px;
+    background-color: red;
+    border-color: red;
+    text-align: center;
+    cursor:pointer;
+}
+.jFragment:before
+{
+    content:' ';
+    border-style:solid;
+    border-width: 0.75em;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+    border-right-color: inherit;
+    position:absolute;
+    left:-1.5em;
+    top:0px;
+}
+.jFragment:after
+{
+    content:' ';
+    border-style:solid;
+    border-width: 0.75em;
+    border-left-color: inherit;
+    border-right-color: transparent;
+    border-top-color: inherit;
+    border-bottom-color: inherit;
+    position:absolute;
+    right:-0.75em;
+    top:0px;
+}
+.jf-name
+{
+    font:100%/1.4 Verdana, Arial, Helvetica, sans-serif;
+    padding: 0 1em;        
+}
+
+.JFS_panel
+{
+    padding: 1em;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+}
+
+.JFS_count
+{
+    padding: 0.0em 1.5em;
+    margin: 0;
+    font-style: italic;
+}
+
+.JFS_fragView
+{
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#JFS_filter
+{
+    width: 100%;
+    margin: 0;
+    border-width: 0;
+}
+
+.JFS_filterHolder
+{
+    padding: 0em 1em;
+    position: relative;
+    background: none !important;
+}
+.JFS_filterHolder .ui-icon
+{
+    position: absolute;
+    right: 0.5em;
+    top: auto;
+}
+.JFS_filterHolder p
+{
+    position: absolute;
+    left: 0em;
+    top: 0em;
+    font-style:italic;
+    color:grey;
+}
+#JFS_loading
+{
+    margin: 1.5em 0;
+    color: grey;
+    font-style:italic;
+}
+.JFS_fragHolder
+{
+    position:relative;
+    margin: 0.5em;
+}

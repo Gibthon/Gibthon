@@ -1,38 +1,29 @@
 
 <div class="pad">
 	<div class="pad-content" style="padding:.2em;">
-		<div id='left_div' style='float:left;width:70%;'>
-			<div id='cdesigner_pad' class='design-content ui-widget-content ui-corner-all' style='padding:5px;'>
-				<canvas id="cdesigner" style="border:1px solid blue;"></canvas>
-			</div>
-		</div>
-
-		<div id='right_div' style='float:left;width:30%;'>
-			<div class='design-content ui-widget-content ui-corner-all'>
+		<div id='canvas_holder'>
+			<canvas id="cdesigner" style="display:block; height:100%; width:100%;"></canvas>
+					
+			<div id="fragment_clipping" style='display:none;'></div>
+			
+			<div class="fragment-info ui-corner-all" style='display:none;'>
+				<div class="fragment-data">
+					<h3 id="fragment_name">Name</h3>
+					<p id="fragment_desc">Description</p>
+				</div>
 				<div>
-					<h4 class='center' style='margin-bottom:.2em;'>Available Fragments</h4>
-				</div>
-				<div id='frag_drag'>
-					<div style="text-align:center;margin: 2em 0;">
-						<h4>Loading Fragments...</h4>
-						<img src="/static/images/spinner.gif" alt="Loading" />
-					</div>
+					<button id="fragment_clip">Clipping</button>
+					<button id="fragment_remove">Remove</button>
 				</div>
 			</div>
+			
 		</div>
-		<div style="clear:both;"></div>
+        <div id='frag_select_holder'>
+            <div id='frag_select'>
+                {%include 'fragment/jFragmentSelector.html' %}
+            </div>
+        </div>
+        <div style="clear:both"></div>
 	</div>
 </div>
 
-<script type='text/javascript'>
-$(window).ready( function() {
-	$('#frag_drag').fragmentDrag();
-	var w = $('#cdesigner_pad').width()-2;
-	$('#cdesigner').designer({
-		'width': w,
-		'height': w * 1.4,
-	});
-	$('#right_div').outerHeight($('#left_div').outerHeight());
-});
-
-</script>

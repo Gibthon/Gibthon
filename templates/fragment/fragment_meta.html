@@ -4,6 +4,7 @@
 		<div style="float:left;max-width:70%;">
 			<span id="name" class="magic-item">
 				<h3 class="magic-text"></h3>
+				<input name='name' class='magic-input' maxlength="100" size="30"/>
 			</span>
 		</div>
 		<div style="float:right;margin: .2em .5em;" >
@@ -29,19 +30,21 @@
 			<h4>Annotations</h4>
 				<div class="info" id="annot_div">
 					<table id="annot_table" class='extender-target'>
+						<tbody>
 						<tr id='extender-copy'> 
 							<td id='annot_key' class='magic-item annot-key' > 
-								<span class='magic-text' style='display:none;'>Key</span> 
-								<input name='annot_key' class='magic-input' style='display:inline-block;' type='text' value='Key' size=10 ></input>
+								<span class='magic-text extender-value' style='display:none;'>Key</span> 
+								<input name='annot_key' class='magic-input' style='display:inline-block;' type='text' value='Key' size=10 maxlength="30" ></input>
 								<p class='magic-error' style='display:none;'></p>
 							</td> 
 							<td id='annot_value' class='magic-item'> 
-								<span class='magic-text' style='display:none;'>Value</span>
-								<input name='annot_value' class='magic-input' type='text' style='display:inline-block;' value='Value'></input>
+								<span class='magic-text extender-value' style='display:none;'>Value</span>
+								<input name='annot_value' class='magic-input' type='text' style='display:inline-block;' value='Value'  maxlength="1024" ></input>
 								<p class='magic-error' style='display:none;'></p>
 							</td> 
 							<td><button class='extender-remove'>Remove</button></td>
 						</tr>
+						</tbody>
 					</table>
 					<button class='extender-add'>Add</button>
 				</div>
@@ -55,6 +58,9 @@
 </div>
 <script type='text/javascript'>
 $(window).ready( function() {
-	$('#fragmentmeta').fragmentMeta({ id: {{ id }}, });
+	libFrag.getByID( {{id}}, function(f)
+	{
+		$('#fragmentmeta').fragmentMeta({frag: f,});
+	});
 });
 </script>

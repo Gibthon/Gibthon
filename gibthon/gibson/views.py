@@ -2,9 +2,10 @@ from models import *
 from forms import *
 from fragment.models import Gene, Feature
 from fragment.views import get_fragment
+from gibthon.jsonresponses import JsonResponse, ERROR
 
 from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import condition
@@ -55,39 +56,6 @@ def download(request, cid):
 	else:
 		return HttpResponseNotFound()
 
-@login_required
-def construct_settings(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		if request.method == 'POST':
-			form = SettingsForm(request.POST, instance=con.settings)
-			if form.is_valid():
-				form.save()
-				return HttpResponse()
-		t = loader.get_template('gibson/settings.html')
-		s = con.settings
-		c = RequestContext(request, {
-			'settings':s,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def settings_edit(request, cid):
-	con = get_construct(request.user, cid)
-	if con:
-		t = loader.get_template('gibson/settings_edit.html')
-		f = SettingsForm(instance=con.settings)
-		f.is_valid()
-		c = RequestContext(request, {
-			'construct':con,
-			'form':f,
-		})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-		
 @login_required
 def primer(request, cid, pid):
 	con = get_construct(request.user, cid)
@@ -140,16 +108,19 @@ def load_primer(request, cid, pid):
 @login_required
 def primers(request, cid):
 	con = get_construct(request.user, cid)
-	if con and len(con.primer.all()) == 2*len(con.cf.all()) and len(con.primer.all()) > 0:
+	if con and con.processed:
 		t = loader.get_template('gibson/primers.html')
 		c = RequestContext(request, {
 			'construct': con,
 			'primer_list': con.primer.all(),
 			'title':'Primers('+con.name+')',
 		})
-		return HttpResponse(t.render(c))
 	else:
-		return HttpResponseNotFound()
+		t = loader.get_template('gibson/process.html')
+		c = RequestContext(request, {
+			'construct': con,
+		})
+	return HttpResponse(t.render(c))
 
 @login_required
 @condition(etag_func=None)
@@ -158,12 +129,11 @@ def process(request, cid, reset=True, new=True):
 	if con:
 		try:
 			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+			return resp
 		except:
 			print 'wok'
-		else:
-			return resp
 	else:
-		return HttpResponseNotFound()
+		raise Http404()
 
 @login_required
 def constructs(request):
@@ -187,7 +157,7 @@ def construct_add(request):
 			c = form.save()
 			c.owner = request.user
 			c.save()
-			return HttpResponse('/gibthon/'+str(c.id)+'/'+c.name+'/')
+			return HttpResponse('/gibthon/%s/' % c.id)
 		t = loader.get_template('gibson/gibsonnew.html')
 		con = Construct.objects.all().filter(owner=request.user)
 		c = RequestContext(request, {
@@ -204,7 +174,7 @@ def construct_add(request):
 def construct(request,cid):
 	con = get_construct(request.user, cid)
 	if con:
-		t = loader.get_template('gibson/gibson.html')
+		t = loader.get_template('gibson/designer.html')
 		if request.method == 'POST':
 			rp = fix_request(request.POST)
 			f = ConstructForm(rp, instance=con)
@@ -228,7 +198,7 @@ def construct(request,cid):
 @login_required
 def construct_fragment(request, cid):
 	con = get_construct(request.user, cid)
-	if con:
+	if con and not request.is_ajax():
 		t = loader.get_template('gibson/constructfragment.html')
 		cf_list = con.cf.all()
 		feature_list = [FeatureListForm(cf, con) for cf in cf_list]
@@ -237,17 +207,117 @@ def construct_fragment(request, cid):
 			'list':list
 		})
 		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
+	if con and request.is_ajax():
+		cf_list = con.cf.all()
+		frag_list = [{'fid':cf.fragment.id, 'cfid': cf.id, 'name':cf.fragment.name, 'desc': cf.fragment.description, 'length':abs(cf.end()-cf.start()),} for cf in cf_list]
+		return JsonResponse(frag_list)
+		
+	return HttpResponseNotFound()
 
 @login_required
 def construct_delete(request, cid):
 	con = get_construct(request.user, cid)
 	if con:
 		con.delete()
+		if request.is_ajax():
+			return JsonResponse('/gibthon') 
 		return HttpResponseRedirect('/gibthon')
 	else:
 		return HttpResponseNotFound()
+
+@login_required
+def apply_clipping(request, cid, cfid):
+	con = get_construct(request.user, cid)
+	if con:
+		try:
+			cf = con.cf.get(id=cfid)
+		except:
+			return JsonResponse('Could not find ConstructFragment(%s)' % cfid, ERROR)
+		
+		try:
+			f_type = request.POST['from_type'].lower()
+			t_type = request.POST['to_type'].lower()
+		
+			if f_type == 'absolute':
+				start = int(request.POST['from_abs'])
+				if start < 0 or start > cf.fragment.length() - 1:
+					raise ValueError('"start" must be within range [0:%i]' % cf.fragment.length() -1)
+				if cf.start_offset != start or cf.start_feature != None:
+					cf.start_offset = start
+					cf.start_feature = None
+					con.processed = False
+			elif f_type == 'relative':
+				start = int(request.POST['from_rel'])
+				start_fid = int(request.POST['start_feat'])
+				print "available ids are %s" % [feat.id for feat in cf.fragment.features.all()] 
+				start_feature = cf.fragment.features.get(id=start_fid)
+				if cf.start_offset != start or cf.start_feature != start_feature:
+					cf.start_offset = start
+					cf.start_feature = start_feature
+					con.processed = False
+			else:
+				raise ValueError('"f_type" must be "absolute" or "relative"')
+				
+			
+			if t_type == 'absolute':
+				end = int(request.POST['to_abs'])
+				if end < 0 or end > cf.fragment.length() - 1:
+					raise ValueError('"end" must be within range [0:%i]' % cf.fragment.length() -1)
+				if cf.end_offset != end or cf.end_feature != None:
+					cf.end_offset = end
+					cf.end_feature = None
+					con.processed = False
+			elif t_type == 'relative':
+				end = int(request.POST['to_rel'])
+				end_fid = int(request.POST['end_feat'])
+				end_feature = cf.fragment.features.get(id=end_fid)
+				if cf.end_offset != end or cf.end_feature != end_feature:
+					cf.end_offset = end
+					cf.end_feature = end_feature
+					con.processed = False
+			else:
+				raise ValueError('"t_type" must be "absolute" or "relative"')		
+					
+			
+		except KeyError as e:
+			return JsonResponse('Value required for "%s"' % e.message, ERROR)
+		except ValueError as e:
+			return JsonResponse('ValueError: %s' % e.message, ERROR)
+		except ObjectDoesNotExist as e:
+			return JsonResponse('DoesNotExist: %s (%s)' % (e.message, start_fid), ERROR)
+		
+		cf.save()
+		con.save()
+		return JsonResponse('OK')
+	raise Http404
+
+@login_required
+def fragment_clipping(request, cid, cfid):
+	con = get_construct(request.user, cid)
+	if con:
+		try:
+			cf = con.cf.get(id=cfid)
+		except:
+			return JsonResponse('Could not find ConstructFragment(%s)' % cfid, ERROR)
+		t = loader.get_template('gibson/fragment_clipping.html')
+		d = {
+			'feature_list': cf.fragment.features.all(),
+			'cfid': cfid,
+			'from_absolute': not cf.start_is_relative(),
+			'to_absolute': not cf.end_is_relative(),
+			'length': cf.fragment.length(),
+			'max': cf.fragment.length() - 1,
+			}
+		if cf.start_is_relative():
+			d['start_feat'] = cf.start_feature.id
+		d['start_offset'] = cf.start_offset
+		if cf.end_is_relative():
+			d['end_feat'] = cf.end_feature.id
+		d['end_offset'] = cf.end_offset
+		
+		c = RequestContext(request, d)
+		return HttpResponse(t.render(c))
+	raise Http404
 
 @login_required
 def fragment_viewer(request, cid, fid):
@@ -277,56 +347,7 @@ def fragment_browse(request, cid):
 		return HttpResponse(t.render(c))
 	else:
 		return HttpResponseNotFound()
-	
-@login_required
-def fragment_add(request, cid, fid):
-	con = get_construct(request.user, cid)
-	if con:
-		f = get_fragment(request.user, fid)
-		if f:
-			con.add_fragment(f)
-#			return HttpResponse('OK')
-			return HttpResponseRedirect('/gibthon/'+cid+'/'+con.name+'/')
-		else:
-			return HttpResponseNotFound()
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def fragment_delete(request, cid, cfid):
-	con = get_construct(request.user, cid)
-	if con:
-		try: cf = ConstructFragment.objects.get(id=cfid)
-		except ObjectDoesNotExist: return HttpResponseNotFound()
-		else:
-			cf.delete()
-			return HttpResponse("OK")
-	else:
-		return HttpResponseNotFound()
-
-@login_required
-def save(request, cid):
-	con = get_construct(request.user, cid)
-	if request.method == 'POST' and con:
-		t = loader.get_template('gibson/date.html')
-		order = request.POST.getlist('order[]')
-		feature_select = request.POST.getlist('feature_select[]')
-		direction = request.POST.getlist('direction[]')
-		for i,cff in enumerate(zip(order,feature_select,direction)):
-			[cfid,fids, d] = cff
-			cf = ConstructFragment.objects.get(pk=cfid)
-			cf.order = i
-			[fsid, feid] = fids.split(',')
-			cf.start_feature = Feature.objects.get(pk=fsid)
-			cf.end_feature = Feature.objects.get(pk=feid)
-			cf.direction = d
-			cf.save()
-		con.save()
-		c = RequestContext(request,{'date':con.modified})
-		return HttpResponse(t.render(c))
-	else:
-		return HttpResponseNotFound()
-		
+			
 @login_required
 def summary(request, cid):
 	con = get_construct(request.user, cid)

@@ -1,0 +1,50 @@
+<div id='process_wrap'>
+    <div id='processing' class='center'
+        style='margin-top:1.5em;visibility:hidden;'>
+        <img src='{{ STATIC_URL }}/images/spinner.gif' />
+        <h4>Working...</h4>
+    </div>
+	<div id='process_progress' style='width:80%;margin-left:auto;margin-right:auto;margin-top:2em;'>
+	</div>
+
+	<div style='text-align:center;margin-top:1em;'>
+		<button id='process_btn'>Process</button>
+	</div>
+</div>
+
+<script type='text/javascript'>
+function makeHttpObject() {
+	try {return new XMLHttpRequest();}
+	catch (error) {}
+	try {return new ActiveXObject("Msxml2.XMLHTTP");}
+	catch (error) {}
+	try {return new ActiveXObject("Microsoft.XMLHTTP");}
+	catch (error) {}
+
+	throw new Error("Could not create HTTP request object.");
+}
+	
+$(window).ready( function() {
+	$('#process_progress').progressbar({'value': 0,});
+	
+	$('#process_btn').button({
+		icons: {primary: 'ui-icon-gear',},
+	}).click( function() {
+        //make sure there's an immidiate response - less frustration
+        $(this).button('disable');
+        $('#processing').css('visibility', 'visible');
+
+		var h = makeHttpObject();
+		h.open('GET', 'process/', true)
+		h.onreadystatechange = function (){
+			p = parseInt(this.responseText.split(':').pop());
+			$('#process_progress').progressbar('value', p);
+			if (p==100){
+				$('#tabs').tabs('load', 3);
+			}
+		}
+		h.send(null);
+	});
+});
+
+</script>

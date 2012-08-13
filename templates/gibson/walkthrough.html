@@ -1,0 +1,102 @@
+<style type="text/css">
+    .walkthrough-item div {
+        padding: 1em 1.5em;
+    }
+    .walkthrough-item p {
+        padding-left: 1.5em;
+        color: rgb(100,100,100);
+    }
+</style>
+
+<h2>A Quick Overview of the Gibthon Construct Designer (GCD)</h2>
+
+<p>
+As you can see, we've made a few changes to the GCD.
+</p>
+<p>
+Here's a quick walkthrough of how to use the new version and a few hints as to
+what's in the works.
+</p>
+
+<h4>1) Import the required fragments into gibthon</h4>
+
+<div class='walkthrough-item'>
+    <div class='walkthrough-image center'>
+        <img width='50%' src='/static/images/walkthrough/1.png'></img>
+    </div>
+    <p>
+    Fragments can be imported from various sources including NCBI entrez and a
+    number of file formats in the `fragment' app.
+    </p>
+</div>
+
+<h4>2) Crop the fragments to the region of interest</h4>
+
+<div class='walkthrough-item'>
+    <div class='walkthrough-image center'>
+        <img width='50%' src='/static/images/walkthrough/2.png'></img>
+    </div>
+    <p>
+    Fragments can be cropped in the fragment view, in the `fragment' app.
+    </p>
+    <p>
+    We're currently developing a way of selecting regions within fragments from the
+    gibthon app itself.
+    This would eliminate the need for this step and the extra fragments it
+    generates. See <a href='https://github.com/haydnKing/Gibthon/issues/10'>this issue</a>.
+    </p>
+</div>
+
+<h4>3) Drag and Drop</h4>
+
+<div class='walkthrough-item'>
+    <div class='walkthrough-image center'>
+        <img width='50%' src='/static/images/walkthrough/3.png'></img>
+    </div>
+    <p>
+    Drag and drop the fragments into their correct order in the Construct Designer
+    </p>
+</div>
+
+<h4>4) Confirm settings</h4>
+
+<div class='walkthrough-item'>
+    <div class='walkthrough-image center'>
+        <img width='50%' src='/static/images/walkthrough/4.png'></img>
+    </div>
+    <p>
+    Enter the settings for the reaction(s) in the settings tab
+    </p>
+</div>
+
+<h4>5) Process</h4>
+
+<div class='walkthrough-item'>
+    <div class='walkthrough-image center'>
+        <img width='50%' src='/static/images/walkthrough/5.png'></img>
+    </div>
+    <p>
+    Click process to design your primers
+    </p>
+</div>
+
+<h4>6) Download Protocols and View Warnings</h4>
+
+<div class='walkthrough-item'>
+    <div class='walkthrough-image center'>
+        <img width='50%' src='/static/images/walkthrough/6.png'></img>
+    </div>
+    <p>
+    Warnings are displayed whenever gibthon detects a potential problem with your
+    primers.
+    Often these warnings will not affect the outcome of the reaction, but judgement
+    is required as to the severity of the problem.
+    </p>
+    <p>
+    We're working on a method for manually adjusting the length of the primers in
+    order to avoid warnings
+    as well as a general improvement of the way these primers are displayed.
+    Being able to see that your primers are sane at a glance is a key design
+    goal. See <a href='https://github.com/haydnKing/Gibthon/issues/22'>this issue</a>.
+    </p>
+</div>

@@ -3,6 +3,27 @@ from django.contrib.auth.models import User, UserManager
 from annoying.fields import AutoOneToOneField
 from django.contrib.contenttypes.models import ContentType
 
+rules = [
+		(
+			(AutoOneToOneField,),
+			[],
+			{
+				"to": ["rel.to", {}],
+				"to_field": ["rel.field_name",
+					{"default_attr":
+						"rel.to._meta.pk.name"}],
+					"related_name":
+					["rel.related_name",
+						{"default": None}],
+					"db_index":
+					["db_index",
+						{"default": True}],
+					},
+			)
+		]
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules(rules, ["^annoying\.fields\.AutoOneToOneField"]) 
+
 from gibthon.messages import MessagePasser
 from fragment.models import Gene
 from gibson.models import Construct

@@ -1,5 +1,5 @@
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import Context, loader, RequestContext
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -27,7 +27,7 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 	if request.user.is_authenticated():
 		return HttpResponseRedirect('/')
 	redirect_to = request.REQUEST.get(redirect_field_name, '')
-	
+
 	if request.method == "POST":
 		form = AuthenticationForm(data=request.POST)
 		if form.is_valid():
@@ -36,10 +36,10 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 			elif '//' in redirect_to and re.match(r'[^\?]*//', redirect_to):
 				redirect_to = settings.LOGIN_REDIRECT_URL
 			auth_login(request, form.get_user())
-	
-		if request.session.test_cookie_worked():
-			request.session.delete_test_cookie()
-    		return HttpResponseRedirect(redirect_to)
+
+			if request.session.test_cookie_worked():
+				request.session.delete_test_cookie()
+				return HttpResponseRedirect(redirect_to)
 	else:
 		form = AuthenticationForm(request)
 	request.session.set_test_cookie()
@@ -48,7 +48,7 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 		'form':form,
 		'title':'Login',
 		redirect_field_name:redirect_to,
-	})
+		})
 	return HttpResponse(t.render(c))
 
 def logout(request):
@@ -172,8 +172,14 @@ def message_add_all(request):
 	
 @login_required
 def fetch(request):
-	old_unread = request.user.inbox.unread().count()
-	request.user.inbox.fetch()
-	new_unread = request.user.inbox.unread().count()
-	not_added = request.user.inbox.not_added().count()
-	return HttpResponse(json.dumps([new_unread-old_unread, new_unread, not_added, request.user.inbox.message.count()]))
+	try:
+		old_unread = request.user.inbox.unread().count()
+		request.user.inbox.fetch()
+		new_unread = request.user.inbox.unread().count()
+		not_added = request.user.inbox.not_added().count()
+		return HttpResponse(json.dumps([new_unread-old_unread, new_unread, 
+			not_added, request.user.inbox.message.count()]))
+	except Exception, e:
+		print "Failed to fetch inbox: Does the server have a connection?"
+		raise Http404
+

@@ -1,0 +1,32 @@
+LoadModule wsgi_module modules/mod_wsgi.so
+
+WSGIPythonHome /usr/local/pythonenv/BASELINE
+
+<VirtualHost *:80>
+    DocumentRoot /home/gibthon
+    ServerName ec2-54-247-118-121.eu-west-1.compute.amazonaws.com
+    ErrorLog /home/gibthon/log/apache_error.log
+    CustomLog /home/gibthon/log/apache_access.log combined
+    WSGIScriptAlias / /home/gibthon/site/gibthon/wsgi_handler.py
+
+    <Directory /home/gibthon/media>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    <Directory /home/gibthon/static>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    <Directory /home/gibthon/site>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    LogLevel warn
+
+    Alias /media/ /home/gibthon/media/
+    Alias /static/ /home/gibthon/static/
+    Alias /favicon.ico /home/gibthon/static/images/favicon.ico
+</VirtualHost>

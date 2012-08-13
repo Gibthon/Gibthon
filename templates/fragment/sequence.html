@@ -10,6 +10,7 @@
 			<span id="left_btns" style="float:left;margin:.2em;"> 
 				<button class="select_reqd" id="copy_btn"></button> 
 				<button id="select_btn"></button> 
+                <button class='select_reqd' id="crop_btn"></button>
 			</span> 
 			<span id="right_btns" style="float:right;margin:.2em;"> 
 				<span id="view"> 
@@ -58,6 +59,10 @@
 	</div>
 </div>
 
+<div id='crop_dlg' style='display:none;'>
+    {% include 'cropform.html' %}
+</div>
+
 <script type='text/javascript'>
 	var show_copy_dialog = function(){
 		$('#fwd_53').val( $('#the_sequence').fragmentSequence('get_sel'));
@@ -93,7 +98,11 @@
 		}).click(function() {
 			$('#copy_dialog').dialog('close');
 		});
-		
-		$('#the_sequence').fragmentSequence({id: {{id}},});
+
+		libFrag.getByID( {{id}}, function(f)
+        {
+            $('#the_sequence').fragmentSequence({frag: f,});
+        });
+
 	});
 </script>

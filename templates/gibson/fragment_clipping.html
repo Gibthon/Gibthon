@@ -1,0 +1,153 @@
+<div id='clipbox'>
+	<script type='text/javascript' src='{{STATIC_URL}}/js/jquery-spin.js'></script>
+	<style type="text/css">
+		#clipbox {
+			width:100%;
+		}
+		.clip_save {
+			margin: 0.5em 0.2em;
+		}
+		form.clip_form {
+			margin: 0.5em 0.2em;
+		}
+		.clip_div {
+			float:left;
+			width:50%;
+			padding:0;
+			margin:0;
+			text-align:center;
+		}
+		.clip_split {
+			background-color: lightgrey;
+			width:1px;
+			position:absolute;
+			margin-left:50%;
+			margin-right:50%;
+			height:100%;
+		}
+		.clip_div_contents {
+			text-align:left;
+			display:inline-block;
+		}
+		.clip_options {
+			margin-top: 0.5em;
+		}
+		.clip_radio_opts {
+			padding-left: 3em;
+		}
+		.clip_radio_opts > * {
+			display:inline-block;
+		}
+		.clip_bases:after {
+			content:'bp';
+		}
+	</style>
+	<div class='clip_save'>
+		<button id='save_clip'>Save</button>
+	</div>
+	<form class='clip_form' action='' method='post' onsubmit='return false'>
+		<div style='position:relative;'>
+			<div class='clip_div'>
+				<div class='clip_div_contents'>
+					<h4 class='clip_from_to'>From</h4>
+					<div class='clip_options'>
+						<input class='clip_radio' type='radio' name='from_type' value='absolute' {%if from_absolute%}checked='true'{%endif%} /> <label for='absolute'>Absolute</label>
+						<div class='clip_radio_opts'>
+							<span class='clip_bases'><input class='clip_absolute' size='5' type='text' name='from_abs' {%if from_absolute%}value='{{start_offset}}'{%else%}value='0'{%endif%}></input></span>
+						</div>
+						<input class='clip_radio' type='radio' name='from_type' value='relative' {%if not from_absolute%}checked='true'{%endif%} /> <label for='relative'>Relative to start of</label>
+						<div class='clip_radio_opts'>
+							<select class='clip_feature_select' name='start_feat'>
+								{%for feature in feature_list%}
+								<option value='{{ feature.id }}' {%ifequal feature.id start_feat%}selected='true'{%endifequal%} >{{ feature.pretty }}</option>
+								{%endfor%}
+							</select>
+							+
+							<span class='clip_bases'><input class='clip_relative' size='5' type='text' name='from_rel' {%if not from_absolute%}value='{{start_offset}}'{%else%}value='0'{%endif%}></input></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class='clip_split'></div>
+			
+			<div class='clip_div'>
+				<div class='clip_div_contents'>
+					<h4 class='clip_from_to'>To</h4>
+					<div class='clip_options'>
+						<input class='clip_radio' type='radio' name='to_type' value='absolute' {%if to_absolute%}checked='true'{%endif%} /> <label for='absolute'>Absolute</label>
+						<div class='clip_radio_opts'>
+							<span class='clip_bases'><input class='clip_absolute' size='5' type='text' name='to_abs' {%if to_absolute%}value='{{end_offset}}'{%else%}value='{{max}}'{%endif%}></input></span>
+						</div>
+						<input class='clip_radio' type='radio' name='to_type' value='relative' {%if not to_absolute%}checked='true'{%endif%} /> <label for='relative'>Relative to end of</label>
+						<div class='clip_radio_opts'>
+							<select class='clip_feature_select' name='end_feat'>
+								{%for feature in feature_list%}
+								<option value='{{ feature.id }}' {%ifequal feature.id end_feat%}selected='true'{%endifequal%}>{{ feature.pretty }}</option>
+								{%endfor%}
+							</select>
+							+
+							<span class='clip_bases'><input class='clip_relative' size='5' type='text' name='to_rel' {%if not to_absolute%}value='{{start_offset}}'{%else%}value='0'{%endif%}></input></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div style='clear:both;'></div>
+		</div>
+
+	</form>
+</div>
+
+<script type='text/javascript'>
+var clipbox;
+function check_enabled() {
+	console.log('check_enabled');
+	clipbox.find('.clip_radio').each( function(i, r) {
+		console.log('  ' + i + ', ' + $(r).html());
+		if($(r).attr('checked'))
+		{
+			console.log("r.attr('checked') true");
+			var $ro = $(r).nextAll('.clip_radio_opts');
+			$ro.find('input').attr('disabled', false);
+			$ro.find('select').attr('disabled', false);
+		}
+		else
+		{
+			console.log("r.attr('checked') false");
+			var $ro = $(r).nextAll('.clip_radio_opts');
+			$ro.find('input').attr('disabled', true);
+			$ro.find('select').attr('disabled', true);
+		}
+		console.log("done");
+	});
+}
+
+
+$(document).ready( function() {
+	clipbox = $('#clipbox');
+	clipbox.find('button#save_clip').button({
+		icons: {primary: 'ui-icon-disk',},
+	}).click( function() {
+		$.ajax({
+			url: 'clipping/{{cfid}}/apply/',
+			dataType: 'json',
+			type: 'POST',
+			data: clipbox.find('form').serialize(),
+			success: function(data) {
+					if(data[0] == 0) //success
+					{
+						clipbox.parent().dialog('close');
+					}
+					console.log('Error: ' + data[1]);
+				},
+			});
+	
+	});
+	clipbox.find('.clip_relative').spin({'imageBasePath' : '{{STATIC_URL}}/images/spin/','timeInterval':200,});
+	clipbox.find('.clip_absolute').spin({'imageBasePath' : '{{STATIC_URL}}/images/spin/', 'min':0, 'max':{{max}},'timeInterval':200,});
+	check_enabled();
+	$('.clip_radio').click( function() {
+		check_enabled();
+	});
+});
+</script>

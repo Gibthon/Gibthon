@@ -3,11 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Gibthon:{{ title|default:"Home" }}</title>
+<link rel="shortcut icon" href="/static/images/favicon.ico" />
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/jquery-ui-redmond.css" />
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/base.css" />
 {% block css-include %}{% endblock %}
-<script src="{{ STATIC_URL }}/js/jquery.min.js" type="text/javascript"></script>
-<script src="{{ STATIC_URL }}/js/jquery-ui.min.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery.js" type="text/javascript"></script>
+<script src="{{ STATIC_URL }}/js/jquery-ui.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/ajax.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/jquery.prompt.js" type="text/javascript"></script>
 {% block js-include %}{% endblock %}
@@ -18,14 +19,18 @@
 var STATIC_URL = "{{ STATIC_URL }}";
 {% if user.is_authenticated %}
 $(document).ready(function () {
-	channel = new goog.appengine.Channel('{{ user.get_channel_key }}');
-	socket = channel.open();
-	socket.onopen = function() {};
-	socket.onmessage = function(message) {
-		inbox_refresh();
-	};
-	socket.onerror = function() {};
-	socket.onclose = function() {};	
+	try
+	{
+		channel = new goog.appengine.Channel('{{ user.get_channel_key }}');
+		socket = channel.open();
+		socket.onopen = function() {};
+		socket.onmessage = function(message) {
+			inbox_refresh();
+		};
+		socket.onerror = function() {};
+		socket.onclose = function() {};	
+	}
+	catch(error) {};
 });
 {% endif %}
 </script>
@@ -59,7 +64,8 @@ $(document).ready(function () {
 						<li><a href="/help/primer/">Primer Design</a></li>
 						<li><a href="/help/gibthon/">Construct Designer</a></li>
 						<li><a href="/help/boxplots/">Boxplots</a></li>
-						<li><a href="/partsearch/">PartSearch API</a></li>
+					<!--	<li><a href="/partsearch/">PartSearch
+                            API</a></li>-->
 					</ul>
 				</span>
 				<span class="user_tab drop">
@@ -78,6 +84,7 @@ $(document).ready(function () {
 					<ul class="ui-widget-content ui-corner-bottom">
 						<li><a href="/">Home</a></li>
 						<li><a href="/about/">About</a></li>
+                        <li><a href="/changes/">Recent Changes</a></li>
 					</ul>
 				</span>	
 			</div>

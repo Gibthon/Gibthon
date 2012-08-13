@@ -1,43 +1,65 @@
-<div style="width:100%; padding:10px; height:25px;" class="ui-widget-header ui-corner-top">
-	<div style="float:right;"><button id="settings">Edit</button></div>
-	Settings
+<div class='center fixed-width'>
+<div class='left'>
+    <form id='settings_form' action="/gibthon/api/{{ cid }}/saveSettings/" method="post">
+		{% csrf_token %}
+
+		<div style="width:30em; padding:10px; height:25px; margin-left:auto; margin-right:auto;" class="ui-widget-header ui-corner-top left">
+			Settings
+			<div style="float:right;">
+				<button class='magic-button'>Edit</button>
+				<button class='magic-button-cancel'>Cancel</button>
+			</div>
+		</div>
+		<div id="settings" style="width:30em; padding:10px; margin-left:auto; margin-right:auto;" class="ui-widget-content ui-corner-bottom left">
+			<table id="settings_table">
+				<tr>
+					<td style="width:170px;">Mg<sup>2+</sup> concentration:</td>
+					<td id='mg_salt' class='setting-conc magic-item'>
+						<p class='magic-text'>{{ settings.mg_salt }}</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Na<sup>+</sup> concentration:</td>
+					<td id='na_salt' class='setting-conc magic-item'>
+						<p class='magic-text'>{{ settings.na_salt }}</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Secondary structure safety margin:</td>
+					<td id='ss_safety' class='setting-temp magic-item'>
+						<p class='magic-text'>{{ settings.ss_safety }}</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Target annealing temperature:</td>
+					<td id='min_anneal_tm' class='setting-temp magic-item'>
+						<p class='magic-text'>{{ settings.min_anneal_tm }}</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Target primer annealing temperature:</td>
+					<td id='min_primer_tm' class='setting-temp magic-item'>
+						<p class='magic-text'>{{ settings.min_primer_tm }}</p>
+					</td>
+				</tr>
+				<tr>
+					<td>Minimum overlap:</td>
+					<td id='min_overlap' class='setting-len magic-item'>
+						<p class='magic-text'>{{ settings.min_overlap }}</p>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</form>
 </div>
-<div id="settings" style="width:100%; padding:10px;" class="ui-widget-content ui-corner-bottom">
-	<table id="settings_table">
-		<tr>
-			<td style="width:170px;">Mg<sup>2+</sup> concentration:</td>
-			<td>{{ settings.mg_salt }} M</td>
-		</tr>
-		<tr>
-			<td>Na<sup>+</sup> concentration:</td>
-			<td>{{ settings.na_salt }} M</td>
-		</tr>
-		<tr>
-			<td>Secondary structure safety margin:</td>
-			<td>{{ settings.ss_safety }}&deg;C</td>
-		</tr>
-		<tr>
-			<td>Target annealing temperature:</td>
-			<td>{{ settings.min_anneal_tm }}&deg;C</td>
-		</tr>
-		<tr>
-			<td>Target primer annealing temperature:</td>
-			<td>{{ settings.min_primer_tm }}&deg;C</td>
-		</tr>
-		<tr>
-			<td>Minimum overlap:</td>
-			<td>{{ settings.min_overlap }} bp</td>
-		</tr>
-	</table>
+
 </div>
+
 <script type="text/javascript">
-$(document).ready(function() {
-	$('button#settings')
-		.button({
-			icons:{primary:'ui-icon-wrench'}
-		})
-		.click(function(event) {
-			$('div#settings-wrapper').load('settings/edit');
-		});
+$(window).ready(function() {
+	console.log('make_magic form');
+	$('#settings_form').magicForm( {
+		save: function(e, data) {update(data[1].modified);},
+	});
 });
 </script>

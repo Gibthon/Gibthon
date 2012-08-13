@@ -1,13 +1,14 @@
 *.pyc
 *~
+*.swp
 .pyc
 makebookmarklet.pl
 .DS_Store
 ._.DS_Store
-localsettings.py
+gibthon/localsettings.py
 fixtures
 genv
 /static
 unafold
 .idea
-
+TODO.list

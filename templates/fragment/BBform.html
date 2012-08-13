@@ -4,6 +4,8 @@
 <form id='add_form' method="post" enctype="multipart/form-data">
 	{%csrf_token%}
 <div id='extender' style="text-align:center;">	
+	<span class='status-ok' ></span>
+	<span class='status-busy'></span>
 	<div id='extender-copy' style='display:none'> 
 		<input type='text' width='15' value='BBa_'></input>
 		<span class='status'></span>

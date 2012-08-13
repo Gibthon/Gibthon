@@ -1,0 +1,31 @@
+#!/bin/bash
+
+unset GIT_DIR
+
+echo "Post Recieve"
+
+#source the correct environment
+source /usr/local/pythonenv/gibthon-env/bin/activate
+
+#take a database dump
+now=$(date +"%Y_%m_%d_%H.%M.%S")
+file="/usr/local/backups/deployment_$now.sql"
+echo "Backing up to $file"
+mysqldump -u root -c --add-drop-table --add-locks --quick --lock-tables django_db > $file
+
+# install requirements
+pip install -r deployment/requirements.pip
+
+#gather static files
+python gibthon/manage.py collectstatic --noinput
+
+#apply south migrations
+python gibthon/manage.py migrate gibson
+python gibthon/manage.py migrate fragment
+python gibthon/manage.py migrate accounts
+
+#restore apache config
+cp deployment/apache/httpd.conf.production ../httpd.conf
+
+su --session-command="/sbin/httpd -k restart" root
+

@@ -152,21 +152,24 @@ class Reference(models.Model):
 	
 	def add(_gene, _refs):
 		for r in _refs:
-			ref = Reference(	gene = _gene, 
+			try:
+				ref = Reference(	gene = _gene, 
 									title = str(r.title),
 									journal = str(r.journal) )
-			if isinstance(r.authors, list):
-				ref.authors = [str(author) for author in r.authors]
-			else:
-				ref.authors = r.authors
-			
-			if hasattr(r, 'medline_id'):
-				ref.medline_id = r.medline_id
-			
-			if hasattr(r, 'pubmed_id'):
-				ref.pubmed_id = r.pubmed_id
-			
-			ref.save()
+				if isinstance(r.authors, list):
+					ref.authors = [str(author) for author in r.authors]
+				else:
+					ref.authors = r.authors
+				
+				if hasattr(r, 'medline_id'):
+					ref.medline_id = r.medline_id
+				
+				if hasattr(r, 'pubmed_id'):
+					ref.pubmed_id = r.pubmed_id
+				
+				ref.save()
+			except ValueError as e:
+				pass
 	add = staticmethod(add)
 	
 	def to_ref(self):
@@ -233,9 +236,7 @@ class Feature(models.Model):
 	class Meta:
 		ordering = ['start']
 	
-	def add(feature, g, origin):
-		#if (origin == "BB"): #but parts are 1-offset based!
-		#	feature.location.start.position += 1
+	def add(feature, g, origin=None):
 		if (feature.location.end.position == 0):
 			return
 		f = Feature(type=feature.type, start=feature.location.start.position, end=feature.location.end.position,

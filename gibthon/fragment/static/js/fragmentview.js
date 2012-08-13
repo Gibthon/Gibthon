@@ -17,7 +17,7 @@ function em2px(input)
 
 $.widget("ui.fragmentMeta", {
 	options: {
-		id: 0,
+		frag: undefined,
 	},
 	_create: function() {
 		//Init the element, and fetch the initial data
@@ -37,86 +37,50 @@ $.widget("ui.fragmentMeta", {
 		this.$form = this.$el.find('form');
 		this.$ref = this.$el.find('#ref_div');
 		
+		self.$form.magicForm({
+			edit: function() {
+				self.was_visible = self.visible;
+				self.show();
+				self.$annot_div.formExtender('enable');
+			},
+			cancel: function() {
+				if(!self.was_visible) self.hide();
+				self.$annot_div.formExtender('disable');
+			},
+			submit_on_save: false,
+			save: function() {
+				if(!self.was_visible) self.hide();
+				self.$annot_div.formExtender('disable');
+				
+				var meta = self.getMeta();
+				self.fragment.setMeta(meta, function(){}, function(err) {console.error(
+					'Error setting metadata "'+err+'"');});
+			},
+		});
+		self.$annot_div.formExtender({
+			unique: true,
+			disabled: true,
+			addInitial: false,
+			beforeAdd: function(e, $el)
+			{
+				$el.find('.magic-item').each( function() {self.$form.magicForm('SetState', $(this));});
+			},
+			add: function(e, $el) {
+				self._remark();
+			},
+			remove: function(e, $el) {
+				self._remark();
+			},
+		});
+		
+		this.fragment = this.options.frag;
+		this.fragment.getMeta( function(meta)
+							 {
+								 self._display_metadata(meta);
+							 });
+
 		this.visible = false;
-		this.was_visible = false;
-		
-		//fetch name and origin
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'meta',}, function(data) {
-			if(data[0] == 0)
-			{
-				self.$name.text(data[1].name);
-				self.$desc.text(data[1].desc);
-				self.$origin.text(data[1].length + "bp, " + data[1].origin);
-			}
-			else
-			{
-				console.log(data[1] + ", while getting meta.");
-			}
-		});
-		
-		//fetch annotations
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'annotations',}, function(data) {
-			if(data[0] == 0)
-			{
-				var odd = false;
-				for (key in data[1])
-				{
-					self.$annotation.append(self._make_annotation(key, data[1][key], odd));
-					odd = !odd;
-				}
-				self.$form.magicForm({
-					edit: function() {
-						self.was_visible = self.visible;
-						self.show();
-						self.$annot_div.formExtender('enable');
-					},
-					cancel: function() {
-						if(!self.was_visible) self.hide();
-						self.$annot_div.formExtender('disable');
-					},
-					save: function() {
-						if(!self.was_visible) self.hide();
-						self.$annot_div.formExtender('disable');
-					},
-				});
-				self.$annot_div.formExtender({
-					unique: true,
-					disabled: true,
-					addInitial: false,
-					add: function(e, $el) {
-						self._remark();
-					},
-					remove: function(e, $el) {
-						self._remark();
-					},
-				})
-			}
-			else
-			{
-				console.log(data[1] + ", while getting annotations.");
-			}
-		});
-		
-		//fetch references
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'refs',}, function(data) {
-			if(data[0] == 0)
-			{
-				for (key in data[1])
-				{
-					self.$ref.append(self._make_reference(data[1][key]));
-				}
-				$('.ref-search-btn').button({
-												icons: {
-													primary: 'ui-icon-search'
-														},
-												label: 'Search',
-												});
-			}
-			else
-			{
-				console.log(data[1] + ", while getting references.");
-			}
-		});
+		this.was_visible = false;			
 	},
 	show: function() {
 		var self = this;
@@ -151,17 +115,52 @@ $.widget("ui.fragmentMeta", {
 			odd = !odd;
 		});
 	},
-	_make_annotation: function(key, value_list, alt) {
+	_display_metadata: function(meta) {
+		var self = this;
+		
+		//clear any previous metadata
+		self.$annotation.html('');
+		self.$ref.html('')
+		
+		//Display name & description
+		self.$name.text(meta.name);
+		self.$desc.text(meta.desc);
+		self.$origin.text(meta.length + "bp, " + meta.origin);
+				
+		//Display Annotations
+		var odd = false;
+		for (key in meta.annots)
+		{
+			self.$annot_div.formExtender('Add', [key, meta.annots[key]]);
+			odd = !odd;
+		}
+		
+		//Display References
+		for (r in meta.refs)
+		{
+			self.$ref.append(self._make_reference(meta.refs[r]));
+		}
+		$('.ref-search-btn').button({
+			icons: {primary: 'ui-icon-search'},
+			label: 'Search',
+		});
+	},
+	_make_annotation: function(key, v, alt) {
 		var cls = 'tr';
 		if(alt == true)
 			cls = 'tr-alt';
 		var value = '';
-		for (i in value_list)
+		if(v.constructor == Array) //if v is an array
 		{
-			value = value + value_list[i];
-			if(i != value_list.length -1)
-				value = value + ", ";
+			for (i in value_list)
+			{
+				value = value + value_list[i];
+				if(i != value_list.length -1)
+					value = value + ", ";
+			}
 		}
+		else
+			value = v;
 		
 		if(httppat.test(value))
 		{
@@ -181,15 +180,27 @@ $.widget("ui.fragmentMeta", {
 		"</tr>";
 		return ret;
 	},
+	getAnnots: function()
+	{
+		var self = this;
+		var ret = [];
+		
+		$.each(self.$annotation.find('tr'), function(i, val){
+			var v = $(val);
+			ret.push([
+				v.find('#annot_key span').text(), 
+				v.find('#annot_value span').text()
+			]);
+		});
+		return ret;
+	},
 	_make_reference: function(ref)
 	{
 		var ret = '' +
 		'<div class="ref">' +
 		'	<div class="ref-title-wrap">' +
 		'		<div class="ref-title-div">' +
-		'			<h4 class="ref-title">' +
-		'				' + ref.title +
-		'			</h4>' +
+		'			<h4 class="ref-title">' + ref.title + '</h4>' +
 		'		</div>' +
 		'		<div class="ref-search-div">' +
 		'			<button class="ref-search-btn" onclick="window.open(\'http://www.google.com?q=' + ref.title + '\',\'_blank\');"></button>' +
@@ -207,11 +218,11 @@ $.widget("ui.fragmentMeta", {
 		
 		if(ref.medline_id != "")
 		{
-			ret = ret + '<h6 class="ref-link">Meline ID: ' + ref.medline_id + '</h6>';
+			ret = ret + '<h6 class="ref-mline ref-link">Meline ID: ' + ref.medline_id + '</h6>';
 		}
 		if(ref.pubmed_id != "")
 		{
-			ret = ret + '<h6 class="ref-link">PubMed ID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/' + 
+			ret = ret + '<h6 class="ref-pmed ref-link">PubMed ID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/' + 
 					ref.pubmed_id + '" target="_blank">' + ref.pubmed_id + '</a></h6>';
 		}
 		ret = ret + 
@@ -219,6 +230,37 @@ $.widget("ui.fragmentMeta", {
 		'	</div>' +
 		'</div>';
 		return ret;
+	},
+	getRefs: function()
+	{
+		var self = this;
+		var ret = [];
+		
+		$.each(self.$ref.find('div.ref'), function(i, val){
+			var v = $(val);
+			ret.push( 
+				new Reference(
+					v.find('.ref-title').text(), 
+					v.find('.ref-authors').text(),
+					v.find('.ref-journal').text(),
+					v.find('.ref-mline').text(),
+					v.find('.ref-pmed').text()
+				)
+			);
+		});
+		return ret;
+	},
+	getMeta: function() {
+		var self = this;
+		//get metadata
+		var meta = {
+			'id': self.options.id, 
+			'name': self.$name.text(), 
+			'desc': self.$desc.text(), 
+			'refs': self.getRefs(), 
+			'annots': self.getAnnots(),
+		};
+		return meta;
 	},
 });
 
@@ -235,11 +277,14 @@ var select_end = '</span>';
 
 $.widget("ui.fragmentSequence", {
 	options: {
-		id: 0,
+		frag: undefined,
 	},
 	_create: function() {
 		var self = this;
 		this.$el = $(this.element[0]);
+		this.fragment = this.options.frag;
+		if(this.fragment==undefined)
+			console.error('ui.fragmentSequence: Handed undefined Fragment object');
 		
 		this.$el.find('#copy_btn').button({
 			label: "Copy Selection",
@@ -253,6 +298,14 @@ $.widget("ui.fragmentSequence", {
 		}).click( function() {
 			self._select(1, self.len + 1);
 		});
+        this.$el.find('#crop_btn').button({
+            label: 'Crop to Selection',
+            icons: {primary: 'ui-icon-scissors',},
+        }).click( function() {
+            self.cropform.cropform('setRange', self._select_start, 
+                                  self._select_end);
+            $('#crop_dlg').dialog('open');
+        });
 		
 		this.$el.find('#view').buttonset();
 		this.$el.find('#ds').click(function(){
@@ -296,78 +349,85 @@ $.widget("ui.fragmentSequence", {
 		this.seq_text = new Array();
 		this._selected = false;
 		this._update_toolbar();
-		
+
+        $('#crop_dlg').dialog({
+            title: 'Crop',
+            autoOpen: false,
+            modal: true,
+            draggable: false,
+            resizable: false,
+            width: 450,
+        });
+	
+        this.cropform = $('#cropform').cropform({
+            fragment: this.fragment,
+            cancel: function()
+            {
+                $('#crop_dlg').dialog('close');
+            },
+        });
+	
 	},
 	_get_seq_meta: function(){
 		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq_meta',}, function(data) {
-			if(data[0] != 0)
+		this.fragment.getFeats(function(d) 
+		{
+			self.len = d.length;
+			self.$len.text(d.length);
+			if(self.len > 1024) //if we should load progressively 
 			{
-				console.log(data[1] + " while getting sequence metadata");
-				return;
-			}
-			self.len = data[1].len;
-			self.$len.text(data[1].len);
-			if(self.len > 2000) //if we should load progressively 
-			{
-				self.$loader.slideDown(100);
+				self.$loader.show();
 			}
 			
-			self.features = data[1].feats;
-			self.alphabet = data[1].alpha;
-			self.alphabet[' '] = ' ';
+			self.features = d.feats;
 			
-			self._get_seq(0);
+			self._get_seq();
 		});
 	},
-	_get_seq: function(offset){
+	_get_seq: function()
+	{
 		var self = this;
-		$.getJSON("/fragment/get/" + this.options.id + "/", {'value': 'seq', 'offset': offset}, function(data) {
-			if(data[0] != 0)
-			{
-				console.log(data[1] + " while getting seq");
-				return;
-			}
-			self.seq = self.seq + data[1];
-			var flush = false;//should we flush all the sequence?
-			if(self.seq.length < self.len)//is there more data to come?
-			{
-				//get some more data
-				self._get_seq(self.seq.length);
-			}
-			else
-			{
-				flush = true;
-				self.$loader.slideUp(500);
-			}
-			
+		if(this.fragment == undefined)
+		{
+			console.error('Cannot get sequence for undefined Fragment');
+			return;
+		}
+
+		this.fragment.getSequence(function(seq) //update function
+		{
+			self.seq = ' ' + seq;
+		
 			//while we have enough data to make a complete row
 			while((self.seq.length - self.pos) > self.rowlength)
-			{
+            {
 				self.pos = self.pos + self._make_row(self.pos);
-			} 
-			if(flush)
-			{
-				self.pos = self.pos + self._make_row(self.pos);
-				self._label_features();
-				self._get_char_width();
-			}
-			
+            }
+		
 			self.$prog.text(self.seq.length);
 			self.$bar.progressbar('value', parseInt((100 * self.seq.length) / self.len));
+		}, function(seq) //Complete function
+		{
+			self.seq = ' ' + seq;
+			//we're done, so remove the progress bar
+			self.$loader.slideUp(500);
+			
+			//Use up all the remaining data
+			while(self.seq.length > self.pos)
+            {
+				self.pos = self.pos + self._make_row(self.pos);
+            }
+
+			self._label_features();
+			self._get_char_width();
 		});
+
 	},
 	_make_row: function(start){
 		var self = this;
-		var s = "";
+        var len = this.rowlength;
 		var end = start + this.rowlength;
-		if( start == 0)
-		{
-			s = " " + this.seq.substr(start, this.rowlength - 1);
-			end = end - 1;
-		}
-		else
-			s = this.seq.substr(start - 1, this.rowlength);
+
+		var s = this.seq.substr(start, len);
 		
 		var seq = "";
 		var label = "";
@@ -377,7 +437,8 @@ $.widget("ui.fragmentSequence", {
 			var left= '';
 			for(var j = 0; j < toPadded(i); j = j+1)
 				left = left + ' ';
-			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' + left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
+			label = label + '<div class="seq-label unselectable" unselectable="on" style="left:0;">' 
+				+ left + '<span class="seq-label-text">' + (start + i) + '</span></div>';
 		}
 		var cseq = this._complement(seq);
 		
@@ -417,7 +478,7 @@ $.widget("ui.fragmentSequence", {
 		this.seq_disp.push($row.find('.seq-fwd'));
 		this.seq_text.push(seq);
 	
-		return this.rowlength;
+		return len;
 	},
 	_label_features: function()
 	{
@@ -532,10 +593,9 @@ $.widget("ui.fragmentSequence", {
 	{
 		if(!this._selected)
 		{
-			console.log("self.get_sel return: ''");
 			return ""
 		}
-		return this.seq.substring(this._select_start - 1, this._select_end - 1);
+		return this.seq.substring(this._select_start, this._select_end);
 	},
 	get_rev: function() {return this._reverse(this.get_sel());},
 	get_cmp: function() {return this._complement(this.get_sel());},
@@ -606,11 +666,8 @@ $.widget("ui.fragmentSequence", {
 		
 		var smallnum = Math.floor((event.pageX - $(event.currentTarget).offset().left) / this.char_width);
 		smallnum = toUnPadded(smallnum);
-/*		console.log("_get_mouse_pos");
-		console.log("  smallnum = (" + event.pageX + ' - ' + $(event.currentTarget).offset().left + ") / " + this.char_width + " = " + smallnum);
-		console.log("  largenum + smallnum = " + largenum + ' + ' + smallnum + ' = ' + largenum + smallnum);
-		console.log("  event.currentTarget.id=" + event.currentTarget.id);
-*/		return largenum + smallnum;
+		
+		return largenum + smallnum;
 	},
 	_on_scroll: function(event)
 	{
@@ -636,7 +693,7 @@ $.widget("ui.fragmentSequence", {
 		var ret = "";
 		for(i in string)
 		{
-			ret = ret + this.alphabet[string[i]];
+			ret = ret + libFrag.alphabet[string[i]];
 		}
 		return ret;
 	},
@@ -652,7 +709,7 @@ $.widget("ui.fragmentSequence", {
 		var ret = "";
 		for(var i = string.length - 1; i >= 0; i = i-1)
 		{
-			ret = ret + this.alphabet[string[i]];
+			ret = ret + libFrag.alphabet[string[i]];
 		}
 		return ret;
 	},
@@ -674,7 +731,7 @@ var make_feat_html = function(r_s, r_e, feature, f_id)
 		var t = f_e; f_e = f_s; f_s = t;
 	}
 	//check if the feature is not present in the row
-	if((f_e < r_s) || (f_s > r_e))
+	if((f_e < (r_s+1)) || (f_s > r_e))
 	{
 		return "";
 	}

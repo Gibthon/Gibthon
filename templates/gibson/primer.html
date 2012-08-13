@@ -32,7 +32,7 @@
 	</div>
 {% endif %}
 
-
+<!-- Commented out 'cos it don't work and I don't have the time to fix it
 <div class="ui-widget-content ui-corner-all content fixed-width">
 <p>Want to edit the start/end positions to avoid misprimes? Drag and drop the orange base.</p>
 <p><strong>Flap</strong> ({{ primer.flap.cfragment.fragment.name }}) <em>- {{ primer.flap.length }} bp, {{ primer.flap.tm|floatformat }}&deg;C</em></p>
@@ -52,10 +52,11 @@
 </tr>
 </table>
 </div>
+-->
 <br />
 <h4>Self-priming Boxplot</h4>
 <div style="text-align:center;">
-<img src="{{ MEDIA_URL }}/unafold/{{ primer.boxplot }}" />
+<img src="{{ MEDIA_URL }}/unafold/p-{{ primer.id }}" />
 </div>
 </div>
 

@@ -4,11 +4,11 @@ from Bio.Alphabet import IUPAC
 import os, subprocess, shlex, sys, csv, random, string
 from subprocess import CalledProcessError
 
+import settings
 
 class UnaFolder():
-	def __init__(self, una_root = '/usr/local/bin/', wd = '/tmp/', t=60, safety=3, na_salt=1, mg_salt=0):
-		self.una_root = una_root
-		self.wd = wd
+	def __init__(self, wd = '/tmp/', t=60, safety=3, na_salt=1, mg_salt=0):
+		self.wd = settings.UNAFOLD_WD
 		self.name = ''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for x in range(20))
 		self.t = t
 		self.safety = safety
@@ -21,6 +21,7 @@ class UnaFolder():
 	
 	def process(self, cline):
 		try:
+			print 'subprocess.Popen(shlex.split(%s), stdout=subprocess.PIPE, stderr=subprocess.PIPE)' % cline
 			p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		except IOError as e:
 			print e
@@ -36,19 +37,19 @@ class UnaFolder():
 		w = open(self.wd + self.name, 'w')
 		w.write(str(sequence))
 		w.close()
-		cline = self.una_root + 'hybrid-ss-min' + self.hybrid_options() + self.wd + self.name
+		cline = settings.HYBRID_SS_MIN_PATH + self.hybrid_options() + self.wd + self.name
 		if not self.process(cline):
 			print('Could not hybridise')
-			return False
-		cline = self.una_root + 'boxplot_ng -t "Energy dotplot " ' + self.wd + self.name + '.plot'
+			return (False, None)
+		cline = '%s -t "Energy Dotplot " %s%s.plot' % (settings.BOXPLOT_NG_PATH, self.wd, self.name)
 		if not self.process(cline):
 			print('Could not convert boxplot')
-			return False
+			return (False, None)
 		try:
 			csvfile = open(self.wd + self.name + '.plot', 'r')
 		except IOError as e:
 			print e
-			return False
+			return (False, None)
 		ss = csv.DictReader(csvfile, delimiter='\t')
 		warnings = []
 		for r in ss:
@@ -56,12 +57,12 @@ class UnaFolder():
 				self.warnings.append((r['length'], float(r['energy'])/10))
 		cline = 'convert ' + self.wd + self.name + '.ps ' + self.wd + self.name + '.png'
 		if not self.process(cline):
-			return False
+			return (False, None)
 		for f in os.listdir(self.wd):
 			if os.path.isfile(f) and f.startswith(self.name) and not f.endswith('.png'):
 				os.remove(f)
 		os.chdir(cwd)
-		return True, self.wd + self.name + '.png'
+		return (True, self.wd + self.name + '.png')
 		
 	def mis_prime(self, target, primer):
 		primerloc = self.name + '-primer'
@@ -74,7 +75,7 @@ class UnaFolder():
 		w = open(self.wd + targetloc, 'w')
 		w.write(str(target))
 		w.close()
-		cline = self.una_root + 'hybrid-min' + self.hybrid_options() + self.wd + targetloc + ' ' + self.wd + primerloc
+		cline = settings.HYBRID_MIN_PATH + self.hybrid_options() + self.wd + targetloc + ' ' + self.wd + primerloc
 		if not self.process(cline):
 			print('Could not hybridise')
 			return False

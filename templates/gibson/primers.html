@@ -1,6 +1,3 @@
-{% extends "base.html" %}
-
-{% block css-include %}
 <style type="text/css">
 .feature {
 	border-top:2px solid red;
@@ -45,23 +42,19 @@ td.warningcell {
 
 
 </style>
-{% endblock %}
 
-
-{% block js-include %}
 <script src="{{ STATIC_URL }}/js/primers.js" type="text/javascript"></script>
 <script src="{{ STATIC_URL }}/js/jquery.cookie-modified.js" type="text/javascript"></script>
-{% endblock %}
 
-{% block app-menu %}
-<a href="/gibthon/{{ construct.id }}/{{ construct.name }}/" id="back_to_construct">Back to Construct</a>
-<a href="/gibthon/{{ construct.id }}/{{ construct.name }}/primers/" id="back_to_summary">Back to Summary</a>|
-<button id="download">Download Primers and Protocols</button>
-|
-<button id="reset_offset">Reset Offsets</button>
-{% endblock %}
+<div id='buttons'>
+	<button id="download">Download Primers and Protocols</button>
+<!--	|
+	<button id="reset_offset">Reset Offsets</button>
+-->
+</div>
 
-{% block content %}
+
+
 <div class="ui-widget-content ui-corner-all content fixed-width">
 	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
 	<div>
@@ -142,14 +135,15 @@ td.warningcell {
 	</div>
 </div>
 
-{% endblock %}
 
-{% block dialog %}
-{% endblock %}
-
-{% block js %}
 <script type="text/javascript">
-$(document).ready(function() {
+
+var primer_dlg_contents = 
+    "<div class='center' style='margin-top:2em'>" +
+        "<img src='{{ STATIC_URL }}/images/spinner.gif'></img>" +
+    "</div>";
+
+$(window).ready(function() {
 	$('button#save')
 		.button({
 			icons:{primary:'ui-icon-disk'}
@@ -165,36 +159,28 @@ $(document).ready(function() {
 			});
 			$.post('save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
 		});
-	$('button.primer_button').click(function() {
-		$('#prompt').prompt({
-			type:'wait',
-			title:'Loading',
-			message:'',
-			target: {
-				location:'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value.split('/')[0],
-				target:'#primer_info',
-				callback: function () {
-					$('a#up').attr('href', '/gibthon/{{ construct.id }}/{{ construct.name }}/primers/');
-					$('.primer_info_wrapper:hidden').show()
-				}
-			}
-		});
-		
-		history.pushState(null,null,'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/'+this.value);
+
+	$('button.primer_top').button({
+		icons:{primary:'ui-icon-circle-arrow-w'}
 	});
-	if ('{{ primer }}' != ''){
-		$('#prompt').prompt({
-			type:'wait',
-			title:'Loading',
-			message:'',
-			target: {
-				location:'/gibthon/{{ construct.id }}/{{ construct.name }}/primers/{{ primer }}',
-				target:'#primer_info',
-				callback: function () { $('.primer_info_wrapper:hidden').show() }
-			}
-		});
-		$('.primer_info_wrapper').show();
-	}
+	$('button.primer_bottom').button({
+		icons:{secondary:'ui-icon-circle-arrow-e'}
+	});
+	$('button.primer_button').click(function() {
+        console.log('$("#primer_dlg").length = '+$("#primer_dlg").length);
+        $('#primer_dlg').html(primer_dlg_contents)
+            .dialog('option', {
+                width: 0.8 * $('#tabs').width(),
+                height: 0.9*$(window).height(),
+                title: 'Primer - '+this.value.split('/')[1],
+            })
+            .dialog('open')
+            .load('/gibthon/{{ construct.id }}/primers/'+
+                this.value.split('/')[0]);
+console.log('show '+this.value.split('/')[1]);
+            //$('.primer_info_wrapper:hidden').show()
+    });
+		
 	var downloadTimer;
 	$('button#download').button({
 		icons:{primary:'ui-icon-clipboard'}
@@ -213,8 +199,15 @@ $(document).ready(function() {
 				$.cookie('fileDownloadToken', null);
 			}
 		},500);
-		window.location.href='/gibthon/{{ construct.id }}/{{ construct.name }}/primers/download?tk='+token;
+		window.location.href='/gibthon/{{ construct.id }}/primers/download?tk='+token;
 	});
+    
+    $('#primer_dlg').dialog({
+        autoOpen: false,
+        modal: true,
+        draggable: false,
+        position: 'center',
+        resizable: false,
+    });
 });
 </script>
-{% endblock %}

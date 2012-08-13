@@ -29,9 +29,8 @@ a {
 }
 
 #sub-container {
-	padding-top:1em;
-	padding-bottom:2em;
-	width:1080px;
+	padding:1em 30px 2em;
+	width: 90%;
 	margin-left:auto;
 	margin-right:auto;
 	border-top:none;
@@ -68,8 +67,8 @@ a {
 }
 
 .frontbox {
-	width:250px;
-  height:11em;
+	width:240px;
+	height:11em;
 	margin:10px;
 	margin-top:0px;
 	float:left;
@@ -78,11 +77,12 @@ a {
 }
 
 .fixed-width {
-	width:960px;/* 900 + 30 + 30 = 960*/
+	display: block;
 	margin-left:auto;
 	margin-right:auto;
 	padding-left:30px;
 	padding-right:30px;
+    width:900px;
   position: relative;
 }
 

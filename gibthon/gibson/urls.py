@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.views.generic.simple import direct_to_template
 from django.conf import settings
 
 primerpatterns = patterns('gibson.views',
@@ -14,26 +15,35 @@ primerpatterns = patterns('gibson.views',
 	(r'^\d+/[\w\-_]+/reset$', 'primer_reset'),
 )
 
-constructpatterns = patterns('gibson.views',
-	(r'^$', 'construct'),
-	(r'^fragments$', 'construct_fragment'),
-	(r'^summary$', 'summary'),
-	(r'^settings$', 'construct_settings'),
-	(r'^settings/edit$', 'settings_edit'),
-	(r'^delete$', 'construct_delete'),
-	(r'^view/(?P<fid>\d+)$', 'fragment_viewer'),
-	(r'^add$', 'fragment_browse'),
-	(r'^add/(?P<fid>\d+)$', 'fragment_add'),
-	(r'^delete/(?P<cfid>\d+)$', 'fragment_delete'),
-	(r'^save$', 'save'),
-	(r'^process$', 'process'),
-	(r'^primers/', include(primerpatterns)),
+constructpatterns = patterns('gibson.designer',
+	(r'^$', 'designer'),
+	(r'^design/$', 'design_tab'),
+	(r'^settings/$', 'construct_settings'),
+)
+
+apipatterns = patterns('gibson.api',
+	(r'^saveSettings/$', 'save_settings'),
+	(r'^saveMeta/$', 'save_meta'),
+	(r'^getInfo/$', 'get_info'),
+	(r'^addFragment/$', 'fragment_add'),
+	(r'^rmFragment/$', 'fragment_remove'),
+	(r'^saveOrder/$', 'save_order'),
 )
 
 urlpatterns = patterns('gibson.views',
 	(r'^$', 'constructs'),
 	(r'^add$', 'construct_add'),
 	(r'^(?P<cid>\d+)/\w+\.gb', 'download'),
-	(r'^(?P<cid>\d+)/[.\w\d ]+/', include(constructpatterns)),
+	(r'^(?P<cid>\d+)/delete/$', 'construct_delete'),
+	(r'^(?P<cid>\d+)/fragments/$', 'construct_fragment'),
+	(r'^(?P<cid>\d+)/process/$', 'process'),
+	(r'^(?P<cid>\d+)/clipping/(?P<cfid>\d+)/$', 'fragment_clipping'),
+	(r'^(?P<cid>\d+)/clipping/(?P<cfid>\d+)/apply/$', 'apply_clipping'),
+	(r'^(?P<cid>\d+)/summary/$', 'summary'),
+	(r'^(?P<cid>\d+)/primers/', include(primerpatterns)),
+	(r'^api/(?P<cid>\d+)/', include(apipatterns)),
+	(r'^(?P<cid>\d+)/', include(constructpatterns)),
+	(r'^walkthrough/$', direct_to_template, {
+		'template': 'gibson/walkthrough.html'}),
 )
 

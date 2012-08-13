@@ -1,6 +1,10 @@
 import os, sys
 
-gibthon_path = '/home/bill/www'
+import site
+site.addsitedir('/usr/local/pythonenv/gibthon-env/lib/python2.7/site-packages')
+site.addsitedir('/usr/local/pythonenv/gibthon-env/lib64/python2.7/site-packages')
+
+gibthon_path = '/home/gibthon/site'
 
 sys.path.append(gibthon_path)
 sys.path.append(gibthon_path + '/gibthon')
