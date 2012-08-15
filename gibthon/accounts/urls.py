@@ -45,6 +45,7 @@ urlpatterns = patterns('accounts.views',
 #	(r'^reset/$', 'reset'),
 	(r'^register/$', 'register'),
 	(r'^register/(?P<email_hash>\w+)/$', 'create'),
+	(r'^delete/$', 'delete'),
 	(r'^inbox/', include(inboxpatterns)),
 	(r'^password/', include(passwordpatterns)),
 )
