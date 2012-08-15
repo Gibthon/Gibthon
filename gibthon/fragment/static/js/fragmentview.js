@@ -336,6 +336,7 @@ $.widget("ui.fragmentSequence", {
 		this.rowlength = parseInt(px2em(this.$el.width()) / char_width);
 		this.rowlength = 5 * Math.floor(this.rowlength / 6);
 
+
 		this._get_seq_meta();
 		
 		this._get_char_width();
@@ -419,6 +420,7 @@ $.widget("ui.fragmentSequence", {
 
 			self._label_features();
 			self._get_char_width();
+            self.$seq.width(toPadded(self.rowlength) * self.char_width);
 		});
 
 	},
@@ -431,7 +433,7 @@ $.widget("ui.fragmentSequence", {
 		
 		var seq = "";
 		var label = "";
-		for(var i = 0; i < this.rowlength; i = i + 5)
+		for(var i = 0; i < s.length; i = i + 5)
 		{
 			seq = seq + s.substr(i, 5) + " ";
 			var left= '';
