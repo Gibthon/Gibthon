@@ -309,16 +309,16 @@ $.widget("ui.fragmentSequence", {
 		
 		this.$el.find('#view').buttonset();
 		this.$el.find('#ds').click(function(){
-			self.$el.find('.seq-fwd').show();
-			self.$el.find('.seq-rev').show();
+			self.$el.find('.seq-fwd').removeClass('seq-hid');
+			self.$el.find('.seq-rev').removeClass('seq-hid');
 		});
 		this.$el.find('#ss').click(function(){
-			self.$el.find('.seq-fwd').show();
-			self.$el.find('.seq-rev').hide();
+			self.$el.find('.seq-fwd').removeClass('seq-hid');
+			self.$el.find('.seq-rev').addClass('seq-hid');
 		});
 		this.$el.find('#ns').click(function(){
-			self.$el.find('.seq-fwd').hide();
-			self.$el.find('.seq-rev').hide();
+			self.$el.find('.seq-fwd').addClass('seq-hid');
+			self.$el.find('.seq-rev').addClass('seq-hid');
 		});
 
 		//this._toolbar_height = $('#seq_toolbar').offset().top;

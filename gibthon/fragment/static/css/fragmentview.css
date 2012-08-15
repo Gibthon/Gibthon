@@ -225,7 +225,7 @@
 .row
 {	
 	font: 1.1em 'Courier New',monospace;
-	display: inline-block;
+    display: inline-block;
 	margin-right: auto;
 	margin-left: auto;
 	position: relative;
@@ -240,7 +240,8 @@
 }
 .seq-hid
 {
-	display: none;
+    visibility: hidden;
+    height: 0;
 }
 .seq-fwd
 {
