@@ -103,7 +103,7 @@ def register(request):
 		else:
 			c = RequestContext(request, {
 				'title':'Register',
-				'form':UserRegisterForm1(request.POST),
+				'form':f,
 				'stage':1,
 			})
 		t = loader.get_template('user/register.html')
