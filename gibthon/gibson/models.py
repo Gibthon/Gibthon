@@ -242,7 +242,7 @@ class Primer(models.Model):
 			w = Warning.objects.create(
 				primer = self,
 				type = 'sp',
-				text = 'Potential self-priming of 3\' end! Length: ' + str(warning[0]) + ', dG: ' + str(warning[1]),
+				text = 'Potential self-priming of 3\' end! dG: %s' % warning[1],
 			)		
 	
 	def misprime_check(self):
