@@ -233,6 +233,11 @@ function ConstructFragment(d, f)
             $(this).siblings('.fwd-primer').removeClass('sl');
             $(this).siblings('.rev-primer').removeClass('sl');
             $(this).parent().removeClass('sl');
+        }).click( function() {
+            var f = $(this).parent();
+            f.parent().find('.hl-target, .fragment').removeClass('sl');
+            $(this).siblings('.pcr-target-sl').addClass('sl');
+            self.showPrimerView($(this));
         });
 
         el.find('.fragment > .join-target').mouseenter(function(){
@@ -246,7 +251,13 @@ function ConstructFragment(d, f)
             self._get_prev(f).find('.rev-primer').removeClass('sl');
             f.find('.fwd-primer').removeClass('sl');
             $(this).siblings('.join-target-hl').removeClass('sl');
+        }).click( function() {
+            var f = $(this).parent();
+            f.parent().find('.hl-target, .fragment').removeClass('sl');
+            $(this).siblings('.join-target-sl').addClass('sl');
+            self.showPrimerView($(this));
         });
+
 
         el.find('.fragment > .post-join-target').mouseenter(function()
         {
@@ -260,12 +271,31 @@ function ConstructFragment(d, f)
             var f = $(this).parent();
             f.find('.rev-primer').removeClass('sl');
             self._get_next(f).find('.fwd-primer').removeClass('sl');
+        }).click( function() {
+            console.log('post-join-target click');
+            var f = $(this).parent();
+            f.parent().find('.hl-target, .fragment').removeClass('sl');
+            console.log('  $(this).siblings(".post-join-target-sl").size() = ' + 
+                $(this).siblings(".post-join-target-sl").size());
+            $(this).siblings('.post-join-target-sl').addClass('sl');
+            self.showPrimerView($(this));
         });
 
         el.mouseleave( function() {
             el.find('.fwd-primer').removeClass('sl');
             el.find('.rev-primer').removeClass('sl');
             el.find('.fragment').removeClass('sl');
+        });
+
+        el.find('button#cancel-btn').button({
+            'icons': {'primary': 'ui-icon-cancel',},
+        }).click( function() {
+            self.hidePrimerView();
+        });
+        el.find('button#save-btn').button({
+            'icons': {'primary': 'ui-icon-disk',},
+        }).click( function() {
+            self.hidePrimerView();
         });
      },
      _init: function() {
@@ -292,5 +322,20 @@ function ConstructFragment(d, f)
             n = f.siblings('.fragment:not(.bk-fragment)').last();
         }
         return n;
+    },
+    showPrimerView: function(f)
+    {
+        this.el.find('.primer-view')
+            .slideDown()
+            .children('.arrow')
+            .animate({'left': this._get_center(f)});
+    },
+    hidePrimerView: function()
+    {
+        this.el.find('.primer-view').slideUp();
+    },
+    _get_center: function(f)
+    {
+        return f.offset().left - this.el.offset().left + f.outerWidth();
     },
  });

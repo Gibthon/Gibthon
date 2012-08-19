@@ -14,10 +14,9 @@
     width: auto;
 }
 .fragment.sl, 
-.fragment > .join-target-hl.sl, 
-.fragment > .post-join-target-hl.sl
+.fragment > .hl-target.sl
 {
-    background-color: #FAEEBB;
+    background-color: #FBEC88;
 }
 .seq.bk-seq{
     background-color: #C0C0C0;
@@ -26,13 +25,17 @@
     background: -webkit-gradient(linear, left top, right top, from(#FFFFFF),
     color-stop(0.1, #C0C0C0), color-stop(0.9, #C0C0C0), to(#FFFFFF)); 
     /* Safari 5.1+, Chrome 10+ */ 
-    background: -webkit-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
+    background: -webkit-linear-gradient(left, 
+        #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
     /* Firefox 3.6+ */ 
-    background: -moz-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
+    background: -moz-linear-gradient(left, 
+        #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
     /* IE 10 */ 
-    background: -ms-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
+    background: -ms-linear-gradient(left, 
+        #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
     /* Opera 11.10+ */ 
-    background: -o-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
+    background: -o-linear-gradient(left, 
+        #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
 }
 .seq{
     height: 1em;
@@ -70,6 +73,22 @@
     top:0;
     bottom:0;
 }
+.fragment > .join-target-sl{
+    z-index:0;
+    position: absolute;
+    left: -25%;
+    width: 50%;
+    top: -50%;
+    bottom: -50%;
+}
+.fragment > .pcr-target-sl{
+    z-index:0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -50%;
+    bottom: -50%;
+}
 .fragment > .post-join-target-hl{
     z-index: 0;
     position: absolute;
@@ -78,11 +97,21 @@
     top:0;
     bottom:0;
 }
+.fragment > .post-join-target-sl{
+    z-index: 0;
+    position: absolute;
+    right:-25%;
+    width:50%;
+    top:-50%;
+    bottom:-50%;
+}
 .fragment > .post-join-target{
     right:-25%;
     width:50%;
 }
 .fragment > .fname{
+    z-index: 1;
+    position: relative;
     margin-top: 1.5em;
     text-align: center;
 }
@@ -212,3 +241,45 @@
 .rev-primer .pbase {
     top:0;
 }
+
+.primer-view {
+    height: 20em;
+    margin-top: 5em;
+    margin-left:-50px;
+    margin-right:-50px;
+    position: relative;
+}
+.primer-view > .arrow {
+    position: absolute;
+    width:0;
+    left:50%;
+    margin-left:-10px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    z-index: 1;
+    bottom: 100%;
+    border-bottom: 10px solid black;
+    border-bottom-color: inherit;
+}
+.primer-view > .arrow > div {
+    position: absolute;
+    width:0;
+    left:-10px;
+    top:1px;
+    border: inherit;
+    z-index:5;
+    border-bottom-color: white;
+}
+.primer-view .titlebar {
+    margin: 0.5em;
+}
+.primer-view .buttons{
+    float:right;
+    margin-right: 1.5em;
+}
+.primer-view .title {
+    margin-left: 1.5em;
+    float: left;
+}
+    
+
