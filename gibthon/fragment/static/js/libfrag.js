@@ -39,6 +39,20 @@ var libFrag = new function()
            },
        });
 	}
+    
+    /*
+     * Return fragment colors
+     */
+    var _h = Math.random() * 360;
+	var _grc = 0.618033988749895 * 360;
+	
+	this.getNextColor = function()
+	{
+		_h = (_h + _grc) % 360;
+		return Graphics.getHSL(_h,40,50);
+	}
+
+
 	//IUAPC Unambiguous Alphabet / Complement table
 	this.alphabet = {
 		'A': 'T',

@@ -228,12 +228,6 @@
 .rev-primer .pbase {
     top:0;
 }
-
-
-#fragment-1 > .seq {background-color:blue;}
-#fragment-2 > .seq {background-color:green;}
-#fragment-3 > .seq {background-color:blue;}
-
 </style>
 
 <script type='text/javascript'>
@@ -259,6 +253,12 @@ function getPrev(f)
 
 
 $(document).ready( function(){
+
+    $('.fragment:not(.bk-fragment)').each( function() {
+        $(this).find('.seq').css({
+            'background-color': libFrag.getNextColor(),
+        });
+    });
 
     $('.fragment > .pcr-target').mouseenter(function() {
         $(this).siblings('.fwd-primer').addClass('sl');

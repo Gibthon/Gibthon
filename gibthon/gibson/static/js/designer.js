@@ -250,14 +250,7 @@
 		 BLUE: 'rgb(0,0,255)',
 	 }
 	
-	var _h = Math.random() * 360;
-	var _grc = 0.618033988749895 * 360;
 	
-	var get_next_color = function()
-	{
-		_h = (_h + _grc) % 360;
-		return Graphics.getHSL(_h,40,50);
-	}
 
 /**
 * Fragment shape contains all the raw values and function to draw a fragment
@@ -342,7 +335,7 @@ var fs = FragmentShape.prototype = new Shape();
 		this.rotation = _r;
 		this.angle = _a;
 		this.radius = _ra;
-		this.fill = get_next_color();
+		this.fill = libFrag.getNextColor();
 	};
 	
 //Public Methods
