@@ -202,4 +202,95 @@ function ConstructFragment(d, f)
         return this.getLength();
     }
 	this.toString = function() {return '[ConstructFragment (id='+this.id+') ]';};
- }
+ };
+
+ /*
+  * jQuery widget for previewing the designed fragment
+  */
+ $.widget('ui.constructPreview', {
+     options: {
+
+     },
+     _create: function() {
+        var self = this;
+        var el = $(this.element[0]);
+        this.el = el;
+
+        var css = $("<link>");
+        css.attr({
+            rel:  "stylesheet",
+            type: "text/css",
+            href: "/static/css/construct_preview.css"
+        });
+        $("head").append(css);
+
+
+        el.find('.fragment > .pcr-target').mouseenter(function() {
+            $(this).siblings('.fwd-primer').addClass('sl');
+            $(this).siblings('.rev-primer').addClass('sl');
+            $(this).parent().addClass('sl');
+        }).mouseleave(function() {
+            $(this).siblings('.fwd-primer').removeClass('sl');
+            $(this).siblings('.rev-primer').removeClass('sl');
+            $(this).parent().removeClass('sl');
+        });
+
+        el.find('.fragment > .join-target').mouseenter(function(){
+            var f = $(this).parent();
+            self._get_prev(f).find('.rev-primer').addClass('sl');
+            f.find('.fwd-primer').addClass('sl');
+            $(this).siblings('.join-target-hl').addClass('sl');
+        }).mouseleave(function()
+        {
+            var f = $(this).parent();
+            self._get_prev(f).find('.rev-primer').removeClass('sl');
+            f.find('.fwd-primer').removeClass('sl');
+            $(this).siblings('.join-target-hl').removeClass('sl');
+        });
+
+        el.find('.fragment > .post-join-target').mouseenter(function()
+        {
+            $(this).siblings('.post-join-target-hl').addClass('sl');
+            var f = $(this).parent();
+            f.find('.rev-primer').addClass('sl');
+            self._get_next(f).find('.fwd-primer').addClass('sl');
+        }).mouseleave(function()
+        {
+            $(this).siblings('.post-join-target-hl').removeClass('sl');
+            var f = $(this).parent();
+            f.find('.rev-primer').removeClass('sl');
+            self._get_next(f).find('.fwd-primer').removeClass('sl');
+        });
+
+        el.mouseleave( function() {
+            el.find('.fwd-primer').removeClass('sl');
+            el.find('.rev-primer').removeClass('sl');
+            el.find('.fragment').removeClass('sl');
+        });
+     },
+     _init: function() {
+        this.el.find('.fragment:not(.bk-fragment)').each( function() {
+            $(this).find('.seq').css({
+                'background-color': libFrag.getNextColor(),
+            });
+        });
+     },
+    _get_next: function(f)
+    {
+        var n = f.next('.fragment');
+        if(n.size() == 0)
+        {
+            n = f.siblings('.fragment:not(.bk-fragment)').first();
+        }
+        return n;
+    },
+    _get_prev: function(f)
+    {
+        var n = f.prev('.fragment');
+        if(n.hasClass('bk-fragment'))
+        {
+            n = f.siblings('.fragment:not(.bk-fragment)').last();
+        }
+        return n;
+    },
+ });
