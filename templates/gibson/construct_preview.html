@@ -1,30 +1,5 @@
-{% comment %}
-<div>
-    {% for cf in construct.cf.all %}
-    <div style="float:left;">
-        <div style="width:150px;">
-            {% with cf.primer_top as primer %}
-            <button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</button>
-            {% endwith %}
-        </div>
-        <div style="clear:both"></div>
-        <div class="fragment_name" style="width:150px;">
-            {{ cf.fragment.name }}
-        </div>
-        <div style="width:150px;">
-            {% with cf.primer_bottom as primer %}
-            <button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</button>
-            {% endwith %}
-        </div>
-    </div>
-    {% endfor %}
-</div>
-<div style='clear:both;'></div>
-
-{% endcomment %}
-
 <style type='text/css'>
-#overview{
+#construct_overview{
     margin: 50px;
 }
 
@@ -42,13 +17,22 @@
 }
 .fragment.sl, .fragment > .join-target-hl.sl, .fragment > .post-join-target-hl.sl
 {
-    border: 1px dotted orange;
-    margin: -1px;
-    background-color: #C0C0C0;
+    background-color: #FAEEBB;
 }
 .seq.bk-seq{
     background-color: #C0C0C0;
     z-index: 7;
+     /* Safari 4-5, Chrome 1-9 */ 
+    background: -webkit-gradient(linear, left top, right top, from(#FFFFFF),
+    color-stop(0.1, #C0C0C0), color-stop(0.9, #C0C0C0), to(#FFFFFF)); 
+    /* Safari 5.1+, Chrome 10+ */ 
+    background: -webkit-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
+    /* Firefox 3.6+ */ 
+    background: -moz-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
+    /* IE 10 */ 
+    background: -ms-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF); 
+    /* Opera 11.10+ */ 
+    background: -o-linear-gradient(left, #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
 }
 .seq{
     height: 1em;
@@ -271,44 +255,41 @@ $(document).ready( function(){
     });
 
     $('.fragment > .join-target').mouseenter(function(){
-      var f = $(this).parent();
-      getPrev(f).find('.rev-primer').addClass('sl');
-      f.find('.fwd-primer').addClass('sl');
-
-      $(this).siblings('.join-target-hl').addClass('sl');
+        var f = $(this).parent();
+        getPrev(f).find('.rev-primer').addClass('sl');
+        f.find('.fwd-primer').addClass('sl');
+        $(this).siblings('.join-target-hl').addClass('sl');
     }).mouseleave(function()
     {
         var f = $(this).parent();
         getPrev(f).find('.rev-primer').removeClass('sl');
         f.find('.fwd-primer').removeClass('sl');
-
         $(this).siblings('.join-target-hl').removeClass('sl');
     });
 
     $('.fragment > .post-join-target').mouseenter(function()
-      {
-          $(this).siblings('.post-join-target-hl').addClass('sl');
-          var f = $(this).parent();
-          f.find('.rev-primer').addClass('sl');
-          getNext(f).find('.fwd-primer').addClass('sl');
-      }).mouseleave(function()
-      {
-          $(this).siblings('.post-join-target-hl').removeClass('sl');
-          f.find('.rev-primer').removeClass('sl');
-          getNext(f).find('.fwd-primer').removeClass('sl');
-      });
+    {
+        $(this).siblings('.post-join-target-hl').addClass('sl');
+        var f = $(this).parent();
+        f.find('.rev-primer').addClass('sl');
+        getNext(f).find('.fwd-primer').addClass('sl');
+    }).mouseleave(function()
+    {
+        $(this).siblings('.post-join-target-hl').removeClass('sl');
+        var f = $(this).parent();
+        f.find('.rev-primer').removeClass('sl');
+        getNext(f).find('.fwd-primer').removeClass('sl');
+    });
 
-    $('#overview').mouseleave(
-      function()
-      {
-          $(this).find('.fwd-primer').removeClass('sl');
-          $(this).find('.rev-primer').removeClass('sl');
-          $(this).find('.fragment').removeClass('sl');
-      });
+    $('#construct_overview').mouseleave( function() {
+        $(this).find('.fwd-primer').removeClass('sl');
+        $(this).find('.rev-primer').removeClass('sl');
+        $(this).find('.fragment').removeClass('sl');
+    });
 });
 </script>
 
-<div id='overview'>
+<div id='construct_overview'>
     <div class='fragment bk-fragment'>
         <div class='seq fwd_seq bk-seq'></div>
         <div class='seq rev_seq bk-seq'></div>
