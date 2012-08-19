@@ -1,0 +1,360 @@
+{% comment %}
+<div>
+    {% for cf in construct.cf.all %}
+    <div style="float:left;">
+        <div style="width:150px;">
+            {% with cf.primer_top as primer %}
+            <button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</button>
+            {% endwith %}
+        </div>
+        <div style="clear:both"></div>
+        <div class="fragment_name" style="width:150px;">
+            {{ cf.fragment.name }}
+        </div>
+        <div style="width:150px;">
+            {% with cf.primer_bottom as primer %}
+            <button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</button>
+            {% endwith %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<div style='clear:both;'></div>
+
+{% endcomment %}
+
+<style type='text/css'>
+#overview{
+    margin: 50px;
+}
+
+.fragment{
+    height: 5.25em;
+    float:left;
+    width: {% widthratio 1 construct.cf.all|length 100 %}%;
+    position: relative;
+}
+.fragment.bk-fragment{
+    position:absolute;
+    left: -50px;
+    right: -50px;
+    width: auto;
+}
+.fragment.sl, .fragment > .join-target-hl.sl, .fragment > .post-join-target-hl.sl
+{
+    border: 1px dotted orange;
+    margin: -1px;
+    background-color: #C0C0C0;
+}
+.seq.bk-seq{
+    background-color: #C0C0C0;
+    z-index: 7;
+}
+.seq{
+    height: 1em;
+    position: relative;
+    z-index: 10;
+}
+.fragment .fwd_seq{
+    margin-top: 1.5em;
+    margin-bottom: 0.25em;
+}
+.fragment .rev_seq{
+    margin-top: 0.25em;
+    margin-bottom: 1.5em;
+}
+.fragment > .sl-target{
+    position: absolute;
+    top:0;
+    bottom:0;
+    z-index: 15;
+    cursor: pointer;
+}
+.fragment > .pcr-target{
+    left:25%;
+    right:25%;
+}
+.fragment > .join-target{
+    left:-25%;
+    width:50%;
+}
+.fragment > .join-target-hl{
+    z-index: 0;
+    position: absolute;
+    left:-25%;
+    width:50%;
+    top:0;
+    bottom:0;
+}
+.fragment > .post-join-target-hl{
+    z-index: 0;
+    position: absolute;
+    right:-25%;
+    width:50%;
+    top:0;
+    bottom:0;
+}
+.fragment > .post-join-target{
+    right:-25%;
+    width:50%;
+}
+.fragment > .fname{
+    margin-top: 1.5em;
+    text-align: center;
+}
+
+.primer{
+    position: absolute;
+    height: 1.5em;
+    width: 40%;
+    z-index: 5;
+}
+.parrow {
+    border-style:solid;
+    border-width: 0 1em 1em 0;
+    width:0;
+    height:0;
+    position:absolute;
+}
+.pbody {
+    position:absolute;
+    height: 0.5em;
+    background-color: red;
+}
+.pbase {
+    position:absolute;
+    height: 0.5em;
+    background-color:red;
+    left:0;
+    right:0;
+}
+.pwarn {
+    width: 1.5em;
+    border: 1px solid red;
+    margin-left:auto;
+    margin-right:auto;
+    position:relative;
+    text-align:center;
+    background-color: white;
+}
+.pwarn:after {
+    content: "";
+    position: absolute;
+    width:0;
+    left:50%;
+    margin-left:-5px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    z-index: 1;
+}
+.pwarn:before {
+    content: "";
+    position: absolute;
+    width:0;
+    left:50%;
+    margin-left:-4px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    z-index:5;
+}
+
+.fwd-primer .pwarn {
+    margin-top:-3em;
+}
+.fwd-primer .pwarn:after {
+    top: 100%;
+    border-top: 5px solid black;
+    border-top-color: inherit;
+}
+.fwd-primer .pwarn:before {
+    top: 100%;
+    border-top: 4px solid black;
+    border-top-color: white;
+}
+
+.fwd-primer {
+    left: -20%;
+    top: 0.5em;
+}
+.fwd-primer.sl {
+    top: 0;
+}
+.fwd-primer .parrow {
+    border-color: transparent transparent red transparent;
+    right:0;
+    bottom: 0.5em;
+}
+.fwd-primer .pbody {
+    left: 0;
+    right: 0.75em;
+    bottom:0.5em;
+}
+.fwd-primer .pbase {
+    bottom:0;
+}
+
+.rev-primer .pwarn{
+    margin-top:3em;
+}
+.rev-primer .pwarn:after {
+    bottom: 100%;
+    border-bottom: 5px solid black;
+    border-bottom-color: inherit;
+}
+.rev-primer .pwarn:before {
+    bottom: 100%;
+    border-bottom: 4px solid black;
+    border-bottom-color: white;
+}
+
+
+.rev-primer {
+    right: -20%;
+    bottom: 0.5em;
+}
+.rev-primer.sl {
+    bottom: 0;
+}
+.rev-primer .parrow {
+    border-color: transparent red transparent transparent;
+    left:0;
+    top: 0.5em;
+}
+.rev-primer .pbody {
+    right: 0;
+    left: 0.75em;
+    top:0.5em;
+}
+.rev-primer .pbase {
+    top:0;
+}
+
+
+#fragment-1 > .seq {background-color:blue;}
+#fragment-2 > .seq {background-color:green;}
+#fragment-3 > .seq {background-color:blue;}
+
+</style>
+
+<script type='text/javascript'>
+function getNext(f)
+{
+    var n = f.next('.fragment');
+    if(n.size() == 0)
+    {
+        n = f.siblings('.fragment:not(.bk-fragment)').first();
+    }
+    return n;
+}
+
+function getPrev(f)
+{
+    var n = f.prev('.fragment');
+    if(n.hasClass('bk-fragment'))
+    {
+        n = f.siblings('.fragment:not(.bk-fragment)').last();
+    }
+    return n;
+}
+
+
+$(document).ready( function(){
+
+    $('.fragment > .pcr-target').mouseenter(function() {
+        $(this).siblings('.fwd-primer').addClass('sl');
+        $(this).siblings('.rev-primer').addClass('sl');
+        $(this).parent().addClass('sl');
+    }).mouseleave(function() {
+        $(this).siblings('.fwd-primer').removeClass('sl');
+        $(this).siblings('.rev-primer').removeClass('sl');
+        $(this).parent().removeClass('sl');
+    });
+
+    $('.fragment > .join-target').mouseenter(function(){
+      var f = $(this).parent();
+      getPrev(f).find('.rev-primer').addClass('sl');
+      f.find('.fwd-primer').addClass('sl');
+
+      $(this).siblings('.join-target-hl').addClass('sl');
+    }).mouseleave(function()
+    {
+        var f = $(this).parent();
+        getPrev(f).find('.rev-primer').removeClass('sl');
+        f.find('.fwd-primer').removeClass('sl');
+
+        $(this).siblings('.join-target-hl').removeClass('sl');
+    });
+
+    $('.fragment > .post-join-target').mouseenter(function()
+      {
+          $(this).siblings('.post-join-target-hl').addClass('sl');
+          var f = $(this).parent();
+          f.find('.rev-primer').addClass('sl');
+          getNext(f).find('.fwd-primer').addClass('sl');
+      }).mouseleave(function()
+      {
+          $(this).siblings('.post-join-target-hl').removeClass('sl');
+          f.find('.rev-primer').removeClass('sl');
+          getNext(f).find('.fwd-primer').removeClass('sl');
+      });
+
+    $('#overview').mouseleave(
+      function()
+      {
+          $(this).find('.fwd-primer').removeClass('sl');
+          $(this).find('.rev-primer').removeClass('sl');
+          $(this).find('.fragment').removeClass('sl');
+      });
+});
+</script>
+
+<div id='overview'>
+    <div class='fragment bk-fragment'>
+        <div class='seq fwd_seq bk-seq'></div>
+        <div class='seq rev_seq bk-seq'></div>
+    </div>
+
+    {% for cf in construct.cf.all %}
+    <div id='fragment-1' class='fragment'>
+        <div class='primer fwd-primer'>
+            <div class='pbody'></div>
+            <div class='parrow'></div>
+            <div class='pbase'></div>
+            {% if cf.primer_top.warning.count != 0 %}
+            <div class='pwarn ui-corner-all'>
+                {{ cf.primer_top.warning.count }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class='sl-target join-target'></div>
+        <div class='join-target-hl'></div>
+
+        <div class='seq fwd_seq'></div>
+        <div class='seq rev_seq'></div>
+
+        <div class='fname'><p>{{cf.fragment.name}}</p></div>
+
+        <div class='sl-target pcr-target'></div>
+
+        {% if forloop.last %}
+            <div class='sl-target post-join-target'></div>
+            <div class='post-join-target-hl'></div>
+        {% endif %}
+        
+        <div class='primer rev-primer'>
+            <div class='pbody'></div>
+            <div class='parrow'></div>
+            <div class='pbase'></div>
+            {% if cf.primer_bottom.warning.count != 0 %}
+            <div class='pwarn ui-corner-all'>
+                {{ cf.primer_bottom.warning.count }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% endfor %}
+
+    <div style='clear:both'></div>
+</div>

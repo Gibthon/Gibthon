@@ -1,5 +1,5 @@
 <style type="text/css">
-.feature {
+/*.feature {
 	border-top:2px solid red;
 }
 .primer {
@@ -27,6 +27,7 @@ div.fragment_name {
 	text-align:center;
 	font-size:0.9em;
 }
+*/
 
 input.mix {
 	width:40px;
@@ -57,27 +58,7 @@ td.warningcell {
 
 <div class="ui-widget-content ui-corner-all content fixed-width">
 	<p>Number in brackets count the number of warnings for each primer. Click on the primers to see details.</p>
-	<div>
-	{% for cf in construct.cf.all %}
-		<div style="float:left;">
-			<div style="width:150px;">
-				{% with cf.primer_top as primer %}
-				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_top">Top ({{ primer.warning.count }})</button>
-				{% endwith %}
-			</div>
-			<div style="clear:both"></div>
-			<div class="fragment_name" style="width:150px;">
-			{{ cf.fragment.name }}
-			</div>
-			<div style="width:150px;">
-				{% with cf.primer_bottom as primer %}
-				<button value="{{ primer.id }}/{{ primer.name }}/" class="primer_button primer_bottom">Bottom ({{ primer.warning.count }})</button>
-				{% endwith %}
-			</div>
-		</div>
-	{% endfor %}
-	</div>
-	<div style="clear:both;"></div>
+    {% include "gibson/construct_preview.html" %}
 </div>
 <div id="primer_info">
 	<div class="ui-widget-content ui-corner-all content fixed-width">
