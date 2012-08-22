@@ -6,12 +6,13 @@
 </style>
 
 <script type='text/javascript'>
-    $(document).ready( function(){
-        $('.construct_overview').constructPreview();
-    });
+$(document).ready( function(){
+    $('.construct_overview').constructPreview();
+});
 </script>
 
 <div class='construct_overview'>
+
     <div style='margin:50px;'>
         <div class='fragment bk-fragment'>
             <div class='seq fwd_seq bk-seq'></div>
@@ -19,40 +20,32 @@
         </div>
 
         {% for cf in construct.cf.all %}
+
         <div id='fragment-{{ cf.id }}' class='fragment'>
             <div class='primer fwd-primer'>
-                <div class='pbody'></div>
-                <div class='parrow'></div>
-                <div class='pbase'></div>
+                <div class='pmark'>
+                    <div class='pbody'></div>
+                    <div class='parrow'></div>
+                    <div class='pbase'></div>
+                </div>
                 {% if cf.primer_top.warning.count != 0 %}
                 <div class='pwarn ui-corner-all'>
                     {{ cf.primer_top.warning.count }}
                 </div>
-                {% endif %}
+                {% endif  %}
             </div>
 
-            <div class='sl-target join-target'></div>
-            <div class='hl-target join-target-hl'></div>
-            <div class='hl-target join-target-sl'></div>
-
-            <div class='seq fwd_seq'></div>
+            <div class='seq  fwd_seq'></div>
             <div class='seq rev_seq'></div>
 
             <div class='fname'><p>{{cf.fragment.name}}</p></div>
 
-            <div class='sl-target pcr-target'></div>
-            <div class='hl-target pcr-target-sl'></div>
-
-            {% if forloop.last %}
-                <div class='sl-target post-join-target'></div>
-                <div class='hl-target post-join-target-hl'></div>
-                <div class='hl-target post-join-target-sl'></div>
-            {% endif %}
-            
             <div class='primer rev-primer'>
-                <div class='pbody'></div>
-                <div class='parrow'></div>
-                <div class='pbase'></div>
+                <div class='pmark'>
+                    <div class='pbody'></div>
+                    <div class='parrow'></div>
+                    <div class='pbase'></div>
+                </div>
                 {% if cf.primer_bottom.warning.count != 0 %}
                 <div class='pwarn ui-corner-all'>
                     {{ cf.primer_bottom.warning.count }}
@@ -60,27 +53,42 @@
                 {% endif %}
             </div>
         </div>
-
         {% endfor %}
+
 
         <div style='clear:both'></div>
     </div>
-    <div class='primer-view ui-widget ui-widget-content ui-corner-all' 
+    <div class='primer-view ui-widget ui-widget-content ui-corner-all'
         style='display:none;'>
         <div class='arrow'>
             <div></div>
         </div>
 
-        <div class='titlebar'>
-            <div class='title'>
-                <h3>Title</h3>
+        <div class='primer_detail'>
+            <div style='margin:50px;'>
+
+                <div id='detail_fragment' class='join'>
+                    <div id='primer-71' class='primer fwd-primer'>
+                        <div class='pmark'>
+                            <div class='pbody'></div>
+                            <div class='parrow'></div>
+                            <div class='pbase'></div>
+                        </div>
+                    </div>
+
+                    <div id='left_seq' class='seq'></div>
+                    <div id='right_seq' class='seq'></div>
+
+                    <div style='clear:both;'></div>
+
+                </div>
+
+                <div style='clear:both'></div>
+
             </div>
-            <div class='buttons'>
-                <button id='cancel-btn'>Cancel</button>
-                <button id='save-btn'>Save</button>
-            </div>
-            <div style='clear:both;'></div>
         </div>
+
     </div>
 </div>
+
 
