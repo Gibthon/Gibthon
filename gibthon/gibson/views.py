@@ -157,16 +157,13 @@ def construct_add(request):
 			c = form.save()
 			c.owner = request.user
 			c.save()
-			return HttpResponse('/gibthon/%s/' % c.id)
-		t = loader.get_template('gibson/gibsonnew.html')
+			return JsonResponse({'url': '/gibthon/%s/' % c.id,})
+		t = loader.get_template('gibson/constructform.html')
 		con = Construct.objects.all().filter(owner=request.user)
 		c = RequestContext(request, {
-			'construct_list':con,
-			'title':'Construct Designer',
 			'construct_form':form,
 		})
-		c.update(csrf(request))
-		return HttpResponse(t.render(c))
+		return JsonResponse({'html': t.render(c),}, ERROR)
 	else:
 		return HttpResponseNotFound()
 

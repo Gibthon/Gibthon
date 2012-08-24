@@ -51,7 +51,9 @@
 <div id="construct_add">
 	<form action="add" method="post">
 		{% csrf_token %}
+        <div id='construct_form_wrap'>
 		{% include "gibson/constructform.html" %}
+        </div>
 	</form>
 	<div style="float:right; padding-right:10px;"><button id="add">Add</button></div>
 </div>
@@ -142,8 +144,14 @@ var show_delete_dialog = function(){
 $(document).ready(function() {
 	$('button[id="add"]')
 		.click(function(event){
-			$.post('add', $('form[action^="add"]').serialize(), function(url){
-				window.location.href = url;
+			$.post('add', $('form[action^="add"]').serialize(), function(data){
+                if(data[0] == 0)
+                {
+                    console.log('window.location = ' + data[1].url);
+                    window.location = data[1].url;
+                }
+                
+			    $('#construct_form_wrap').html(data[1].html);	
 			});
 		})
 		.button({
