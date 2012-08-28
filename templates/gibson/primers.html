@@ -183,7 +183,10 @@ console.log('show '+this.value.split('/')[1]);
 		
 	var downloadTimer;
 	$('button#download').button({
-		icons:{primary:'ui-icon-clipboard'}
+		icons:{primary:'ui-icon-clipboard'},
+        {% if not construct.fragments.all %}
+        disabled: true,
+        {% endif %}
 	}).click(function() {
 		$('#prompt').prompt({
 			type:'wait',

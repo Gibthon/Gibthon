@@ -441,13 +441,13 @@ def pcr_instructions(request, cid):
 		response.write(ret_zip)
 		return response
 	else:
-		return HttpReponseNotFound
+		return HttpReponseNotFound()
 
 
 @login_required
 def primer_download(request, cid):
 	con = get_construct(request.user, cid)
-	if con:
+	if con and con.fragments.all().count():
 		print request.GET['tk']
 		#set up response headers
 		response = HttpResponse(mimetype='application/zip')
@@ -496,7 +496,7 @@ def primer_download(request, cid):
 		response.write(ret_zip)
 		return response
 	else:
-		return HttpResponseNotFound
+		return HttpResponseNotFound()
 
 @login_required
 def pdf(request, cid):
@@ -514,7 +514,7 @@ def pdf(request, cid):
 		pdfbuffer.close()
 		return response
 	else:
-		return HttpResponseNotFound
+		return HttpResponseNotFound()
 
 def fetch_resources(uri, rel):
 	path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "")[1:])
