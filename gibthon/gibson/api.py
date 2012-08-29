@@ -51,10 +51,7 @@ def save_meta(request, cid):
 				{'all': "Construct with id '%s' not found" % cid,}}, ERROR)
 		name = request.POST.get('name', con.name)
 		desc = request.POST.get('desc', con.description)
-		print 'got name: "%s" desc: "%s"' %(name, desc)
-		print 'post data: %s' % request.POST	
 		if (name != con.name) or (desc != con.description):
-			print 'saving name: "%s" desc: "%s"' %(name, desc)
 			con.name = name
 			con.description = desc
 			try:
