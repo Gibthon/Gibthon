@@ -3,6 +3,7 @@ from Bio.Seq import reverse_complement, Seq
 from Bio.SeqUtils.MeltingTemp import Tm_staluc
 from gibthon.unafold import UnaFolder
 from django.conf import settings
+from os.path import join, split
 
 import os
 
@@ -41,11 +42,11 @@ class Oligo():
 	def selfPrime(self):
 		u = UnaFolder(t = self.fullTm(), safety=3, mg_salt=self.mg, na_salt=self.na)
 		ret, image = u.self_prime(str(self.topPrimer()))
-		print settings.MEDIA_ROOT
-		os.rename(image, settings.MEDIA_ROOT+image[1::])
+		new_image = join(settings.MEDIA_ROOT, split(image)[1])
+		os.rename(image, new_image)
 		wst = ''
 		for warning in u.warnings:
 			wst += 'Potential self-priming of 3\' end! Length: ' + str(warning[0]) + ', dG: ' + str(warning[1]) + '<br />'
-		return settings.MEDIA_URL + image, wst
+		return join(settings.MEDIA_URL, split(image)[1]), wst
 	
 		

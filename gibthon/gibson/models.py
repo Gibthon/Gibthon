@@ -84,14 +84,13 @@ def hybrid_options(t,settings):
 
 def run_subprocess(cline, primer):
 	try:
-		print "Popen(%s)" % cline
+		#print "Popen(%s)" % cline
 		p = subprocess.Popen(shlex.split(cline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	except IOError:
-		print 'aspifjoasijfoiaj'
 		return False
 	stdout, stderr = p.communicate()
 	if p.returncode > 0:
-		print 'Primer calculation failed with error %d\n%s\n%s'%(p.returncode,stderr,stdout)
+		#print 'Primer calculation failed with error %d\n%s\n%s'%(p.returncode,stderr,stdout)
 		w = Warning.objects.create(
 			primer = primer,
 			type = 'sy',
@@ -234,7 +233,6 @@ class Primer(models.Model):
 	def self_prime_check(self):
 		u = UnaFolder(t=self.tm(), safety=self.construct.settings.ss_safety, mg_salt=self.construct.settings.mg_salt, na_salt=self.construct.settings.na_salt)
 		ret, image = u.self_prime(str(self.seq()))
-		print image
 		print os.path.join(settings.MEDIA_ROOT, 'unafold/p-%s' % self.id)
 		os.rename(image, os.path.join(settings.MEDIA_ROOT, 'unafold/p-%s' % self.id))
 		
@@ -244,7 +242,7 @@ class Primer(models.Model):
 			w = Warning.objects.create(
 				primer = self,
 				type = 'sp',
-				text = 'Potential self-priming of 3\' end! Length: ' + str(warning[0]) + ', dG: ' + str(warning[1]),
+				text = 'Potential self-priming of 3\' end! dG: %s' % warning[1],
 			)		
 	
 	def misprime_check(self):
@@ -406,7 +404,6 @@ class Construct(models.Model):
 		return g.format('genbank')
 		
 	def add_fragment(self, fragment, order = 0, direction='f'):
-		print "Add_fragment at %d" % order 
 		if(order > len(self.fragments.all())):
 			order = len(self.fragments.all())
 		if(order < 0):
@@ -591,7 +588,7 @@ class ConstructFragment(models.Model):
 		
 	def limit(self, index):
 		"""limit the index so that it is within the sequence"""
-		return sorted([0, index, self.fragment.length() - 1])[1]
+		return sorted([0, index, self.fragment.length()])[1]
 	
 	def start(self): 
 		"""Note that feature indexes are stored in 'python' (0-offset, ends inclusive) not 'biologist' (1-offset, ends IDK)
@@ -605,13 +602,14 @@ class ConstructFragment(models.Model):
 				r = self.start_offset
 		else:
 			if self.start_feature:
-				r = (self.fragment.length() - 1 - self.start_feature.end) + self.start_offset
+				r = (self.fragment.length() - self.start_feature.end) + self.start_offset
 			else:
 				r = self.start_offset
 		return self.limit(r)
 	
 	def end(self):
-		"""Note that feature indexes are stored in 'python' (0-offset, ends inclusive) not 'biologist' (1-offset, ends IDK)
+		"""Note that feature indexes are stored in 'python' (0-offset, ends not
+		included) not 'biologist' (1-offset, ends IDK)
 		   offsets are positive in the direction of the sequence
 		"""
 		r = 0
@@ -619,12 +617,12 @@ class ConstructFragment(models.Model):
 			if self.end_feature:
 				r = self.end_feature.end + self.end_offset
 			else:
-				r = (self.fragment.length() - 1) + self.end_offset
+				r = self.fragment.length() + self.end_offset
 		else:
 			if self.end_feature:
-				r = self.fragment.length() - 1 - (self.end_feature.start - self.end_offset)
+				r = self.fragment.length() - (self.end_feature.start - self.end_offset)
 			else:
-				r = (self.fragment.length() - 1) + self.end_offset
+				r = self.fragment.length() + self.end_offset
 		return self.limit(r)
 	
 	def sequence(self):

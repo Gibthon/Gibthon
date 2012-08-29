@@ -222,3 +222,8 @@ div.ui-state-default a.ui-button {
 div.ui-state-default button.ui-button {
 	border:none !important;
 }
+
+ul.errorlist li {
+    color: red;
+    font-weight: bold;
+}

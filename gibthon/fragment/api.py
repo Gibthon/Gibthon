@@ -210,18 +210,26 @@ def get_meta(request, fid):
 
 @login_required
 def set_meta(request, fid):
-    """Update a fragment's metadata"""
-    if request.method == 'POST':
-        try:
-            g = get_gene(request.user, fid)
-            meta = json.loads(request.raw_post_data)
-            if meta:
-                write_meta(g, meta)
-                return get_meta(request, fid)
-            return JsonResponse("No metadata supplied.", ERROR)			
-        except ObjectDoesNotExist:
-            return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
-    raise Http404
+	"""Update a fragment's metadata"""
+	if request.method == 'POST':
+		try:
+			g = get_gene(request.user, fid)
+			meta = {'name': request.POST.get('name'), 
+							'desc': request.POST.get('desc'),
+							}
+			meta['annots'] = []
+			for i in range(0, len(request.POST) -2):
+				m = request.POST.getlist('annots[%s][]'%i)
+				if m:
+					meta['annots'].append(m)
+			print 'meta = %s' % meta
+			if meta:
+				write_meta(g, meta)
+				return get_meta(request, fid)
+			return JsonResponse("No metadata supplied.", ERROR)			
+		except ObjectDoesNotExist:
+			return JsonResponse("Fragment with ID='%s' does not exist." % fid, ERROR)
+	raise Http404
 
 @login_required
 def get_features(request, fid):

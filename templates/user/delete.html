@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ui-widget-content ui-corner-all content fixed-width">
+    <div class='center form-box'>
+        <h3>Confirm Account Deletion</h3>
+        <form method='post' action='.'>
+            {% csrf_token %}
+            <div class='ui-widget-content ui-state-highlight ui-corner-all'>
+                <h4 class='center'>Warning!</h4>
+                <p>Clicking on the button below will irreversibly delete your 
+                account on gibthon.org</p>
+                <p>You will no longer be able to access any fragments or other
+                data which are stored in this account</p>
+            </div>
+            <div style='margin-top:2em;'>
+                <button id='submit_button'>Delete my account</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type='text/javascript'>
+	$(window).ready( function() {
+		$('#submit_button').button( {icons: {primary: 'ui-icon-trash'}, } );
+	});
+</script>
+{% endblock %}

@@ -157,7 +157,7 @@ $(window).ready(function() {
 			$.each($('#pcrform')[0].elements, function (i,e) {
 				settings.push('"' + e.name + '":"' + e.value + '"');
 			});
-			$.post('save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
+			$.post('primers/save', {"data":'[{"pcrsettings":{' + settings.join(',') + '},"fragments":[' + forms.join(',') + ']}]'});
 		});
 
 	$('button.primer_top').button({
@@ -183,7 +183,10 @@ console.log('show '+this.value.split('/')[1]);
 		
 	var downloadTimer;
 	$('button#download').button({
-		icons:{primary:'ui-icon-clipboard'}
+		icons:{primary:'ui-icon-clipboard'},
+        {% if not construct.fragments.all %}
+        disabled: true,
+        {% endif %}
 	}).click(function() {
 		$('#prompt').prompt({
 			type:'wait',

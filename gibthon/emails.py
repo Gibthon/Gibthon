@@ -11,7 +11,7 @@ def RegisterEmail1(to):
 				
 Please click on the following link to create your account.
 				
-http://django.gibthon.org/user/register/%s/
+http://www.gibthon.org/user/register/%s/
 
 Using the email %s
 

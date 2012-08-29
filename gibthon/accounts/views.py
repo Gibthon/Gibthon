@@ -7,6 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.core.exceptions import *
+from django.shortcuts import render_to_response
 from accounts.models import *
 
 from gibthon.emails import RegisterEmail1
@@ -103,7 +104,7 @@ def register(request):
 		else:
 			c = RequestContext(request, {
 				'title':'Register',
-				'form':UserRegisterForm1(request.POST),
+				'form':f,
 				'stage':1,
 			})
 		t = loader.get_template('user/register.html')
@@ -116,6 +117,17 @@ def register(request):
 			'form':f,
 			'stage':1,
 		})
+	return HttpResponse(t.render(c))
+
+@login_required
+def delete(request):
+	if request.method == "POST":
+		request.user.delete()
+		return HttpResponseRedirect('/')
+	t = loader.get_template('user/delete.html')
+	c = RequestContext(request, {
+		'title':'Confirm Account Deletion',
+	})
 	return HttpResponse(t.render(c))
 
 @login_required

@@ -24,6 +24,7 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Bill Collins', 'bill@gibthon.org'),
+		('Haydn King', 'haydn@gibthon.org'),
 )
 
 MANAGERS = ADMINS
@@ -151,7 +152,8 @@ AWS_ACCESS_KEY_ID = localsettings.ses_accesskey
 AWS_SECRET_ACCESS_KEY = localsettings.ses_secretaccesskey
 EMAIL_BACKEND = 'django_ses.SESBackend'
 EMAIL_USE_TLS = False
-EMAIL_SUBJECT_PREFIX = '[Gibthon.org] '
+EMAIL_SUBJECT_PREFIX = '[gibthon.org] '
+SERVER_EMAIL = 'admin@gibthon.org'
 
 # local settings
 

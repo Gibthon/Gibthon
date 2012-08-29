@@ -88,8 +88,8 @@ var ReleaseNames = [
 ];
 
 $(document).ready( function() {
-    var i = Math.round( Math.random() * ReleaseNames.length + 0.499);
-    console.log('i = ' + i);
+    var i = Math.floor( Math.random() * ReleaseNames.length);
+    if(i >= ReleaseNames.length) i = 0;
     $('#release_name').text(ReleaseNames[i]);
 });
 </script>

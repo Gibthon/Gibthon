@@ -309,16 +309,16 @@ $.widget("ui.fragmentSequence", {
 		
 		this.$el.find('#view').buttonset();
 		this.$el.find('#ds').click(function(){
-			self.$el.find('.seq-fwd').slideDown(100);
-			self.$el.find('.seq-rev').slideDown(100);
+			self.$el.find('.seq-fwd').removeClass('seq-hid');
+			self.$el.find('.seq-rev').removeClass('seq-hid');
 		});
 		this.$el.find('#ss').click(function(){
-			self.$el.find('.seq-fwd').slideDown(100);
-			self.$el.find('.seq-rev').slideUp(100);
+			self.$el.find('.seq-fwd').removeClass('seq-hid');
+			self.$el.find('.seq-rev').addClass('seq-hid');
 		});
 		this.$el.find('#ns').click(function(){
-			self.$el.find('.seq-fwd').slideUp(100);
-			self.$el.find('.seq-rev').slideUp(100);
+			self.$el.find('.seq-fwd').addClass('seq-hid');
+			self.$el.find('.seq-rev').addClass('seq-hid');
 		});
 
 		//this._toolbar_height = $('#seq_toolbar').offset().top;
@@ -335,6 +335,7 @@ $.widget("ui.fragmentSequence", {
 		this.pos = 0;
 		this.rowlength = parseInt(px2em(this.$el.width()) / char_width);
 		this.rowlength = 5 * Math.floor(this.rowlength / 6);
+
 
 		this._get_seq_meta();
 		
@@ -419,6 +420,7 @@ $.widget("ui.fragmentSequence", {
 
 			self._label_features();
 			self._get_char_width();
+            self.$seq.width(toPadded(self.rowlength) * self.char_width);
 		});
 
 	},
@@ -431,7 +433,7 @@ $.widget("ui.fragmentSequence", {
 		
 		var seq = "";
 		var label = "";
-		for(var i = 0; i < this.rowlength; i = i + 5)
+		for(var i = 0; i < s.length; i = i + 5)
 		{
 			seq = seq + s.substr(i, 5) + " ";
 			var left= '';
