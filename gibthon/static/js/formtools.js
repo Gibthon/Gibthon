@@ -70,10 +70,12 @@ $.widget("ui.formExtender", {
 	enable: function()
 	{
 		this._enable_disable('enable');
+        this.options.disabled = false;
 	},
 	disable: function()
 	{
 		this._enable_disable('disable');
+        this.options.disabled = true;
 	},
 	numElements: function() {return num_elements},
 	_enable_disable: function(fn)
@@ -101,6 +103,7 @@ $.widget("ui.formExtender", {
 		$clone.find('button.extender-remove').button({
 			text: false,
 			icons: {primary: 'ui-icon-trash',},
+            disabled: self.options.disabled,
 		}).click( function(event) {
 			self._remove(event);
 			return false;
@@ -124,7 +127,7 @@ $.widget("ui.formExtender", {
 	},
 	_remove: function(event){
 		var self = this;
-		if(this.num_elements <= 1)
+		if(this.$el.find('.extender-item').length <= 1)
 			return;
 		$(event.target).closest('.extender-item').slideUp('fast', function() {
 			$(this).remove();

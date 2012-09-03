@@ -157,16 +157,13 @@ def construct_add(request):
 			c = form.save()
 			c.owner = request.user
 			c.save()
-			return HttpResponse('/gibthon/%s/' % c.id)
-		t = loader.get_template('gibson/gibsonnew.html')
+			return JsonResponse({'url': '/gibthon/%s/' % c.id,})
+		t = loader.get_template('gibson/constructform.html')
 		con = Construct.objects.all().filter(owner=request.user)
 		c = RequestContext(request, {
-			'construct_list':con,
-			'title':'Construct Designer',
 			'construct_form':form,
 		})
-		c.update(csrf(request))
-		return HttpResponse(t.render(c))
+		return JsonResponse({'html': t.render(c),}, ERROR)
 	else:
 		return HttpResponseNotFound()
 
@@ -444,13 +441,13 @@ def pcr_instructions(request, cid):
 		response.write(ret_zip)
 		return response
 	else:
-		return HttpReponseNotFound
+		return HttpReponseNotFound()
 
 
 @login_required
 def primer_download(request, cid):
 	con = get_construct(request.user, cid)
-	if con:
+	if con and con.fragments.all().count():
 		print request.GET['tk']
 		#set up response headers
 		response = HttpResponse(mimetype='application/zip')
@@ -499,7 +496,7 @@ def primer_download(request, cid):
 		response.write(ret_zip)
 		return response
 	else:
-		return HttpResponseNotFound
+		return HttpResponseNotFound()
 
 @login_required
 def pdf(request, cid):
@@ -517,7 +514,7 @@ def pdf(request, cid):
 		pdfbuffer.close()
 		return response
 	else:
-		return HttpResponseNotFound
+		return HttpResponseNotFound()
 
 def fetch_resources(uri, rel):
 	path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "")[1:])
