@@ -9,8 +9,10 @@ primerpatterns = patterns('gibson.views',
 	(r'^save$', 'primer_save'),
 	(r'^reset$', 'primer_reset'),
 	(r'^csv$', 'csv_primers'),
+	(r'^(?P<pid>\d+)/boxplot/$', direct_to_template, {
+		'template': 'gibson/boxplot.html'}),
 	(r'^(?P<pid>\d+)/[\w\-_]+/$', 'primer'),
-	(r'^(?P<pid>\d+)$', 'load_primer'),
+	(r'^(?P<pid>\d+)/$', 'load_primer'),
 	(r'^(?P<pid>\d+)/[\w\-_]+/offset$', 'primer_offset'),
 	(r'^\d+/[\w\-_]+/reset$', 'primer_reset'),
 )

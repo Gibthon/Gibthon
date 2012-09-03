@@ -218,6 +218,7 @@ $.widget('ui.constructPreview', {
         this.pview = el.find('.primer-view');
         this.arrow = this.pview.find('.arrow');
         this.pedit = el.find('.primer-edit');
+        this.boxplot = el.find('.boxplot');
 
         var css = $("<link>");
         css.attr({
@@ -245,9 +246,26 @@ $.widget('ui.constructPreview', {
             console.log('$(this).find(".primer-detail").length = ' + 
                        $(this).find('.primer-detail').length);
             $(this).find('.primer-detail')
-                .children().clone().appendTo(self.pedit);
+                .children().clone(true).appendTo(self.pedit);
 
             self.pview.slideDown();
+        });
+
+        this.boxplot.dialog({
+            autoOpen: false,
+            title: 'Boxplot',
+            resizable: false,
+            modal: true,
+            width: 700,
+            height: 850,
+        });
+
+        el.find('button.boxplot-btn').button({
+            icons: {primary: 'ui-icon-image',},
+        }).click( function() {
+            self.boxplot.html('')
+                .dialog('open')
+                .load('primers/' + $(this).attr('pid') + '/boxplot/');
         });
 
         $(document).on('click', '.join > .seq > .base', function() {
@@ -269,6 +287,8 @@ $.widget('ui.constructPreview', {
                 'left': $(this).position().left,
             });
         });
+
+
 
     },
     _init: function() {
