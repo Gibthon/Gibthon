@@ -1,166 +1,92 @@
+<div>
+    <p>
+        <strong>Primer {{ primer.name }}</strong>
+    </p>
+    <table style="padding-left:15px;">
+        <tr>
+            <td style="width:100px;">
+                <em>Section:</em>
+            </td>
+            <td style="width:100px;">
+                <em>Full</em>
+            </td>
+            <td style="width:100px;">
+                <em>Anneal</em>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>Length:</em>
+            </td>
+            <td>
+                {{ primer.length }} bp
+            </td>
+            <td>
+                {{ primer.stick.length }} bp
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>Tm:</em>
+            </td>
+            <td>
+                {{ primer.tm|floatformat }}&deg;C
+            </td>
+            <td>
+                {{ primer.stick.tm|floatformat }}&deg;C
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <em>Sequence:</em>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+    <p style="font-family:monospace;">
+        {% for b in primer.seq_pretty %}
+            {{ b }}
+        {% endfor %}
+    </p>
 
-<div class="ui-widget-content ui-corner-all content fixed-width">
-	<p><strong>Primer {{ primer.name }}</strong></p>
-	<table style="padding-left:15px;">
-		<tr>
-			<td style="width:100px;"><em>Section:</em></td><td style="width:100px;"><em>Full</em></td><td style="width:100px;"><em>Anneal</em></td>
-		</tr>
-		<tr>
-			<td><em>Length:</em></td><td>{{ primer.length }} bp</td><td>{{ primer.stick.length }} bp</td>
-		</tr>
-		<tr>
-			<td><em>Tm:</em></td><td>{{ primer.tm|floatformat }}&deg;C</td><td>{{ primer.stick.tm|floatformat }}&deg;C</td>
-		</tr>
-		<tr>
-			<td><em>Sequence:</em></td><td></td><td></td>
-		</tr>
-	</table>
-	<p style="font-family:monospace;">
-		{% for b in primer.seq_pretty %}
-			{{ b }}
-		{% endfor %}
-	</p>
+    <div style='margin:50px;'>
+        <div id='detail_fragment' class='join'>
+            <div id='primer-71' class='primer fwd-primer'>
+                <div class='pmark'>
+                    <div class='pbody'></div>
+                    <div class='parrow'></div>
+                    <div class='pbase'></div>
+                </div>
+            </div>
+
+            <div id='left_seq' class='seq'></div>
+            <div id='right_seq' class='seq'></div>
+
+            <div style='clear:both;'></div>
+        </div>
+        <div style='clear:both'></div>
+    </div>
+
+    {% if primer.warning.all %}
+        <div class='ui-state-highlight ui-corner-all primer-warnings'>
+            <ul>
+            {% for w in primer.warning.all %}
+                <li>{{ w.text|safe }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+
+    <!--
+
+    <h4>Self-priming Boxplot</h4>
+    <div style="text-align:center;">
+    <img src="{{ MEDIA_URL }}/unafold/p-{{ primer.id }}" />
+    </div>
+    </div>
+    -->
+
 </div>
 
-{% if primer.warning.all %}
-	<div class='ui-state-highlight ui-corner-all content fixed-width'>
-		<ul>
-		{% for w in primer.warning.all %}
-			<li>{{ w.text|safe }}</li>
-		{% endfor %}
-		</ul>
-	</div>
-{% endif %}
-
-<!-- Commented out 'cos it don't work and I don't have the time to fix it
-<div class="ui-widget-content ui-corner-all content fixed-width">
-<p>Want to edit the start/end positions to avoid misprimes? Drag and drop the orange base.</p>
-<p><strong>Flap</strong> ({{ primer.flap.cfragment.fragment.name }}) <em>- {{ primer.flap.length }} bp, {{ primer.flap.tm|floatformat }}&deg;C</em></p>
-<div style="font-family:monospace; padding:10px;">
-<table class="primert">
-<tr id="flap">
-{{ primer.flap.seq_surround|safe }}
-</tr>
-</table>
-</div>
-<br />
-<p><strong>Stick</strong> ({{ primer.stick.cfragment.fragment.name }}) <em>- {{ primer.stick.length }} bp, {{ primer.stick.tm|floatformat }}&deg;C</em></p>
-<div style="font-family:monospace; padding:10px;">
-<table class="primert">
-<tr id="stick">
-{{ primer.stick.seq_surround|safe }}
-</tr>
-</table>
-</div>
--->
-<br />
-<h4>Self-priming Boxplot</h4>
-<div style="text-align:center;">
-<img src="{{ MEDIA_URL }}/unafold/p-{{ primer.id }}" />
-</div>
-</div>
-
-<script type="text/javascript">
-
-$(document).ready(function() {
-	$('#flap > td.primer:last')
-		.draggable({ 
-			grid: [10,20],
-			axis:'x',
-			helper: function(event){
-				return $('<td style="background-color:orange; border-top:2px solid orange; border-bottom:2px solid blue; opacity:0.6;">&nbsp;</td>');
-			},
-			containment:'parent'
-		})
-		.css('background-color', 'orange');
-	$('#flap > td.feature:last, #flap > td.feature:last ~ td')
-		.each( function( index, base ) {
-			$(base).droppable({
-				drop:function( event, ui ){
-					$('#prompt').prompt({
-						type:'confirm',
-						title:'Confirm reset',
-						message: 'You are about to change the offset of the flappy end of<br /><br />{{ primer.name }}<br /><br />to ' + index,
-						confirm: {
-							click: function () {
-								f = new FormData();
-								f.append('flap', index);
-								$('#prompt2').prompt({
-									title:'Please wait',
-									message:'Moving end.',
-									type:'progress',
-									confirm: {
-										text: "View primers",
-										icon: 'ui-icon-transferthick-e-w',
-										click: function () { window.location.href='primers'; }
-									},
-									cancel: {
-										text: "Close",
-										icon: 'ui-icon-close'
-									},
-									target: { 
-										location :'offset',
-										type: 'POST',
-										data: f,
-										callback: function () { window.location.reload() }
-									},
-									buttons:false
-								});
-							}
-						}
-					});
-				}
-			});
-		});
-	$('#stick > td.primer:first')
-		.draggable({ 
-			grid: [10,20],
-			axis:'x',
-			helper: function(event){
-				return $('<td style="background-color:orange; border-top:2px solid orange; border-bottom:2px solid blue; opacity:0.6;">&nbsp;</td>');
-			},
-			containment:'parent'
-		})
-		.css('background-color', 'orange');
-	$($('#stick > td:lt('+($('#stick > td.feature:first').index() + 1)+')').get().reverse())
-		.each( function( index, base ) {
-			$(base).droppable({
-				drop:function( event, ui ){
-					$('#prompt').prompt({
-						type:'confirm',
-						title:'Confirm reset',
-						message:'You are about to change the offset of the annealing end of<br /><br />{{ primer.name }}<br /><br />to ' + index,
-						confirm: {
-							click: function () {
-								f = new FormData();
-								f.append('stick', index);
-								$('#prompt2').prompt({
-									title:'Please wait',
-									message:'Movind end.',
-									type:'progress',
-									confirm: {
-										text: "View primers",
-										icon: 'ui-icon-transferthick-e-w',
-										click: function () { window.location.href='primers'; }
-									},
-									cancel: {
-										text: "Close",
-										icon: 'ui-icon-close'
-									},
-									target: { 
-										location :'offset',
-										type: 'POST',
-										data: f,
-										callback: function () { window.location.reload() }
-									},
-									buttons:false
-								});
-							}
-						}
-					});
-				}
-			});
-		});
-
-});
-</script>

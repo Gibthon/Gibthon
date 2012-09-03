@@ -237,6 +237,14 @@
     top:1px;
     border-bottom-color: white;
 }
+.primer-detail
+{
+    display: none;
+}
+.primer-warnings
+{
+    margin: 1em;
+}
 
 /* join
  * */

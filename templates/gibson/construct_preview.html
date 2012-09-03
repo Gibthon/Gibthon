@@ -33,6 +33,9 @@ $(document).ready( function(){
                     {{ cf.primer_top.warning.count }}
                 </div>
                 {% endif  %}
+                <div class='primer-detail' id='primer-{{ cf.primer_top.id }}'>
+                    {% include 'primer.html' with primer=cf.primer_top %}
+                </div>
             </div>
 
             <div class='seq  fwd_seq'></div>
@@ -51,6 +54,9 @@ $(document).ready( function(){
                     {{ cf.primer_bottom.warning.count }}
                 </div>
                 {% endif %}
+                <div class='primer-detail' id='primer-{{ cf.primer_bottom.id }}'>
+                    {% include 'primer.html' with primer=cf.primer_bottom %}
+                </div>
             </div>
         </div>
         {% endfor %}
@@ -64,28 +70,8 @@ $(document).ready( function(){
             <div></div>
         </div>
 
-        <div class='primer_detail'>
-            <div style='margin:50px;'>
-
-                <div id='detail_fragment' class='join'>
-                    <div id='primer-71' class='primer fwd-primer'>
-                        <div class='pmark'>
-                            <div class='pbody'></div>
-                            <div class='parrow'></div>
-                            <div class='pbase'></div>
-                        </div>
-                    </div>
-
-                    <div id='left_seq' class='seq'></div>
-                    <div id='right_seq' class='seq'></div>
-
-                    <div style='clear:both;'></div>
-
-                </div>
-
-                <div style='clear:both'></div>
-
-            </div>
+        <div class='primer-edit'>
+            
         </div>
 
     </div>

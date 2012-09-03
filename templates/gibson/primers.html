@@ -36,18 +36,40 @@ td.warningcell {
 <div id="primer_info">
 	<div class="ui-widget-content ui-corner-all content fixed-width">
 		<h3>Primer Summary</h3>
-		<p><table style="margin-left:30px;" class="protocol">
-		<tr><th style="width:250px;">Name</th><th style="width:110px;">Length (bp)</th><th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th><th style="width:110px;">T<sub>m</sub> full (&deg;C)</th></tr>
-		{% for primer in construct.primer.all %}
-		<tr><td>{{ primer.name }}</td><td style="text-align:center;">{{ primer.length }}</td><td style="text-align:center;">{{ primer.stick.tm|floatformat:0 }}</td><td style="text-align:center;">{{ primer.tm|floatformat:0 }}</td></tr>
-		{% endfor %}
-		</table></p>
+        <table style="margin-left:30px;" class="protocol">
+            <tr>
+                <th style="width:250px;">Name</th>
+                <th style="width:110px;">Length (bp)</th>
+                <th style="width:110px;">T<sub>m</sub> anneal (&deg;C)</th>
+                <th style="width:110px;">T<sub>m</sub> full (&deg;C)</th>
+            </tr>
+        {% for primer in construct.primer.all %}
+            <tr>
+                <td>{{ primer.name }}</td>
+                <td style="text-align:center;">
+                    {{ primer.length }}
+                </td>
+                <td style="text-align:center;">
+                    {{ primer.stick.tm|floatformat:0 }}
+                </td>
+                <td style="text-align:center;">
+                    {{ primer.tm|floatformat:0 }}
+                </td>
+            </tr>
+        {% endfor %}
+		</table>
 	</div>
 	<div class="ui-widget-content ui-corner-all content fixed-width">
 		<h3>PCR Particulars</h3>
-		<p>Fill in the details for all of your primers to download protocol information</p>
+		<p>
+            Fill in the details for all of your primers to download protocol 
+            information
+        </p>
 		<p>Don't forget to save your changes!</p>
-		<div id="warning" class="ui-state-highlight ui-corner-all" style="padding:5px; margin-left:auto; margin-right:auto; width:500px; margin-bottom:5px;">Warning! Some of your components have a volume of less than 1&mu;l. Consider diluting them before adding to the mix.</div>
+		<div id="warning" class="ui-state-highlight ui-corner-all" 
+            style="padding:5px; margin-left:auto; margin-right:auto; width:500px; margin-bottom:5px;">
+            Warning! Some of your components have a volume of less than 1&mu;l. Consider diluting them before adding to the mix.
+        </div>
         <div style='margin-left:30px'>
             <div style="width:310px; float:left;">
                 <table class="protocol"><tr><th>Stock</th></tr></table>

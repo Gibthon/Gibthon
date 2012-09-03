@@ -217,6 +217,7 @@ $.widget('ui.constructPreview', {
         this.el = el;
         this.pview = el.find('.primer-view');
         this.arrow = this.pview.find('.arrow');
+        this.pedit = el.find('.primer-edit');
 
         var css = $("<link>");
         css.attr({
@@ -236,20 +237,17 @@ $.widget('ui.constructPreview', {
             el.find('.primer.sl').removeClass('sl');
             $(this).addClass('sl');
             self.arrow.css({'left': self._get_center($(this)), });
-            self.pview.slideDown();
-            self._set_colors($(this));
 
             var type;
             $(this).hasClass('fwd-primer') ? type = 'fwd' : type = 'rev';
+            
+            self.pedit.html('');
+            console.log('$(this).find(".primer-detail").length = ' + 
+                       $(this).find('.primer-detail').length);
+            $(this).find('.primer-detail')
+                .children().clone().appendTo(self.pedit);
 
-            self.loadJson({    
-                'id': 95,
-                'flap_len': 20,
-                'flap_seq': 'ATATATATATATATATATATATATATAT',
-                'stick_len': 10,
-                'stick_seq': 'GCGCGCGCGCGCGCGCGCGCGCGCGCGC',
-                'type': type,            
-            });
+            self.pview.slideDown();
         });
 
         $(document).on('click', '.join > .seq > .base', function() {
@@ -276,7 +274,7 @@ $.widget('ui.constructPreview', {
     _init: function() {
         this.el.find('.fragment:not(.bk-fragment)').each( function(i) {
             $(this).find('.seq').css({
-                'background-color': 'hsl('+90*i+', 40%, 40%)',//libFrag.getNextColor(),
+                'background-color': libFrag.getNextColor(),
             });
         });
 
