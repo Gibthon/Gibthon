@@ -1,0 +1,22 @@
+{
+    id: {{ primer.id }},
+    name: "{{ primer.name }}",
+    cid: {{ primer.construct.id }},
+    concentration: {{ primer.concentration }},
+    length: {{ primer.length }},
+    tm: {{ primer.tm|floatformat }},
+    flap: { 
+        length: {{primer.flap.length}},
+        tm: {{primer.flap.tm|floatformat}}, 
+    },
+    stick: { 
+        length: {{primer.stick.length}},
+        tm: {{primer.stick.tm|floatformat}}, 
+    },
+    warnings: [
+        {% for w in primer.warning.all %}
+            "{{ w.text|safe }}",
+        {% endfor %}
+    ],
+    seq: "{{ primer.seq }}",
+}

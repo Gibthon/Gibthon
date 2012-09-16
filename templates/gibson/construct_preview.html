@@ -1,19 +1,25 @@
 <style type='text/css'>
-.fragment
+#overview .fragment
 {
     width: {% widthratio 1 construct.cf.all|length 100 %}%;
 }
 </style>
 
 <script type='text/javascript'>
+var primers = {
+    {% for p in construct.primers.all %}
+        {{ p.name }}: {% include 'primer.json' with primer=p %},
+    {% endfor %}
+};
+console.log('primers: ' + primers);
 $(document).ready( function(){
-    $('.construct_overview').constructPreview();
+    $('.construct_overview').constructPreview({primers: primers,});
 });
 </script>
 
 <div class='construct_overview'>
 
-    <div style='margin:50px;'>
+    <div id='overview'>
         <div class='fragment bk-fragment'>
             <div class='seq fwd_seq bk-seq'></div>
             <div class='seq rev_seq bk-seq'></div>
@@ -33,12 +39,9 @@ $(document).ready( function(){
                     {{ cf.primer_top.warning.count }}
                 </div>
                 {% endif  %}
-                <div class='primer-detail' id='primer-{{ cf.primer_top.id }}'>
-                    {% include 'primer.html' with primer=cf.primer_top %}
-                </div>
             </div>
 
-            <div class='seq  fwd_seq'></div>
+            <div class='seq fwd_seq'></div>
             <div class='seq rev_seq'></div>
 
             <div class='fname'><p>{{cf.fragment.name}}</p></div>
@@ -54,9 +57,6 @@ $(document).ready( function(){
                     {{ cf.primer_bottom.warning.count }}
                 </div>
                 {% endif %}
-                <div class='primer-detail' id='primer-{{ cf.primer_bottom.id }}'>
-                    {% include 'primer.html' with primer=cf.primer_bottom %}
-                </div>
             </div>
         </div>
         {% endfor %}
@@ -71,7 +71,131 @@ $(document).ready( function(){
         </div>
 
         <div class='primer-edit'>
-            
+            <div>
+                <div style='text-align:center'>
+                    <h3>Primer NAME</h3>
+                </div>
+                <h4>Saved Sequence</h4> 
+                <p style="font-family:monospace;padding-left:2.5em;">
+                    SEQUENCE HERE
+                </p>
+
+                <div class='join'>
+                    <div id='left_fragment' class='fragment'>
+
+                        <div class='seq fwd_seq'></div>
+                        <div class='seq rev_seq has_seq'>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                            <div class='base'>A</div><div class='base'>T</div>
+                        </div>
+
+                        <div class='fname'><p>Left Fragment Name</p></div>
+
+                        <div class='primer rev-primer'>
+                            <div class='pmark'>
+                                <div class='pbody'></div>
+                                <div class='parrow'></div>
+                                <div class='pbase'></div>
+                            </div>
+                            <div class='prule prule-full'>
+                                <div class='text'>
+                                    Fbp (TM&deg;C)
+                                </div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                            <div class='prule prule-stick'>
+                                <div class='text'>
+                                    Sbp (TM&deg;C)
+                                </div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id='right_fragment' class='fragment'>
+<!--                        <div class='primer fwd-primer'>
+                            <div class='pmark'>
+                                <div class='pbody'></div>
+                                <div class='parrow'></div>
+                                <div class='pbase'></div>
+                            </div>
+                            <div class='prule prule-full'>
+                                <div class='text'>
+                                    Fbp (TM&deg;C)
+                                </div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                            <div class='prule prule-stick'>
+                                <div class='text'>
+                                    Sbp (TM&deg;C)
+                                </div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                        </div>
+-->
+                        <div class='seq fwd_seq'></div>
+                        <div class='seq rev_seq has_seq'>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                            <div class='base'>G</div><div class='base'>C</div>
+                        </div>
+
+                        <div class='fname'><p>Right Fragment Name</p></div>
+
+                    </div>
+                    <div style='clear:both'></div>
+                </div>
+
+                <div class='ui-state-highlight ui-corner-all primer-warnings'>
+                    <ul>
+                        <li>WARNINGS HERE</li>
+                    </ul>
+                </div>
+
+                <div style='text-align:center;margin:1em;'>
+                    <button class='boxplot-btn' pid=''>
+                        Show Boxplot
+                    </button> 
+                </div>
+            </div>
         </div>
 
     </div>

@@ -209,7 +209,7 @@ function ConstructFragment(d, f)
  * */
 $.widget('ui.constructPreview', {
     options: {
-
+        primers: {},
     },
     _create: function() {
         var self = this;
@@ -242,12 +242,6 @@ $.widget('ui.constructPreview', {
             var type;
             $(this).hasClass('fwd-primer') ? type = 'fwd' : type = 'rev';
             
-            self.pedit.html('');
-            console.log('$(this).find(".primer-detail").length = ' + 
-                       $(this).find('.primer-detail').length);
-            $(this).find('.primer-detail')
-                .children().clone(true).appendTo(self.pedit);
-
             self.pview.slideDown();
         });
 

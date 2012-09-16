@@ -1,5 +1,5 @@
 .construct_overview{
-    margin: 50px;
+    margin: 50px 0;
 }
 
 .fragment{
@@ -7,7 +7,7 @@
     float:left;
     position: relative;
 }
-.fragment.bk-fragment{
+#overview .fragment.bk-fragment{
     position:absolute;
     left: -50px;
     right: -50px;
@@ -52,17 +52,19 @@
     position: relative;
     margin-top: 1.5em;
     text-align: center;
-    }
+}
 
-    /* primer
-     * */
+/* primer
+ * */
 
-    .primer{
-        position: absolute;
-        height: 4em;
-        width: 40%;
-        z-index: 5;
-        cursor: pointer;
+.primer{
+    position: absolute;
+    height: 4em;
+    width: 40%;
+    z-index: 5;
+}
+#overview > .fragment > .primer{
+    cursor: pointer;
 }
 .primer.sl{
     background-color: #FBEC88;
@@ -91,17 +93,17 @@
     background-color:red;
     left:0;
     right:0;
-        }
+}
 
-        /* fwd-primer
-         * */
+/* fwd-primer
+ * */
 
-    .fwd-primer {
-        left: -20%;
-        bottom: 3.25em;
+.fwd-primer {
+    left: -20%;
+    top: -2em;
 }
 .fwd-primer.sl > .pmark,
-.fragment > .fwd-primer:hover > .pmark
+#overview > .fragment > .fwd-primer:hover > .pmark
 {
     bottom: 0.5em;
 }
@@ -126,10 +128,10 @@
 
 .fragment > .rev-primer {
     right: -20%;
-    top: 3.25em;
+    bottom: -2em;
 }
 .rev-primer.sl > .pmark,
-.fragment > .rev-primer:hover > .pmark
+#overview > .fragment > .rev-primer:hover > .pmark
 {
     top: 0.5em;
 }
@@ -148,11 +150,11 @@
 }
 .rev-primer .pbase {
     top:0;
-    }
+}
 
-    /* Primer
-     * Warnings
-     * */
+/* Primer
+ * Warnings
+ * */
 
 .pwarn {
     width: 1.5em;
@@ -213,7 +215,7 @@
 /* primer-view
  * */
 .primer-view {
-        margin: 3em -50px;
+        margin: 3em 0;
         position: relative;
 }
 .primer-view > .arrow {
@@ -237,13 +239,64 @@
     top:1px;
     border-bottom-color: white;
 }
-.primer-detail
+.primer-edit
 {
-    display: none;
+    padding: 1em;
 }
 .primer-warnings
 {
-    margin: 1em;
+    margin: 5em 1em 1em;
+}
+
+/*
+ * Rulers
+ */
+.prule
+{
+    position:absolute;
+    border-left: 1px solid rgb(150,150,150);
+    border-right: 1px solid rgb(150,150,150);
+    font-size: 0.8em;
+    color: rgb(150,150,150);
+    text-align: center;
+    height: 1.5em;
+}
+.prule-full
+{
+    left:0; right:0;
+}
+.fwd-primer > .prule-full
+{
+    top: 8em;
+}
+.fwd-primer > .prule-stick
+{
+    bottom: 2em;
+    right: 0;
+    left: 50%;
+}
+.rev-primer > .prule-full
+{
+    bottom: 8em;
+}
+.rev-primer > .prule-stick
+{
+    top: 2em;
+    left: 0;
+    right: 50%;
+}
+.prule > .line
+{
+    border-top: 1px solid rgb(150,150,150);
+    z-index: 1;
+    margin-top: -0.75em;
+}
+.prule > .text
+{
+    padding: 0 0.5em;
+    background-color: white;
+    display: inline;
+    z-index: 10;
 }
 
 /* join
@@ -255,37 +308,27 @@
     -khtml-user-select: none;
     -webkit-user-select: none;
     -o-user-select: none;
+    margin: 20px 40px;
 }
-.join > .seq
+.join .fragment
 {
     width: 50%;
-    height: 14px;
-    overflow: hidden;
-    float: left;
-    font: 10px monospace;
 }
-.join > .primer
+.seq.has_seq
 {
-    left: 50px;
-    right: 50px;
-    height: 1.5em;
-    width: auto;
-    cursor: auto;
+    height: 1.4em;
+    color:white;
+    font: 1em monospace;
 }
-.join > .primer.fwd-primer
+.join > .fragment > .rev-primer
 {
-    top: -1em;
-}
-.join > .primer.rev-primer
-{
-    bottom: -1em;
+    bottom:-2.4em;
 }
 .join .base
 {
     width: 0.7em;
-    padding: 2px 0;
+    padding: 0.1em 0;
     cursor: pointer;
-    color:white;
 }
 .join .base:hover
 {
@@ -296,11 +339,11 @@
     background-color: darkorange;
     color:black;
 }
-#left_seq > .base
+#left_fragment .base
 {
     float: right;
 }
-#right_seq > .base
+#right_fragment .base
 {
     float: left;
 }
