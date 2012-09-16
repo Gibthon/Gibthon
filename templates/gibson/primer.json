@@ -8,10 +8,14 @@
     flap: { 
         length: {{primer.flap.length}},
         tm: {{primer.flap.tm|floatformat}}, 
+        cfid: {{primer.flap.cfragment.id}},
+        context: '{{primer.flap.seq_surround}}',
     },
     stick: { 
         length: {{primer.stick.length}},
         tm: {{primer.stick.tm|floatformat}}, 
+        cfid: {{primer.stick.cfragment.id}},
+        context: '{{primer.stick.seq_surround}}',
     },
     warnings: [
         {% for w in primer.warning.all %}
@@ -19,4 +23,5 @@
         {% endfor %}
     ],
     seq: "{{ primer.seq }}",
+    toString: function() {return "[Primer id={{primer.id}}]"},
 }

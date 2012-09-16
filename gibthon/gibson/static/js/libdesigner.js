@@ -219,6 +219,7 @@ $.widget('ui.constructPreview', {
         this.arrow = this.pview.find('.arrow');
         this.pedit = el.find('.primer-edit');
         this.boxplot = el.find('.boxplot');
+        this.type = 'fwd';
 
         var css = $("<link>");
         css.attr({
@@ -228,7 +229,7 @@ $.widget('ui.constructPreview', {
         });
         $("head").append(css);
 
-        el.find('.primer').click( function(){
+        el.find('#overview .primer').click( function(){
             if($(this).hasClass('sl'))
             {
                 el.find('.primer.sl').removeClass('sl');
@@ -237,12 +238,7 @@ $.widget('ui.constructPreview', {
             }
             el.find('.primer.sl').removeClass('sl');
             $(this).addClass('sl');
-            self.arrow.css({'left': self._get_center($(this)), });
-
-            var type;
-            $(this).hasClass('fwd-primer') ? type = 'fwd' : type = 'rev';
-            
-            self.pview.slideDown();
+            self.show($(this));
         });
 
         this.boxplot.dialog({
@@ -262,103 +258,108 @@ $.widget('ui.constructPreview', {
                 .load('primers/' + $(this).attr('pid') + '/boxplot/');
         });
 
-        $(document).on('click', '.join > .seq > .base', function() {
+        $(document).on('click', '.join .seq > .base', function() {
             $(this)
             .addClass('sl')
             .siblings()
             .removeClass('sl');
+            self._set_primer_pos();
         });
-
-        $(document).on('click', '#right_seq > .base', function() {
-            var t = $(this);
-            self.pview.find('.primer').css({
-                'right': t.offsetParent().width() - 
-                    t.position().left - t.outerWidth(),
-            });
-        });
-        $(document).on('click', '#left_seq > .base', function() {
-            self.pview.find('.primer').css({
-                'left': $(this).position().left,
-            });
-        });
-
-
-
     },
     _init: function() {
-        this.el.find('.fragment:not(.bk-fragment)').each( function(i) {
+        this.el.find('#overview .fragment:not(.bk-fragment)').each( function(i) {
             $(this).find('.seq').css({
                 'background-color': libFrag.getNextColor(),
             });
         });
 
     },
-    loadJson: function(json)
+    show: function($p)
     {
-        var p = this.pview.find('.join > .primer').prop('id', 'primer-'+json.id);
-        var l, r, l_seq, r_seq;
-        if(json.type == 'fwd')
+        this.arrow.css({'left': this._get_center($p), });
+        $p.hasClass('fwd-primer') ? this.type='fwd' : this.type='rev';
+        var p = this.options.primers[$p.attr('id')];
+        this.pedit.find('#pname').text(p.name);
+        this.pedit.find('#pseq').text(p.seq);
+        
+        if(this.type == 'fwd')
         {
-            l = json.flap_len;
-            l_seq = json.flap_seq;
-            r = json.stick_len;
-            r_seq = json.stick_seq;            
-            p.removeClass('rev-primer').addClass('fwd-primer');
+            this._set_fwd();
+            this.pedit.find('#left_fragment > .fname').text(
+                this.el.find('#fragment-' + p.flap.cfid + ' > .fname').text());
+            this.pedit.find('#right_fragment > .fname').text(
+                this.el.find('#fragment-' + p.stick.cfid + ' > .fname').text());
+            this._fwd_seq(p.flap.context, p.stick.context);
+            this.pedit
+                .find('#left_fragment .base[offset="' + (p.flap.length-1) + '"]')
+                .addClass('sl');
+            this.pedit
+                .find('#right_fragment .base[offset="' + (p.stick.length-1) + '"]')
+                .addClass('sl');
         }
         else
         {
-            l = json.stick_len;
-            l_seq = json.stick_seq;
-            r = json.flap_len;
-            r_seq = json.flap_seq;
-            p.removeClass('fwd-primer').addClass('rev-primer');
+            this._set_rev();
+            this.pedit.find('#left_fragment > .fname').text(
+                this.el.find('#fragment-' + p.stick.cfid + ' > .fname').text());
+            this.pedit.find('#right_fragment > .fname').text(
+                this.el.find('#fragment-' + p.flap.cfid + ' > .fname').text());
+            this._rev_seq(p.flap.context, p.stick.context);
+            this.pedit
+                .find('#left_fragment .base[offset=' + (p.stick.length-1) + ']')
+                .addClass('sl');
+            this.pedit
+                .find('#right_fragment .base[offset=' + (p.flap.length-1) + ']')
+                .addClass('sl');
         }
 
-        this._fill(this.pview.find('#left_seq'), l_seq);
-        this._fill(this.pview.find('#right_seq'), r_seq);
+        this.pedit.find('.prule-full > .text').html(this._ruler_full(p));
+        this.pedit.find('.prule-stick > .text').html(this._ruler_stick(p));
 
-        var lb = this.pview.find('.join > #left_seq > [offset='+l+']').addClass('sl');
-        var rb = this.pview.find('.join > #right_seq > [offset='+r+']').addClass('sl');
+        var w = this.pedit.find('.primer-warnings > ul').html('');
+        if(p.warnings.length == 0)
+            w.parent().hide();
+        else
+        {
+            w.parent().show();
+            for(var i = 0; i < p.warnings.length; i=i+1)
+            {
+                $('<li>' + p.warnings[i] + '</li>').appendTo(w);
+            }
+        }
 
-        console.log('lb.position().left = ' + lb.position().left);
-        console.log('rb.position().left = ' + rb.position().left);
-
-        this.pview.find('.primer').css({'left': lb.position().left,});
-        this.pview.find('.primer').css({
-            'right': rb.offsetParent().width() - rb.position().left - rb.outerWidth(),
-        });    
-
+        this.pedit.find('.boxplot-btn').attr('pid', p.id);
+        this._set_colors($p);
+        this.pview.slideDown();
+        this._set_primer_pos();
     },
-    toJson: function()
+    _set_primer_pos: function()
     {
-        var l = this.pview.find('.join > #left_seq  > .sl').attr('offset');
-        var r = this.pview.find('.join > #right_seq > .sl').attr('offset');
-
-        var s;
-        var f;
-
-        var type;
-
-        if($('.join > .primer').hasClass('fwd-primer'))
+        var l = $('#left_fragment .base.sl');
+        var r = $('#right_fragment .base.sl');
+        p = this.options.primers[this.pedit.find('#pname').text()];
+        if(this.type == 'fwd')
         {
-            f = l;
-            s = r;
-            type = 'fwd';
+            this.pview.find('.fwd-primer').css({
+                'left': l.position().left - l.parent().width(),
+                'width': r.offset().left - l.offset().left + r.outerWidth(),
+            }).find('.prule-stick').css({
+                'left': l.parent().width() - l.position().left,
+            });
         }
         else
         {
-            f = r;
-            s = l;
-            type = 'rev';
+            this.pview.find('.rev-primer').css({
+                'left': l.position().left,
+                'width': r.offset().left - l.offset().left + r.outerWidth(),
+            }).find('.prule-stick').css({
+                'right': r.position().left + r.width(),
+            });
         }
-        return {'id': $('.join > .primer').prop('id').split('-')[1],
-            'stick_len': s,
-            'flap_len': f,
-            'type': type,};
     },
     _get_center: function(f)
     {
-        return f.offset().left - this.el.offset().left + f.outerWidth();
+        return f.offset().left - this.el.offset().left + 15 + 0.5*f.outerWidth();
     },
     _set_colors: function(p)
     {
@@ -382,28 +383,57 @@ $.widget('ui.constructPreview', {
             r = next.find('.seq').css('background-color');
         }
 
-        this.pview.find('#left_seq').css('background-color', l);
-        this.pview.find('#right_seq').css('background-color', r);
+        this.pview.find('#left_fragment .seq').css('background-color', l);
+        this.pview.find('#right_fragment .seq').css('background-color', r);
     },
-    _fill: function($d, seq)
+    _set_fwd: function()
     {
-        $d.html('');
-        if($d.prop('id') == 'left_seq')
-        {
-            seq = seq.split('').reverse().join('');
-        }
-        for(var b = 0; b < seq.length; b=b+1)
-        {
-            $('<div>')
-            .addClass('base')
-            .text(seq[b])
-            .attr('offset', b+1)
-            .appendTo($d);
-        }
+        this.pedit.find('.rev-primer').hide();
+        this.pedit.find('.fwd-primer').show();
+    },
+    _set_rev: function()
+    {
+        this.pedit.find('.fwd-primer').hide();
+        this.pedit.find('.rev-primer').show();
+    },
+    _fwd_seq: function(flap, stick)
+    {
+        this.pedit.find('.seq').removeClass('has_seq').html('');
+        this.pedit.find('.fwd_seq').addClass('has_seq');
 
-        $('<div>')
-            .css({'clear':'both',})
-            .appendTo($d);
+        var s = this.pedit.find('#right_fragment .fwd_seq');
+        var f = this.pedit.find('#left_fragment .fwd_seq');
+
+        for(var i = 0; i < stick.length; i = i+1)
+            $("<div>").addClass('base').attr('offset', i)
+                .text(stick[i]).appendTo(s);
+        for(var i = 0; i < flap.length; i=i+1)
+            $("<div>").addClass('base').attr('offset', i)
+                .text(flap[flap.length -1 - i]).appendTo(f);
+
+    },
+    _rev_seq: function(flap, stick)
+    {
+        this.pedit.find('.seq').removeClass('has_seq').html('');
+        this.pedit.find('.rev_seq').addClass('has_seq');
+
+        var s = this.pedit.find('#left_fragment .rev_seq');
+        var f = this.pedit.find('#right_fragment .rev_seq');
+
+        for(var i = 0; i < stick.length; i = i+1)
+            $("<div>").addClass('base').attr('offset', i)
+                .text(stick[i]).appendTo(s);
+        for(var i = 0; i < flap.length; i=i+1)
+            $("<div>").addClass('base').attr('offset', i)
+                .text(flap[flap.length - 1 -i]).appendTo(f);
+    },
+    _ruler_full: function(p)
+    {
+        return p.length + "bp (" + p.tm + "&deg;C)";
+    },
+    _ruler_stick: function(p)
+    {
+        return p.stick.length + "bp (" + p.stick.tm + "&deg;C)";
     },
 });
 

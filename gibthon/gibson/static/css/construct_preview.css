@@ -215,7 +215,7 @@
 /* primer-view
  * */
 .primer-view {
-        margin: 3em 0;
+        margin: 3em -15px;
         position: relative;
 }
 .primer-view > .arrow {

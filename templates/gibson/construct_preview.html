@@ -6,14 +6,13 @@
 </style>
 
 <script type='text/javascript'>
-var primers = {
-    {% for p in construct.primers.all %}
-        {{ p.name }}: {% include 'primer.json' with primer=p %},
+var myPrimers = {
+    {% for p in construct.primer.all %}
+        '{{ p.name }}': {% include 'primer.json' with primer=p %},
     {% endfor %}
 };
-console.log('primers: ' + primers);
 $(document).ready( function(){
-    $('.construct_overview').constructPreview({primers: primers,});
+    $('.construct_overview').constructPreview({primers: myPrimers,});
 });
 </script>
 
@@ -28,15 +27,15 @@ $(document).ready( function(){
         {% for cf in construct.cf.all %}
 
         <div id='fragment-{{ cf.id }}' class='fragment'>
-            <div class='primer fwd-primer'>
+            <div id='{{cf.primer_bottom.name}}' class='primer fwd-primer'>
                 <div class='pmark'>
                     <div class='pbody'></div>
                     <div class='parrow'></div>
                     <div class='pbase'></div>
                 </div>
-                {% if cf.primer_top.warning.count != 0 %}
+                {% if cf.primer_bottom.warning.count != 0 %}
                 <div class='pwarn ui-corner-all'>
-                    {{ cf.primer_top.warning.count }}
+                    {{ cf.primer_bottom.warning.count }}
                 </div>
                 {% endif  %}
             </div>
@@ -46,15 +45,15 @@ $(document).ready( function(){
 
             <div class='fname'><p>{{cf.fragment.name}}</p></div>
 
-            <div class='primer rev-primer'>
+            <div id='{{cf.primer_top.name}}' class='primer rev-primer'>
                 <div class='pmark'>
                     <div class='pbody'></div>
                     <div class='parrow'></div>
                     <div class='pbase'></div>
                 </div>
-                {% if cf.primer_bottom.warning.count != 0 %}
+                {% if cf.primer_top.warning.count != 0 %}
                 <div class='pwarn ui-corner-all'>
-                    {{ cf.primer_bottom.warning.count }}
+                    {{ cf.primer_top.warning.count }}
                 </div>
                 {% endif %}
             </div>
@@ -73,41 +72,19 @@ $(document).ready( function(){
         <div class='primer-edit'>
             <div>
                 <div style='text-align:center'>
-                    <h3>Primer NAME</h3>
+                    <h3 id='pname'></h3>
                 </div>
                 <h4>Saved Sequence</h4> 
-                <p style="font-family:monospace;padding-left:2.5em;">
-                    SEQUENCE HERE
+                <p id='pseq' style="font-family:monospace;padding-left:2.5em;">
                 </p>
 
                 <div class='join'>
                     <div id='left_fragment' class='fragment'>
 
                         <div class='seq fwd_seq'></div>
-                        <div class='seq rev_seq has_seq'>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                            <div class='base'>A</div><div class='base'>T</div>
-                        </div>
+                        <div class='seq rev_seq'></div>
 
-                        <div class='fname'><p>Left Fragment Name</p></div>
+                        <div class='fname'><p></p></div>
 
                         <div class='primer rev-primer'>
                             <div class='pmark'>
@@ -116,78 +93,46 @@ $(document).ready( function(){
                                 <div class='pbase'></div>
                             </div>
                             <div class='prule prule-full'>
-                                <div class='text'>
-                                    Fbp (TM&deg;C)
-                                </div>
+                                <div class='text'></div>
                                 <div class='line'></div>
                                 <div style='clear:both;'></div>
                             </div>
                             <div class='prule prule-stick'>
-                                <div class='text'>
-                                    Sbp (TM&deg;C)
-                                </div>
+                                <div class='text'></div>
                                 <div class='line'></div>
                                 <div style='clear:both;'></div>
                             </div>
                         </div>
                     </div>
                     <div id='right_fragment' class='fragment'>
-<!--                        <div class='primer fwd-primer'>
+                        <div class='primer fwd-primer'>
                             <div class='pmark'>
                                 <div class='pbody'></div>
                                 <div class='parrow'></div>
                                 <div class='pbase'></div>
                             </div>
                             <div class='prule prule-full'>
-                                <div class='text'>
-                                    Fbp (TM&deg;C)
-                                </div>
+                                <div class='text'></div>
                                 <div class='line'></div>
                                 <div style='clear:both;'></div>
                             </div>
                             <div class='prule prule-stick'>
-                                <div class='text'>
-                                    Sbp (TM&deg;C)
-                                </div>
+                                <div class='text'></div>
                                 <div class='line'></div>
                                 <div style='clear:both;'></div>
                             </div>
                         </div>
--->
                         <div class='seq fwd_seq'></div>
-                        <div class='seq rev_seq has_seq'>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                            <div class='base'>G</div><div class='base'>C</div>
-                        </div>
+                        <div class='seq rev_seq'></div>
 
-                        <div class='fname'><p>Right Fragment Name</p></div>
+                        <div class='fname'><p></p></div>
 
                     </div>
                     <div style='clear:both'></div>
                 </div>
 
                 <div class='ui-state-highlight ui-corner-all primer-warnings'>
-                    <ul>
-                        <li>WARNINGS HERE</li>
-                    </ul>
+                    <ul></ul>
                 </div>
 
                 <div style='text-align:center;margin:1em;'>

@@ -296,21 +296,23 @@ class PrimerHalf(models.Model):
 			return True
 	
 	def seq_surround(self):
+		"""Get the primer plus some context"""
+		if self.top ^ self.isflap():
+			start = self.cfragment.end() - 50 
+		else:
+			start = self.cfragment.start()
+	
+		if self.top ^ self.isflap():
+			end = self.cfragment.end()
+		else:
+			end = self.cfragment.start() + 50
+		
 		s = Seq(self.cfragment.fragment.sequence)
-		start = max(self.start()-20,0)
-		end = min(self.end()+20,len(self.cfragment.fragment.sequence))
 		s = s[start:end]
-		f = [self.cfragment.start()+self.cfragment.start_offset-1 <= i < self.cfragment.end()-self.cfragment.end_offset for i in range(start, end)]
-		p = [self.start()-1 <= i < self.end() for i in range(start, end)]
-		if self.top: 
-			s = reverse_complement(s)
-			f.reverse()
-			p.reverse()
-		bases = zip(s,f,p)
-		s = ''
-		for b in bases:
-			s += '<td class="'+('feature ' if b[1] else '')+('primer' if b[2] else '') +'">'+b[0]+'</td>'
+		if self.top: s = reverse_complement(s)
 		return s
+
+
 	
 	def seq(self):
 		s = Seq(self.cfragment.fragment.sequence)
