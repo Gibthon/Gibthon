@@ -245,7 +245,7 @@
 }
 .primer-warnings
 {
-    margin: 5em 1em 1em;
+    margin: 1em;
 }
 
 /*
@@ -267,21 +267,21 @@
 }
 .fwd-primer > .prule-full
 {
-    top: 8em;
+    bottom: 2em;
 }
 .fwd-primer > .prule-stick
 {
-    bottom: 2em;
+    bottom: 3.75em;
     right: 0;
     left: 50%;
 }
 .rev-primer > .prule-full
 {
-    bottom: 8em;
+    top: 2em;
 }
 .rev-primer > .prule-stick
 {
-    top: 2em;
+    top: 3.75em;
     left: 0;
     right: 50%;
 }
@@ -308,7 +308,7 @@
     -khtml-user-select: none;
     -webkit-user-select: none;
     -o-user-select: none;
-    margin: 20px 40px;
+    margin: 3em 40px;
 }
 .join .fragment
 {
@@ -338,6 +338,7 @@
 {
     background-color: darkorange;
     color:black;
+    cursor: default;
 }
 #left_fragment .base
 {
@@ -346,4 +347,16 @@
 #right_fragment .base
 {
     float: left;
+}
+#fragment_names
+{
+    margin: 1em 40px;
+}
+#left_name
+{
+    float: left;
+}
+#right_name
+{
+    float: right;
 }

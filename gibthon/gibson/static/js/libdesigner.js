@@ -110,7 +110,6 @@ function Construct(data)
 
     this.addFragment = function(f, position, direction, _suc)
     {
-        console.log('AddingFragment at ' + position);
         AJAX.post({
             url: '/gibthon/api/' + this.id + '/addFragment/', 
             data: {'fid': f.getID(), 'pos': position, 'dir':direction,}, 
@@ -205,6 +204,62 @@ function ConstructFragment(d, f)
 };
 
 /*
+ * Singleton to calculate the Tm of a oligo
+ */
+var libTm = new function() {
+    /* Data from http://www.ncbi.nlm.nih.gov/pubmed/9465037 */
+    var NN = {
+        //     H       S
+        'AA': [-7.9e3, -22.2],
+        'AT': [-7.2e3, -20.4],
+        'AC': [-8.4e3, -22.4],
+        'AG': [-7.8e3, -21.0],
+        'TA': [-7.2e3, -21.3],
+        'TT': [-7.9e3, -22.2],
+        'TC': [-8.2e3, -22.2],
+        'TG': [-8.5e3, -22.7],
+        'CA': [-8.5e3, -22.7],
+        'CT': [-7.8e3, -21.0],
+        'CC': [-8.0e3, -19.9],
+        'CG': [-10.6e3,-27.2],
+        'GA': [-8.2e3, -22.2],
+        'GT': [-8.4e3, -22.4],
+        'GC': [-9.8e3, -24.4],
+        'GG': [-8.0e3, -19.9],
+         'G': [ 0.1e3, -2.8 ],
+         'C': [ 0.1e3, -2.8 ],
+         'A': [ 2.3e3,  4.1 ],
+         'T': [ 2.3e3,  4.1 ],
+
+    };
+    var R = 1.987;
+    this.getTm = function(sequence, seq_conc, Na_conc)
+    {
+        seq = sequence.toUpperCase();
+        if(Na_conc == undefined)
+            Na_conc = 1.0;
+        var H = 0.0, S = 0.0;
+        var salt_correction = 0.368 * seq.length * Math.log(Na_conc);
+        //Termination
+        var t = NN[seq[0]];
+        H = H + t[0]; S = S + t[1];
+        t = NN[seq[seq.length-1]];
+        H = H + t[0]; S = S + t[1];
+        //Internal
+        for(var i = 0; i < seq.length-1; i=i+1)
+        {
+            t = NN[seq.substr(i, 2)];
+            H = H + t[0];
+            S = S + t[1];
+        }
+        //correct for salt
+        S = S + salt_correction;
+        return (H / (S + R * Math.log(seq_conc / 4.0)) - 273.15)
+            .toPrecision(3);
+    };
+};
+
+/*
  * * jQuery widget for previewing the designed fragment
  * */
 $.widget('ui.constructPreview', {
@@ -264,7 +319,9 @@ $.widget('ui.constructPreview', {
             .siblings()
             .removeClass('sl');
             self._set_primer_pos();
+            self._update_primer();
         });
+
     },
     _init: function() {
         this.el.find('#overview .fragment:not(.bk-fragment)').each( function(i) {
@@ -285,9 +342,9 @@ $.widget('ui.constructPreview', {
         if(this.type == 'fwd')
         {
             this._set_fwd();
-            this.pedit.find('#left_fragment > .fname').text(
+            this.pedit.find('#left_name').text(
                 this.el.find('#fragment-' + p.flap.cfid + ' > .fname').text());
-            this.pedit.find('#right_fragment > .fname').text(
+            this.pedit.find('#right_name').text(
                 this.el.find('#fragment-' + p.stick.cfid + ' > .fname').text());
             this._fwd_seq(p.flap.context, p.stick.context);
             this.pedit
@@ -300,9 +357,9 @@ $.widget('ui.constructPreview', {
         else
         {
             this._set_rev();
-            this.pedit.find('#left_fragment > .fname').text(
+            this.pedit.find('#left_name').text(
                 this.el.find('#fragment-' + p.stick.cfid + ' > .fname').text());
-            this.pedit.find('#right_fragment > .fname').text(
+            this.pedit.find('#right_name').text(
                 this.el.find('#fragment-' + p.flap.cfid + ' > .fname').text());
             this._rev_seq(p.flap.context, p.stick.context);
             this.pedit
@@ -313,8 +370,7 @@ $.widget('ui.constructPreview', {
                 .addClass('sl');
         }
 
-        this.pedit.find('.prule-full > .text').html(this._ruler_full(p));
-        this.pedit.find('.prule-stick > .text').html(this._ruler_stick(p));
+        this._set_rulers(p); 
 
         var w = this.pedit.find('.primer-warnings > ul').html('');
         if(p.warnings.length == 0)
@@ -337,7 +393,6 @@ $.widget('ui.constructPreview', {
     {
         var l = $('#left_fragment .base.sl');
         var r = $('#right_fragment .base.sl');
-        p = this.options.primers[this.pedit.find('#pname').text()];
         if(this.type == 'fwd')
         {
             this.pview.find('.fwd-primer').css({
@@ -356,6 +411,46 @@ $.widget('ui.constructPreview', {
                 'right': r.position().left + r.width(),
             });
         }
+    },
+    _update_primer: function()
+    {
+        var l = $('#left_fragment .base.sl');
+        var r = $('#right_fragment .base.sl');
+        p = this.options.primers[this.pedit.find('#pname').text()];
+        var s = 10, f = 10;
+        if(this.type == 'fwd')
+        {
+            f = parseInt(l.attr('offset')) + 1;
+            s = parseInt(r.attr('offset')) + 1;
+        }
+        else
+        {
+            f = parseInt(r.attr('offset')) + 1;
+            s = parseInt(l.attr('offset')) + 1;
+        }
+        p.length = f+s;
+        p.stick.length = s;
+        p.flap.length = f;
+        p.unsaved = true;
+        var flap_seq = 
+            p.flap.context.substring(p.flap.context.length - p.flap.length);
+        var stick_seq = p.stick.context.substring(0, p.stick.length);
+
+        p.seq = flap_seq + stick_seq;
+        p.tm = libTm.getTm(p.seq, 50e-9, 50e-3);
+        p.stick.tm = libTm.getTm(stick_seq, 50e-9, 50e-3);
+
+        this._set_rulers(p);
+    },
+    _set_rulers: function(p)
+    {
+        this.pedit.find('.prule-full > .text').html(this._ruler_full(p));
+        this.pedit.find('.prule-stick > .text').html(this._ruler_stick(p));
+    },
+    _get_sequence: function(p)
+    {
+       return p.flap.context.substring(p.flap.context.length - p.flap.length) +
+           p.stick.context.substring(0, p.stick.length);
     },
     _get_center: function(f)
     {
