@@ -372,17 +372,7 @@ $.widget('ui.constructPreview', {
 
         this._set_rulers(p); 
 
-        var w = this.pedit.find('.primer-warnings > ul').html('');
-        if(p.warnings.length == 0)
-            w.parent().hide();
-        else
-        {
-            w.parent().show();
-            for(var i = 0; i < p.warnings.length; i=i+1)
-            {
-                $('<li>' + p.warnings[i] + '</li>').appendTo(w);
-            }
-        }
+        this._show_warnings(p.warnings);
 
         this.pedit.find('.boxplot-btn').attr('pid', p.id);
         this._set_colors($p);
@@ -428,10 +418,32 @@ $.widget('ui.constructPreview', {
             f = parseInt(r.attr('offset')) + 1;
             s = parseInt(l.attr('offset')) + 1;
         }
+        var self = this;
+        $.ajax('primers/' + p.id + '/setLength/', {
+            'type': 'POST',
+            'data': {
+                'flap_length': f,
+                'stick_length': s,
+            },
+            'success': function(data){
+                p.warnings = data.warnings;
+                p.stick.tm = data.stick.tm;
+                p.flap.tm = data.stick.tm;
+                p.tm = data.tm;
+                p.seq = data.seq;
+                self._show_warnings(p.warnings);
+                self._set_rulers(p);
+                self.pedit.find('#pseq').text(p.seq);
+                self.el.find('#'+p.name+'.primer .pwarn')
+                    .text(p.warnings.length);
+            },
+            'error': function(jqXHR, textStatus, errorThrown){
+                console.log('Error - ' + textStatus + ' - ' + errorThrown);
+            },
+        });
         p.length = f+s;
         p.stick.length = s;
         p.flap.length = f;
-        p.unsaved = true;
         var flap_seq = 
             p.flap.context.substring(p.flap.context.length - p.flap.length);
         var stick_seq = p.stick.context.substring(0, p.stick.length);
@@ -530,5 +542,19 @@ $.widget('ui.constructPreview', {
     {
         return p.stick.length + "bp (" + p.stick.tm + "&deg;C)";
     },
+    _show_warnings: function(warnings)
+    {
+        var w = this.pedit.find('.primer-warnings > ul').html('');
+        if(warnings.length == 0)
+            w.parent().hide();
+        else
+        {
+            w.parent().show();
+            for(var i = 0; i < warnings.length; i=i+1)
+            {
+                $('<li>' + warnings[i] + '</li>').appendTo(w);
+            }
+        }
+    }
 });
 

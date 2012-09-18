@@ -124,11 +124,11 @@ def primers(request, cid):
 
 @login_required
 @condition(etag_func=None)
-def process(request, cid, reset=True, new=True):
+def process(request, cid, new=True):
 	con = get_construct(request.user, cid)
 	if con:
 		try:
-			resp = HttpResponse(con.process(reset, new), mimetype="text/plain")
+			resp = HttpResponse(con.process(new), mimetype="text/plain")
 			return resp
 		except:
 			print 'wok'
@@ -379,11 +379,34 @@ def primer_offset(request, cid, pid):
 		return HttpResponseNotFound()
 
 @login_required
+def primer_length(request, cid, pid):
+	con = get_construct(request.user, cid)
+	p = get_primer(request.user, pid)
+	if con and p and (p in con.primer.all()) and (request.method == 'POST'):
+		#update the primer if new data has been provided
+		try:
+			p.flap.length = int(request.POST.get('flap_length', p.flap.length))
+			p.stick.length = int(request.POST.get('stick_length', p.stick.length))
+		except ValueError:
+			return HttpResponseNotFound()
+		#reprocess to generate the warnings
+		con.reprocess_primer(p)
+		p.save()
+		#return the primer as JSON
+		t = loader.get_template('gibson/primer.json')
+		c = RequestContext(request, {
+			'primer': p,
+		})
+		return HttpResponse(t.render(c), mimetype='application/json')
+	return HttpResponseNotFound()
+
+
+@login_required
 @condition(etag_func=None)
 def primer_reset(request, cid):
 	con = get_construct(request.user, cid)
 	if request.method == 'GET' and con:
-		return process(request, cid, reset=True, new=False)
+		return process(request, cid, new=False)
 	else:
 		return HttpResponseNotFound()
 

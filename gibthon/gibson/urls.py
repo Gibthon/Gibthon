@@ -11,6 +11,7 @@ primerpatterns = patterns('gibson.views',
 	(r'^csv$', 'csv_primers'),
 	(r'^(?P<pid>\d+)/boxplot/$', direct_to_template, {
 		'template': 'gibson/boxplot.html'}),
+	(r'^(?P<pid>\d+)/setLength/$', 'primer_length'),
 	(r'^(?P<pid>\d+)/[\w\-_]+/$', 'primer'),
 	(r'^(?P<pid>\d+)/$', 'load_primer'),
 	(r'^(?P<pid>\d+)/[\w\-_]+/offset$', 'primer_offset'),

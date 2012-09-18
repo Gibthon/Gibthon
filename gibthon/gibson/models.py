@@ -454,20 +454,20 @@ class Construct(models.Model):
 				self.processed = False
 		self.save()
 	
-	def process(self, reset=True, new=True):
+	def process(self, new=True):
+		"""Calculate primers for the construct which are at least
+		settings.min_overlap in length and have melting temparatures at or above
+		above the	target
+			new: whether to delete all existing primers and completely recalculate
+			them
+		"""
+		# used for returning progress
+		n = self.cf.count()
 		if new:
 			# delete all existing primers
 			for p in self.primer.all():
 				p.del_all()
-		# used for returning progress
-		n = self.cf.count()
-		# reset offsets to zero
-		if reset:
-			for cf in self.cf.all():
-				cf.start_offset = 0
-				cf.end_offset = 0
-				cf.save()
-		if new:
+			# Add in new primers with minimum lengths
 			for i,cf in enumerate(self.cf.all()):
 				cfu = self.cf.all()[(i+1)%n]
 				pt = Primer.objects.create(
@@ -510,16 +510,23 @@ class Construct(models.Model):
 			if self.settings.min_primer_tm > 0:
 				p.tm_len_primer(self.settings.min_primer_tm)
 			p.self_prime_check()
-			print 'yield ":%d"' % (((2*i)+1)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+1)*(90.0/(4.0*n)))
 			yield ' '*1024
 			p.misprime_check()
-			print 'yield ":%d"' % (((2*i)+2)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
 		self.processed = True
 		self.save()
 		yield ':100'		
+
+	def reprocess_primer(self, p):
+		"""Recalculate all the warnings associated with the given primer"""
+		#Check that the primer belongs in this construct
+		if not p in self.primer.all():
+			raise ValueError("Primer (id='%s') not found in Construct (id=%s)" %
+					(p.id, self.id))
+		p.self_prime_check()
+		p.misprime_check()
 
 	def reset(self):
 		"""Return the construct to an unprocessed state"""
