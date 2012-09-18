@@ -276,14 +276,6 @@ $.widget('ui.constructPreview', {
         this.boxplot = el.find('.boxplot');
         this.type = 'fwd';
 
-        var css = $("<link>");
-        css.attr({
-            rel: "stylesheet",
-            type: "text/css",
-            href: "/static/css/construct_preview.css"
-        });
-        $("head").append(css);
-
         el.find('#overview .primer').click( function(){
             if($(this).hasClass('sl'))
             {
