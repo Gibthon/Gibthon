@@ -70,13 +70,18 @@ $(document).ready( function(){
         </div>
 
         <div class='primer-edit'>
-            <div>
+            <div style='position:relative;'>
+                <div id='saving' style='display:none;'>
+                    <img src='/static/images/spinner.gif' size='25px' />
+                    <h4>Saving</h4>
+                </div>
                 <div style='text-align:center'>
                     <h3 id='pname'></h3>
                 </div>
                 <h4>Saved Sequence</h4> 
                 <p id='pseq' style="font-family:monospace;padding-left:2.5em;">
                 </p>
+                
 
                 <div class='join'>
                     <div id='left_fragment' class='fragment'>

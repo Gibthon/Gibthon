@@ -404,6 +404,7 @@ $.widget('ui.constructPreview', {
     },
     _update_primer: function()
     {
+        this._set_saving(true);
         var l = $('#left_fragment .base.sl');
         var r = $('#right_fragment .base.sl');
         p = this.options.primers[this.pedit.find('#pname').text()];
@@ -436,6 +437,7 @@ $.widget('ui.constructPreview', {
                 self.pedit.find('#pseq').text(p.seq);
                 self.el.find('#'+p.name+'.primer .pwarn')
                     .text(p.warnings.length);
+                self._set_saving(false);
             },
             'error': function(jqXHR, textStatus, errorThrown){
                 console.log('Error - ' + textStatus + ' - ' + errorThrown);
@@ -554,6 +556,22 @@ $.widget('ui.constructPreview', {
             {
                 $('<li>' + warnings[i] + '</li>').appendTo(w);
             }
+        }
+    },
+    _set_saving: function(save)
+    {
+        if((typeof save == undefined) || save)
+        {
+            this.el.find('#saving').fadeIn();
+            this.el.find('.primer-warnings').add('#pseq').animate({
+                'color': 'rgb(100,100,100)',
+            });
+        }
+        else{
+            this.el.find('#saving').fadeOut();
+            this.el.find('.primer-warnings').add('#pseq').animate({
+                'color': 'rgb(0,0,0)',
+            });
         }
     }
 });
