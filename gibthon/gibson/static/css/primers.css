@@ -1,3 +1,19 @@
+input.mix {
+	width:40px;
+}
+
+td.errorcell {
+	background-color:#f99 !important;
+}
+
+td.warningcell {
+	background-color:orange !important;
+}
+
+.table-wrap{
+    margin-left: 30px;
+}
+
 .construct_overview{
     margin: 50px 0;
 }

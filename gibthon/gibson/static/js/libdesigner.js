@@ -429,6 +429,10 @@ $.widget('ui.constructPreview', {
                 self.pedit.find('#pseq').text(p.seq);
                 self.el.find('#'+p.name+'.primer .pwarn')
                     .text(p.warnings.length);
+                var tr = $('tr#tr-'+p.id);
+                tr.find('#length').text(p.length);
+                tr.find('#tm_stick').text(p.stick.tm);
+                tr.find('#tm').text(p.tm);
                 self._set_saving(false);
             },
             'error': function(jqXHR, textStatus, errorThrown){
