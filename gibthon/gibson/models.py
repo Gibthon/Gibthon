@@ -198,7 +198,9 @@ class Primer(models.Model):
 		return str(self.flap.seq()).lower() + str(self.stick.seq()).upper()
 		
 	def tm(self):
-		return round(Tm_staluc(str(self.seq())),2)
+		return round(Tm_staluc(str(self.seq()),
+			50,
+			1000*float(self.construct.settings.na_salt)),2)
 		
 	def tm_len_anneal(self, target):
 		# extends the length of the annealing portion of the primer until its target tm is reached
@@ -311,8 +313,6 @@ class PrimerHalf(models.Model):
 		s = s[start:end]
 		if self.top: s = reverse_complement(s)
 		return s
-
-
 	
 	def seq(self):
 		s = Seq(self.cfragment.fragment.sequence)
@@ -321,7 +321,9 @@ class PrimerHalf(models.Model):
 		return s
 		
 	def tm(self):
-		return round(Tm_staluc(str(self.seq())),2)
+		return round(Tm_staluc(str(self.seq()),
+			50,
+			1000*float(self.cfragment.construct.settings.na_salt)),2)
 		
 	def __unicode__(self):
 		if self.isflap():
