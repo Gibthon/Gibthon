@@ -76,12 +76,16 @@ $(document).ready( function(){
                     <h4>Saving</h4>
                 </div>
                 <div style='text-align:center'>
-                    <h3 id='pname'></h3>
+                    <h3>Editing "<span id='pname'></span>"</h3>
                 </div>
                 <h4>Saved Sequence</h4> 
                 <p id='pseq' style="font-family:monospace;padding-left:2.5em;">
                 </p>
                 
+                <h4>Edit Length</h4>
+                <p style="padding-left:2.5em;">
+                    Click on a base to move the end of the primer to that base
+                </p>
 
                 <div class='join'>
                     <div id='left_fragment' class='fragment'>
@@ -138,6 +142,12 @@ $(document).ready( function(){
                     <div style='clear:both;'></div>
                 </div>
                 <div class='ui-state-highlight ui-corner-all primer-warnings'>
+                    <h4>Warnings:</h4>
+                    <p style="font-style:italic;padding-left:2.5em;">
+                        Please Note: Warnings are for guidance only -
+                        biological knowledge is required to assess the severity
+                        of these warnings
+                    </p>
                     <ul></ul>
                 </div>
 
