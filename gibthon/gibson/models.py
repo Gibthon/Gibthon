@@ -105,7 +105,7 @@ class Settings(models.Model):
 	construct = AutoOneToOneField('Construct', related_name='settings')
 	# the below are various parameters explained in Gibson docs
 	mg_salt = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
-	na_salt = models.DecimalField(max_digits=3, decimal_places=2, default=1)
+	na_salt = models.DecimalField(max_digits=4, decimal_places=3, default=0.05)
 	ss_safety = models.PositiveSmallIntegerField(default=3)
 	min_anneal_tm = models.PositiveSmallIntegerField(default=50)
 	min_primer_tm = models.PositiveSmallIntegerField(default=60)
