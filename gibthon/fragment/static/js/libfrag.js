@@ -339,6 +339,7 @@ $.widget("ui.jFragmentSelector", {
                 $('<div/>').addClass('JFS_fragHolder')
                 .append( $('<div/>').jFragment({
                     fragment: frags[f], 
+                    color: libFrag.getNextColor(),
                     helper: function(){
                         return $('<div/>').jFragment({
                             draggable:false,
