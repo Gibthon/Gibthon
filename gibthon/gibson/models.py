@@ -398,7 +398,7 @@ class Construct(models.Model):
 		g = SeqRecord(
 			Seq(self.sequence(),IUPAC.IUPACUnambiguousDNA()),
 			id=self.name[0:8],
-			name=self.name,
+			name=self.name[0:8],
 			description=self.description
 		)
 		g.features = [SeqFeature(
