@@ -393,7 +393,7 @@ class Construct(models.Model):
 	def gb(self):
 		g = SeqRecord(
 			Seq(self.sequence(),IUPAC.IUPACUnambiguousDNA()),
-			id=self.name,
+			id=self.name[0:8],
 			name=self.name,
 			description=self.description
 		)
