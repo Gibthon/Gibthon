@@ -473,7 +473,7 @@ class Construct(models.Model):
 			for i,cf in enumerate(self.cf.all()):
 				cfu = self.cf.all()[(i+1)%n]
 				pt = Primer.objects.create(
-					name = self.name + '-' + cf.fragment.name + '-top',
+					name = self.name + '-' + cf.fragment.name + '-rev',
 					construct = self,
 					stick = PrimerHalf.objects.create(
 						cfragment = cf,
@@ -488,7 +488,7 @@ class Construct(models.Model):
 				)
 				cfd = self.cf.all()[(i-1)%n]
 				pb = Primer.objects.create(
-					name = self.name + '-' + cf.fragment.name + '-bottom',
+					name = self.name + '-' + cf.fragment.name + '-fwd',
 					construct = self,
 					stick = PrimerHalf.objects.create(
 						cfragment = cf,
