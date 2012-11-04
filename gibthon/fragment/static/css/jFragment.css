@@ -17,10 +17,10 @@
     border-width: 0.75em;
     border-top-color: transparent;
     border-bottom-color: transparent;
-    border-left-color: transparent;
-    border-right-color: inherit;
+    border-right-color: transparent;
+    border-left-color: inherit;
     position:absolute;
-    right:100%;
+    left:100%;
     width:0;
     top:0;
     bottom:0;
@@ -30,12 +30,12 @@
     content:'';
     border-style:solid;
     border-width: 0.75em;
-    border-left-color: inherit;
-    border-right-color: transparent;
+    border-right-color: inherit;
+    border-left-color: transparent;
     border-top-color: inherit;
     border-bottom-color: inherit;
     position:absolute;
-    left:100%;
+    right:100%;
     top:0;
     bottom:0;
 }
