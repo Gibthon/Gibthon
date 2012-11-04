@@ -1,0 +1,26 @@
+{
+    "id": {{ primer.id }},
+    "name": "{{ primer.name }}",
+    "cid": {{ primer.construct.id }},
+    "concentration": {{ primer.concentration }},
+    "length": {{ primer.length }},
+    "tm": {{ primer.tm|floatformat }},
+    "flap": { 
+        "length": {{primer.flap.length}},
+        "tm": {{primer.flap.tm|floatformat}}, 
+        "cfid": {{primer.flap.cfragment.id}},
+        "context": "{{primer.flap.seq_surround}}"
+    },
+    "stick": { 
+        "length": {{primer.stick.length}},
+        "tm": {{primer.stick.tm|floatformat}}, 
+        "cfid": {{primer.stick.cfragment.id}},
+        "context": "{{primer.stick.seq_surround}}"
+    },
+    "warnings": [
+        {% for w in primer.warning.all %}
+            "{{ w.text|safe }}"{%if not forloop.last%},{%endif%}
+        {% endfor %}
+    ],
+    "seq": "{{ primer.seq }}"
+}

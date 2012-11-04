@@ -231,25 +231,6 @@ $.widget("ui.fragmentMeta", {
 		'</div>';
 		return ret;
 	},
-	getRefs: function()
-	{
-		var self = this;
-		var ret = [];
-		
-		$.each(self.$ref.find('div.ref'), function(i, val){
-			var v = $(val);
-			ret.push( 
-				new Reference(
-					v.find('.ref-title').text(), 
-					v.find('.ref-authors').text(),
-					v.find('.ref-journal').text(),
-					v.find('.ref-mline').text(),
-					v.find('.ref-pmed').text()
-				)
-			);
-		});
-		return ret;
-	},
 	getMeta: function() {
 		var self = this;
 		//get metadata
@@ -257,7 +238,6 @@ $.widget("ui.fragmentMeta", {
 			'id': self.options.id, 
 			'name': self.$name.text(), 
 			'desc': self.$desc.text(), 
-			'refs': self.getRefs(), 
 			'annots': self.getAnnots(),
 		};
 		return meta;

@@ -105,7 +105,7 @@ class Settings(models.Model):
 	construct = AutoOneToOneField('Construct', related_name='settings')
 	# the below are various parameters explained in Gibson docs
 	mg_salt = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
-	na_salt = models.DecimalField(max_digits=3, decimal_places=2, default=1)
+	na_salt = models.DecimalField(max_digits=4, decimal_places=3, default=0.05)
 	ss_safety = models.PositiveSmallIntegerField(default=3)
 	min_anneal_tm = models.PositiveSmallIntegerField(default=50)
 	min_primer_tm = models.PositiveSmallIntegerField(default=60)
@@ -198,7 +198,9 @@ class Primer(models.Model):
 		return str(self.flap.seq()).lower() + str(self.stick.seq()).upper()
 		
 	def tm(self):
-		return round(Tm_staluc(str(self.seq())),2)
+		return round(Tm_staluc(str(self.seq()),
+			50,
+			1000*float(self.construct.settings.na_salt)),2)
 		
 	def tm_len_anneal(self, target):
 		# extends the length of the annealing portion of the primer until its target tm is reached
@@ -296,20 +298,20 @@ class PrimerHalf(models.Model):
 			return True
 	
 	def seq_surround(self):
+		"""Get the primer plus some context"""
+		if self.top ^ self.isflap():
+			start = self.cfragment.end() - 50 
+		else:
+			start = self.cfragment.start()
+	
+		if self.top ^ self.isflap():
+			end = self.cfragment.end()
+		else:
+			end = self.cfragment.start() + 50
+		
 		s = Seq(self.cfragment.fragment.sequence)
-		start = max(self.start()-20,0)
-		end = min(self.end()+20,len(self.cfragment.fragment.sequence))
 		s = s[start:end]
-		f = [self.cfragment.start()+self.cfragment.start_offset-1 <= i < self.cfragment.end()-self.cfragment.end_offset for i in range(start, end)]
-		p = [self.start()-1 <= i < self.end() for i in range(start, end)]
-		if self.top: 
-			s = reverse_complement(s)
-			f.reverse()
-			p.reverse()
-		bases = zip(s,f,p)
-		s = ''
-		for b in bases:
-			s += '<td class="'+('feature ' if b[1] else '')+('primer' if b[2] else '') +'">'+b[0]+'</td>'
+		if self.top: s = reverse_complement(s)
 		return s
 	
 	def seq(self):
@@ -319,7 +321,9 @@ class PrimerHalf(models.Model):
 		return s
 		
 	def tm(self):
-		return round(Tm_staluc(str(self.seq())),2)
+		return round(Tm_staluc(str(self.seq()),
+			50,
+			1000*float(self.cfragment.construct.settings.na_salt)),2)
 		
 	def __unicode__(self):
 		if self.isflap():
@@ -452,24 +456,24 @@ class Construct(models.Model):
 				self.processed = False
 		self.save()
 	
-	def process(self, reset=True, new=True):
+	def process(self, new=True):
+		"""Calculate primers for the construct which are at least
+		settings.min_overlap in length and have melting temparatures at or above
+		above the	target
+			new: whether to delete all existing primers and completely recalculate
+			them
+		"""
+		# used for returning progress
+		n = self.cf.count()
 		if new:
 			# delete all existing primers
 			for p in self.primer.all():
 				p.del_all()
-		# used for returning progress
-		n = self.cf.count()
-		# reset offsets to zero
-		if reset:
-			for cf in self.cf.all():
-				cf.start_offset = 0
-				cf.end_offset = 0
-				cf.save()
-		if new:
+			# Add in new primers with minimum lengths
 			for i,cf in enumerate(self.cf.all()):
 				cfu = self.cf.all()[(i+1)%n]
 				pt = Primer.objects.create(
-					name = self.name + '-' + cf.fragment.name + '-top',
+					name = self.name + '-' + cf.fragment.name + '-rev',
 					construct = self,
 					stick = PrimerHalf.objects.create(
 						cfragment = cf,
@@ -484,7 +488,7 @@ class Construct(models.Model):
 				)
 				cfd = self.cf.all()[(i-1)%n]
 				pb = Primer.objects.create(
-					name = self.name + '-' + cf.fragment.name + '-bottom',
+					name = self.name + '-' + cf.fragment.name + '-fwd',
 					construct = self,
 					stick = PrimerHalf.objects.create(
 						cfragment = cf,
@@ -508,16 +512,23 @@ class Construct(models.Model):
 			if self.settings.min_primer_tm > 0:
 				p.tm_len_primer(self.settings.min_primer_tm)
 			p.self_prime_check()
-			print 'yield ":%d"' % (((2*i)+1)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+1)*(90.0/(4.0*n)))
 			yield ' '*1024
 			p.misprime_check()
-			print 'yield ":%d"' % (((2*i)+2)*(90.0/(4.0*n)))
 			yield ':%d'%(((2*i)+2)*(90.0/(4.0*n)))
 			yield ' '*1024
 		self.processed = True
 		self.save()
 		yield ':100'		
+
+	def reprocess_primer(self, p):
+		"""Recalculate all the warnings associated with the given primer"""
+		#Check that the primer belongs in this construct
+		if not p in self.primer.all():
+			raise ValueError("Primer (id='%s') not found in Construct (id=%s)" %
+					(p.id, self.id))
+		p.self_prime_check()
+		p.misprime_check()
 
 	def reset(self):
 		"""Return the construct to an unprocessed state"""

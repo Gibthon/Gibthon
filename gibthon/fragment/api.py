@@ -335,7 +335,7 @@ def crop(request, fid):
 				authors=r.authors,
 				journal=r.journal,
 				medline_id=r.medline_id,
-				pubmed_if=r.pubmed_id)
+				pubmed_id=r.pubmed_id)
 			nr.save()
 		#copy annotations
 		for a in g.annotations.all():

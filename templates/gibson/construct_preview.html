@@ -1,0 +1,166 @@
+<style type='text/css'>
+#overview .fragment
+{
+    width: {% widthratio 1 construct.cf.all|length 100 %}%;
+}
+</style>
+
+<script type='text/javascript'>
+var myPrimers = {
+    {% for p in construct.primer.all %}
+        '{{ p.name }}': {% include 'primer.json' with primer=p %},
+    {% endfor %}
+};
+$(document).ready( function(){
+    $('.construct_overview').constructPreview({primers: myPrimers,});
+});
+</script>
+
+<div class='construct_overview'>
+
+    <div id='overview'>
+        <div class='fragment bk-fragment'>
+            <div class='seq fwd_seq bk-seq'></div>
+            <div class='seq rev_seq bk-seq'></div>
+        </div>
+
+        {% for cf in construct.cf.all %}
+
+        <div id='fragment-{{ cf.id }}' class='fragment'>
+            <div id='{{cf.primer_bottom.name}}' class='primer fwd-primer'>
+                <div class='pmark'>
+                    <div class='pbody'></div>
+                    <div class='parrow'></div>
+                    <div class='pbase'></div>
+                </div>
+                {% if cf.primer_bottom.warning.count != 0 %}
+                <div class='pwarn ui-corner-all'>
+                    {{ cf.primer_bottom.warning.count }}
+                </div>
+                {% endif  %}
+            </div>
+
+            <div class='seq fwd_seq'></div>
+            <div class='seq rev_seq'></div>
+
+            <div class='fname'><p>{{cf.fragment.name}}</p></div>
+
+            <div id='{{cf.primer_top.name}}' class='primer rev-primer'>
+                <div class='pmark'>
+                    <div class='pbody'></div>
+                    <div class='parrow'></div>
+                    <div class='pbase'></div>
+                </div>
+                {% if cf.primer_top.warning.count != 0 %}
+                <div class='pwarn ui-corner-all'>
+                    {{ cf.primer_top.warning.count }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+
+        <div style='clear:both'></div>
+    </div>
+    <div class='primer-view ui-widget ui-widget-content ui-corner-all'
+        style='display:none;'>
+        <div class='arrow'>
+            <div></div>
+        </div>
+
+        <div class='primer-edit'>
+            <div style='position:relative;'>
+                <div id='saving' style='display:none;'>
+                    <img src='/static/images/spinner.gif' size='25px' />
+                    <h4>Saving</h4>
+                </div>
+                <div style='text-align:center'>
+                    <h3>Editing "<span id='pname'></span>"</h3>
+                </div>
+                <h4>Saved Sequence</h4> 
+                <p id='pseq' style="font-family:monospace;padding-left:2.5em;">
+                </p>
+                
+                <h4>Edit Length</h4>
+                <p style="padding-left:2.5em;">
+                    Click on a base to move the end of the primer to that base
+                </p>
+
+                <div class='join'>
+                    <div id='left_fragment' class='fragment'>
+
+                        <div class='seq fwd_seq'></div>
+                        <div class='seq rev_seq'></div>
+
+                        <div class='primer rev-primer'>
+                            <div class='pmark'>
+                                <div class='pbody'></div>
+                                <div class='parrow'></div>
+                                <div class='pbase'></div>
+                            </div>
+                            <div class='prule prule-full'>
+                                <div class='text'></div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                            <div class='prule prule-stick'>
+                                <div class='text'></div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id='right_fragment' class='fragment'>
+                        <div class='primer fwd-primer'>
+                            <div class='pmark'>
+                                <div class='pbody'></div>
+                                <div class='parrow'></div>
+                                <div class='pbase'></div>
+                            </div>
+                            <div class='prule prule-full'>
+                                <div class='text'></div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                            <div class='prule prule-stick'>
+                                <div class='text'></div>
+                                <div class='line'></div>
+                                <div style='clear:both;'></div>
+                            </div>
+                        </div>
+                        <div class='seq fwd_seq'></div>
+                        <div class='seq rev_seq'></div>
+
+                    </div>
+                    <div style='clear:both'></div>
+                </div>
+
+                <div id='fragment_names'>
+                    <span id='left_name'></span>
+                    <span id='right_name'></span>
+                    <div style='clear:both;'></div>
+                </div>
+                <div class='ui-state-highlight ui-corner-all primer-warnings'>
+                    <h4>Warnings:</h4>
+                    <p style="font-style:italic;padding-left:2.5em;">
+                        Please Note: Warnings are for guidance only -
+                        biological knowledge is required to assess the severity
+                        of these warnings
+                    </p>
+                    <ul></ul>
+                </div>
+
+                <div style='text-align:center;margin:1em;'>
+                    <button class='boxplot-btn' pid=''>
+                        Show Boxplot
+                    </button> 
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class='boxplot' style='display:none;'></div>
+</div>
+
+

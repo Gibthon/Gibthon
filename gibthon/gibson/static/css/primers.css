@@ -1,0 +1,397 @@
+input.mix {
+	width:40px;
+}
+
+td.errorcell {
+	background-color:#f99 !important;
+}
+
+td.warningcell {
+	background-color:orange !important;
+}
+
+.table-wrap{
+    margin-left: 30px;
+}
+
+.construct_overview{
+    margin: 50px 0;
+}
+
+.fragment{
+    height: 5.25em;
+    float:left;
+    position: relative;
+}
+#overview .fragment.bk-fragment{
+    position:absolute;
+    left: -50px;
+    right: -50px;
+    width: auto;
+}
+
+.seq.bk-seq{
+    background-color: #C0C0C0;
+    z-index: 7;
+    /* Safari 4-5, Chrome 1-9 */
+    background: -webkit-gradient(linear, left top, right top, from(#FFFFFF),
+    color-stop(0.1, #C0C0C0), color-stop(0.9, #C0C0C0), to(#FFFFFF));
+    /* Safari 5.1+, Chrome
+     * 10+ */
+    background: -webkit-linear-gradient(left,
+    #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
+    /* Firefox 3.6+ */
+    background: -moz-linear-gradient(left,
+    #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
+    /* IE 10 */
+    background: -ms-linear-gradient(left,
+    #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
+    /* Opera 11.10+ */
+    background: -o-linear-gradient(left,
+    #FFFFFF, #C0C0C0 10%, #C0C0C0 90%, #FFFFFF);
+}
+.seq{
+    height: 1em;
+    position: relative;
+    z-index: 10;
+}
+.fragment .fwd_seq{
+    margin-top: 1.5em;
+    margin-bottom: 0.25em;
+}
+.fragment .rev_seq{
+    margin-top: 0.25em;
+    margin-bottom: 1.5em;
+}
+.fragment > .fname{
+    z-index: 1;
+    position: relative;
+    margin-top: 1.5em;
+    text-align: center;
+}
+
+/* primer
+ * */
+
+.primer{
+    position: absolute;
+    height: 4em;
+    width: 40%;
+    z-index: 5;
+}
+#overview > .fragment > .primer{
+    cursor: pointer;
+}
+.primer.sl{
+    background-color: #FBEC88;
+}
+.pmark{
+    position: absolute;
+    height: 1.5em;
+    left: 0;
+    right: 0;
+}
+.parrow {
+    border-style:solid;
+    border-width: 0 1em 1em 0;
+    width:0;
+    height:0;
+    position:absolute;
+}
+.pbody {
+    position:absolute;
+    height: 0.5em;
+    background-color: red;
+}
+.pbase {
+    position:absolute;
+    height: 0.5em;
+    background-color:red;
+    left:0;
+    right:0;
+}
+
+/* fwd-primer
+ * */
+
+.fwd-primer {
+    left: -20%;
+    top: -2em;
+}
+.fwd-primer.sl > .pmark,
+#overview > .fragment > .fwd-primer:hover > .pmark
+{
+    bottom: 0.5em;
+}
+.fwd-primer > .pmark{
+    bottom: 0;
+}
+.fwd-primer .parrow {
+    border-color: transparent transparent red transparent;
+    right:0;
+    bottom: 0.5em;
+}
+.fwd-primer .pbody {
+    left: 0;
+    right: 0.75em;
+    bottom:0.5em;
+}
+.fwd-primer .pbase {
+    bottom:0;
+}
+
+/* rev-primer */
+
+.fragment > .rev-primer {
+    right: -20%;
+    bottom: -2em;
+}
+.rev-primer.sl > .pmark,
+#overview > .fragment > .rev-primer:hover > .pmark
+{
+    top: 0.5em;
+}
+.rev-primer > .pmark{
+    top: 0;
+}
+.rev-primer .parrow {
+    border-color: transparent red transparent transparent;
+    left:0;
+    top: 0.5em;
+}
+.rev-primer .pbody {
+    right: 0;
+    left: 0.75em;
+    top:0.5em;
+}
+.rev-primer .pbase {
+    top:0;
+}
+
+/* Primer
+ * Warnings
+ * */
+
+.pwarn {
+    width: 1.5em;
+    border: 1px solid red;
+    left:50%;
+    margin-left:-0.75em;
+    position:absolute;
+    text-align:center;
+    background-color: white;
+}
+.pwarn:after {
+    content: "";
+    position: absolute;
+    width:0;
+    left:50%;
+    margin-left:-5px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    z-index: 1;
+}
+.pwarn:before {
+    content: "";
+    position: absolute;
+    width:0;
+    left:50%;
+    margin-left:-4px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    z-index:5;
+}
+.fwd-primer .pwarn {
+    top:0.5em;
+}
+.fwd-primer .pwarn:after {
+    top: 100%;
+    border-top: 5px solid black;
+    border-top-color: inherit;
+}
+.fwd-primer .pwarn:before {
+    top: 100%;
+    border-top: 4px solid black;
+    border-top-color: white;
+}
+.rev-primer .pwarn{
+    bottom:0.5em;
+}
+.rev-primer .pwarn:after {
+    bottom: 100%;
+    border-bottom: 5px solid black;
+    border-bottom-color: inherit;
+}
+.rev-primer .pwarn:before {
+    bottom: 100%;
+    border-bottom: 4px solid black;
+    border-bottom-color: white;
+}
+
+/* primer-view
+ * */
+.primer-view {
+        margin: 3em -15px;
+        position: relative;
+}
+.primer-view > .arrow {
+    position: absolute;
+    width:0;
+    left:50%;
+    margin-left:-10px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    z-index: 1;
+    bottom: 100%;
+    border-bottom: 10px solid black;
+    border-bottom-color: inherit;
+}
+.primer-view > .arrow > div {
+    position: absolute;
+    width:0;
+    left:-10px;
+    border: inherit;
+    z-index:5;
+    top:1px;
+    border-bottom-color: white;
+}
+.primer-edit
+{
+    padding: 1em;
+}
+.primer-warnings
+{
+    margin: 1em;
+}
+
+/*
+ * Rulers
+ */
+.prule
+{
+    position:absolute;
+    border-left: 1px solid rgb(150,150,150);
+    border-right: 1px solid rgb(150,150,150);
+    font-size: 0.8em;
+    color: rgb(150,150,150);
+    text-align: center;
+    height: 1.5em;
+}
+.prule-full
+{
+    left:0; right:0;
+}
+.fwd-primer > .prule-full
+{
+    bottom: 2em;
+}
+.fwd-primer > .prule-stick
+{
+    bottom: 3.75em;
+    right: 0;
+    left: 50%;
+}
+.rev-primer > .prule-full
+{
+    top: 2em;
+}
+.rev-primer > .prule-stick
+{
+    top: 3.75em;
+    left: 0;
+    right: 50%;
+}
+.prule > .line
+{
+    border-top: 1px solid rgb(150,150,150);
+    z-index: 1;
+    margin-top: -0.75em;
+}
+.prule > .text
+{
+    padding: 0 0.5em;
+    background-color: white;
+    display: inline;
+    z-index: 10;
+}
+
+/* join
+ * */
+.join
+{
+    position: relative;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    margin: 3em 40px;
+}
+.join .fragment
+{
+    width: 50%;
+}
+.seq.has_seq
+{
+    height: 1.4em;
+    color:white;
+    font: 1em monospace;
+}
+.join > .fragment > .rev-primer
+{
+    bottom:-2.4em;
+}
+.join .base
+{
+    width: 0.7em;
+    padding: 0.1em 0;
+    cursor: pointer;
+}
+.join .base:hover
+{
+    background-color: orange;
+}
+.join .base.sl
+{
+    background-color: darkorange;
+    color:black;
+    cursor: default;
+}
+#left_fragment .base
+{
+    float: right;
+}
+#right_fragment .base
+{
+    float: left;
+}
+#fragment_names
+{
+    margin: 1em 40px;
+}
+#left_name
+{
+    float: left;
+}
+#right_name
+{
+    float: right;
+}
+#saving
+{
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    text-align: center;
+    z-index: 100;
+}
+#saving > img
+{
+    margin-top: 5px;
+}
+#saving > h4
+{
+    padding: 0;
+}
